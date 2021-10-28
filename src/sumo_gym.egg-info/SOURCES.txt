@@ -1,0 +1,8 @@
+LICENSE
+README.md
+pyproject.toml
+setup.py
+src/sumo_gym.egg-info/PKG-INFO
+src/sumo_gym.egg-info/SOURCES.txt
+src/sumo_gym.egg-info/dependency_links.txt
+src/sumo_gym.egg-info/top_level.txt
