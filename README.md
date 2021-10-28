@@ -21,10 +21,7 @@ $ source env/bin/activate
 
 SUMO-gym aims to build an interface between SUMO and Reinforcement Learning. With this toolkit, you will be able to convert the data generated from SUMO simulator into RL training setting like OpenAI-gym. Remarkable features include:
 
-1. Auto-generate VRP data from SUMO:
-
-```shell
-# open SUMO, draw and save your network (.net.xml) and flow (flow.xml)
-# put your data into the /data folder and run 
-```
+1. Auto-generate VRP data from SUMO: `utils/net_xml_decoder.py`;
+2. OpenAI-gym like RL training environment;
+3. TBD (novel RL algorithm).
 
