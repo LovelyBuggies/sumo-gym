@@ -9,6 +9,9 @@
 /dist/
 /build
 
+# Data
+/data
+
 # Virtualenv
 /env
 /venv
