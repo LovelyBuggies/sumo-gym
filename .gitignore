@@ -15,6 +15,7 @@
 
 # Python egg metadata, regenerated from source files by setuptools.
 /*.egg-info
+/src/*.egg-info
 
 *.sublime-project
 *.sublime-workspace
