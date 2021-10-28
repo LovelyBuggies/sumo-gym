@@ -6,7 +6,6 @@ register(
     entry_point='sumo_gym.envs:VRPEnv',
 )
 
-
 register(
     id='CVRP-v0',
     entry_point='sumo_gym.envs:CVRPEnv',
