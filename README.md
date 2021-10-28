@@ -19,7 +19,7 @@ $ source env/bin/activate
 
 ## Features
 
-![](https://tva1.sinaimg.cn/large/008i3skNgy1gvvnprykh1j30yq0u0ace.jpg)
+![](./assets/workflow.png)
 
 SUMO-gym aims to build an interface between SUMO and Reinforcement Learning. With this toolkit, you will be able to convert the data generated from SUMO simulator into RL training setting like OpenAI-gym. Remarkable features include:
 
