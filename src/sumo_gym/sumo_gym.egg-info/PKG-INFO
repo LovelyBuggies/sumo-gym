@@ -1,0 +1,46 @@
+Metadata-Version: 2.1
+Name: sumo-gym
+Version: 0.0.1
+Summary: OpenAI-gym like toolkit for developing and comparing reinforcement learning algorithms on SUMO.
+Home-page: https://github.com/lovelybuggies/sumo-gym
+Author: Shuo Liu
+Author-email: ninomyemail@gmail.com
+License: UNKNOWN
+Project-URL: Bug Tracker, https://github.com/pypa/sampleproject/issues
+Platform: UNKNOWN
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.7
+Description-Content-Type: text/markdown
+License-File: LICENSE
+
+# sumo-gym
+
+OpenAI-gym like toolkit for developing and comparing reinforcement learning algorithms on SUMO.
+
+P.S. *Private until being a wheel (probably never)*.
+
+
+## Installation
+
+This software is under active development, it has not been published on PyPI, and some functions are still unstable. If you want to test and contribute to it, you can try this:
+
+```shell
+$ python3 -m venv env
+$ source env/bin/activate
+(venv)$ pip install -e .
+(venv)$ python -m ipykernel install --user --name sumo_gym
+(venv)$ pytest tests/*.py
+```
+
+## Features
+
+SUMO-gym aims to build an interface between SUMO and Reinforcement Learning. With this toolkit, you will be able to convert the data generated from SUMO simulator into RL training setting like OpenAI-gym. Remarkable features include:
+
+1. Auto-generate VRP data from SUMO: `utils/net_xml_decoder.py`;
+2. OpenAI-gym like RL training environment;
+3. TBD (novel RL algorithm).
+
+
+

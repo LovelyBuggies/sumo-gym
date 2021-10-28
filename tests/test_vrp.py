@@ -2,7 +2,7 @@ from typing import Tuple, Dict
 # import pytest
 import numpy as np
 import numpy.typing as npt
-from sumo_gym.envs.VRP import VRP, CVRP
+from sumo_gym.envs.vrp import VRP, CVRP
 
 def test_problem_setting():
     vertex_num: int = 5

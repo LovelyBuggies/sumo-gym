@@ -1,8 +1,12 @@
 import numpy as np
 import numpy.typing as npt
-from typing import Type, Tuple, Dict, Union, Any
+from typing import Type, Tuple, Dict, Any
+import gym
+from gym import error, spaces, utils
+from gym.utils import seeding
 
 
+#################VRP#################
 class VRP(object):
     def __init__(self, vertex_num, depot_num, edge_num, vehicle_num, vertices, demand, edges, departures):
         # number
@@ -40,6 +44,23 @@ class VRPState(VRP):
         self.action: Any = action
 
 
+class VRPEnv(gym.Env):
+    metadata = {'render.modes': ['human']}
+
+    def __init__(self):
+        pass
+
+    def step(self, action):
+        pass
+
+    def reset(self):
+        pass
+
+    def render(self, mode='human', close=False):
+        pass
+
+
+################CVRP#################
 class CVRP(VRP):
     def __init__(self, vertex_num, depot_num, edge_num, vehicle_num, vertices, demand, edges, departures, capacity):
         super(CVRP, self).__init__(vertex_num, depot_num, edge_num, vehicle_num, vertices, demand, edges, departures)
@@ -51,6 +72,7 @@ class CVRP(VRP):
                 f"Depots are {self.depots};\nDemand are {self.demand};\nEdges are {self.edges};\nDepartures are" + \
                 f" {self.departures};\nCapacity are {self.capacity}.\n"
 
+
 class CVRPState(VRPState):
     def __init__(self, id, vertex_num, depot_num, edge_num, vehicle_num, vertices, demand, edges, departures, capacity,
                  parent, locations, action, load):
@@ -60,3 +82,19 @@ class CVRPState(VRPState):
         )
         self.capacity: Dict[int, npt.NDArray[np.float64]] = capacity
         self.load: Dict[int, npt.NDArray[np.float64]] = load
+
+
+class CVRPEnv(gym.Env):
+    metadata = {'render.modes': ['human']}
+
+    def __init__(self):
+        pass
+
+    def step(self, action):
+        pass
+
+    def reset(self):
+        pass
+
+    def render(self, mode='human', close=False):
+        pass
