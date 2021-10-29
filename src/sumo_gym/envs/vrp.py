@@ -60,8 +60,8 @@ class VRPState(VRP):
 class VRPEnv(gym.Env):
     metadata = {'render.modes': ['human']}
 
-    def __init__(self, net_xml_path=None, flow_xml_path=None):
-        pass
+    def __init__(self, net_xml_file_path=None, flow_xml_file_path=None):
+        self.vrp = decoder_xml(net_xml_file_path)
 
     def step(self, action):
         pass
