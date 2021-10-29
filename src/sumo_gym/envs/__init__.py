@@ -1,4 +1,5 @@
-from sumo_gym.envs.vrp import VRP, VRPState, VRPEnv, CVRP, CVRPState, CVRPEnv
+from sumo_gym.envs.vrp import VRP, VRPState, VRPEnv
+from sumo_gym.envs.vrp import CVRP, CVRPState, CVRPEnv
 from typing import Tuple
 
 

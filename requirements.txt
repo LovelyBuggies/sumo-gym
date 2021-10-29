@@ -5,4 +5,5 @@ torchvision>=0.2.2
 flake8>=3.9.1
 matplotlib>=3.4.1
 pandas>=1.2.4
+gym>=0.21.0
 tensorboard-logger>=0.1.0

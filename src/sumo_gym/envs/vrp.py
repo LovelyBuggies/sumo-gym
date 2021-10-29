@@ -4,11 +4,22 @@ from typing import Type, Tuple, Dict, Any
 import gym
 from gym import error, spaces, utils
 from gym.utils import seeding
+from sumo_gym.utils.xml_converter import encode_xml, decoder_xml
 
 
-#################VRP#################
 class VRP(object):
     def __init__(self, vertex_num, depot_num, edge_num, vehicle_num, vertices, demand, edges, departures):
+        """
+        :param vertex_num:      the number of vertices
+        :param depot_num:       the number of depots
+        :param edge_num:        the number of edges
+        :param vehicle_num:     the number of vehicles
+        :param vertices:        the vertices
+        :param demand:          the demand of vertices
+        :param edges:           the edges
+        :param departures:      the departures of vehicles
+        Create a vehicle routing problem setting.
+        """
         # number
         self.vertex_num: int = vertex_num
         self.depot_num: int = depot_num
@@ -32,13 +43,15 @@ class VRP(object):
 
 
 class VRPState(VRP):
-    def __init__(self, id, vertex_num, depot_num, edge_num, vehicle_num, vertices, demand, edges, departures, parent,
-                 locations, action):
+    def __init__(self, id, parent, locations, action):
+        """
+        :param id:          The state id
+        :param parent:      The parent
+        :param locations:   The current locations of vehicles
+        :param action:      The action took in this state
+        A state keeps dynamic features of VRP during evolving.
+        """
         self.id: int = id
-        super(VRPState, self).__init__(
-            self, vertex_num, depot_num, edge_num, vehicle_num, vertices, demand, edges, departures
-        )
-
         self.parent: Type[VRPState] = parent
         self.locations: Dict[int, npt.NDArray[Tuple[np.float64]]] = locations
         self.action: Any = action
@@ -47,7 +60,7 @@ class VRPState(VRP):
 class VRPEnv(gym.Env):
     metadata = {'render.modes': ['human']}
 
-    def __init__(self):
+    def __init__(self, net_xml_path=None, flow_xml_path=None):
         pass
 
     def step(self, action):
@@ -60,9 +73,20 @@ class VRPEnv(gym.Env):
         pass
 
 
-################CVRP#################
 class CVRP(VRP):
     def __init__(self, vertex_num, depot_num, edge_num, vehicle_num, vertices, demand, edges, departures, capacity):
+        """
+        :param vertex_num:      the number of vertices
+        :param depot_num:       the number of depots
+        :param edge_num:        the number of edges
+        :param vehicle_num:     the number of vehicles
+        :param vertices:        the vertices
+        :param demand:          the demand of vertices
+        :param edges:           the edges
+        :param departures:      the departures of vehicles
+        :param capacity:        the capacity of vehicles
+        Create a vehicle routing problem setting with fixed capacity.
+                """
         super(CVRP, self).__init__(vertex_num, depot_num, edge_num, vehicle_num, vertices, demand, edges, departures)
         self.capacity: Dict[int, npt.NDArray[np.float64]] = capacity
 
@@ -73,14 +97,20 @@ class CVRP(VRP):
                 f" {self.departures};\nCapacity are {self.capacity}.\n"
 
 
-class CVRPState(VRPState):
-    def __init__(self, id, vertex_num, depot_num, edge_num, vehicle_num, vertices, demand, edges, departures, capacity,
-                 parent, locations, action, load):
-        super(VRPState, self).__init__(
-            self, id, vertex_num, depot_num, edge_num, vehicle_num, vertices, demand, edges, departures, parent,
-            locations, action
-        )
-        self.capacity: Dict[int, npt.NDArray[np.float64]] = capacity
+class CVRPState(CVRP):
+    def __init__(self, id, parent, locations, action, load):
+        """
+        :param id:          The state id
+        :param parent:      The parent
+        :param locations:   The current locations of vehicles
+        :param action:      The action took in this state
+        :param load:        The load of vehicles currently
+        A state keeps dynamic features of VRP during evolving.
+        """
+        self.id: int = id
+        self.parent: Type[VRPState] = parent
+        self.locations: Dict[int, npt.NDArray[Tuple[np.float64]]] = locations
+        self.action: Any = action
         self.load: Dict[int, npt.NDArray[np.float64]] = load
 
 
