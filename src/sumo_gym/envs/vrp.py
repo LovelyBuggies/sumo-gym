@@ -77,7 +77,7 @@ class VRPEnv(gym.Env):
     vrp = property(operator.attrgetter("_vrp"))
     action_space = property(operator.attrgetter("_action_space"))
     __isfrozen = False
-    
+
     def __init__(self, **kwargs):
         self._vrp = VRP(**kwargs)
         self._action_space: npt.NDArray[int] = np.arange(0, self._vrp.vertex_num)
@@ -85,7 +85,9 @@ class VRPEnv(gym.Env):
         self.seed()
         self.run = 0
         self.locations: npt.NDArray[Tuple[float]] = self._vrp.departures
-        self.action = self._action_space[np.random.randint(self._vrp.depot_num, self._vrp.vertex_num, size=1)[0]]
+        self.action: npt.NDArray[int] = np.asarray([self._action_space[i] for i in
+                                                    np.random.randint(self._vrp.depot_num, self._vrp.vertex_num,
+                                                                      size=self._vrp.vehicle_num)])
         self.reward = 0.
 
         self._freeze()
@@ -101,14 +103,17 @@ class VRPEnv(gym.Env):
     def reset(self):
         self.seed()
         self.run += 1
-        self.locations: npt.NDArray[Tuple[float]] = self._vrp.departures
-        self.action = self._action_space[np.random.randint(self._vrp.depot_num, self._vrp.vertex_num, size=1)[0]]
+        self.locations = self._vrp.departures
+        self.action = np.asarray([self._action_space[i] for i in
+                                  np.random.randint(self._vrp.depot_num, self._vrp.vertex_num,
+                                                    size=self._vrp.vehicle_num)])
         self.reward = 0.
 
     def step(self, action):
         pass
 
     def render(self, mode='human', close=False):
+        # todo: not neccessary
         pass
 
 
