@@ -12,4 +12,4 @@ def get_adj_list(vertice, edges) -> sumo_gym.typing.AdjListType:
     for e in edges:
         adj[e[0]].append(e[1])
 
-    return np.asarray(adj)
+    return np.asarray(adj, dtype=object)

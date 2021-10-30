@@ -30,9 +30,11 @@ class NetworkSpace(gym.spaces.Space):
             if self.fully_loaded[i]:
                 samples[i] = np.random.choice(self.depots)
             else:
+                # todo: need to bypass to search the demand
+                # currently, we are not bypassing, i.e., never go to the vertices that are not connected
                 destination = []
                 for v in self.adj_list[loc]:
-                    if self.demand[v] or v < len(self.depots): # if is depot or have demand
+                    if self.demand[v] or v in self.depots: # if is depot or have demand
                         destination.append(v)
 
                 if len(destination):
@@ -40,7 +42,7 @@ class NetworkSpace(gym.spaces.Space):
 
         # avoid crash
         for j, s in enumerate(samples):
-            if s in np.delete(samples, j) and s >= len(self.depots):
+            if s in np.delete(samples, j) and s not in self.depots:
                 samples[j] = self.locations[j]
 
         return samples.astype(int)
