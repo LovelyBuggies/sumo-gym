@@ -2,12 +2,15 @@ import operator
 import numpy as np
 import numpy.typing as npt
 from typing import Type, Tuple, Any
+import sumo_gym.typing
+
 import gym
 from gym import error, spaces, utils
 from gym.utils import seeding
 import sumo_gym
 import sumo_gym.utils.network_utils as network_utils
 import sumo_gym.spaces as spaces
+
 
 
 class VRP(object):
@@ -19,11 +22,11 @@ class VRP(object):
             depot_num: int = 0,
             edge_num: int = 0,
             vehicle_num: int = 0,
-            vertices: npt.NDArray[Tuple[float]] = None,
-            demand: npt.NDArray[float] = None,
-            edges: npt.NDArray[Tuple[int]] = None,
-            departures: npt.NDArray[int] = None,
-            capacity: npt.NDArray[float] = None,
+            vertices: sumo_gym.typing.VerticesType = None,
+            demand: sumo_gym.typing.DemandType = None,
+            edges: sumo_gym.typing.EdgeType = None,
+            departures: sumo_gym.typing.DeparturesType = None,
+            capacity: sumo_gym.typing.CapacityType = None,
     ):
         """
         :param vertex_num:      the number of vertices
@@ -77,7 +80,7 @@ class VRP(object):
         # todo: scale judgement
         return True
 
-    def get_adj_list(self) -> npt.NDArray[npt.NDArray[int]]:
+    def get_adj_list(self) -> sumo_gym.typing.AdjListType:
         return network_utils.get_adj_list(self.vertices, self.edges)
 
 class VRPEnv(gym.Env):
@@ -89,11 +92,11 @@ class VRPEnv(gym.Env):
         self._vrp = VRP(**kwargs)
         self.run = 0
 
-        self.locations: npt.NDArray[int] = self.vrp.departures
-        self.loading: npt.NDArray[Tuple[float]] = np.zeros(self.vrp.vehicle_num)
+        self.locations: sumo_gym.typing.LocationsType = self.vrp.departures
+        self.loading: sumo_gym.typing.LoadingType = np.zeros(self.vrp.vehicle_num)
         self.action_space: spaces.network.Network = spaces.network.Network(self.locations, self.vrp.get_adj_list())
-        self.actions: npt.NDArray[int] = self.action_space.sample()
-        self.rewards = np.zeros(self.vrp.vehicle_num)
+        self.actions: sumo_gym.typing.ActionsType = self.action_space.sample()
+        self.rewards: sumo_gym.typing.RewardsType = np.zeros(self.vrp.vehicle_num)
         self._freeze()
 
     def __setattr__(self, key, value):
@@ -106,15 +109,15 @@ class VRPEnv(gym.Env):
 
     def reset(self):
         self.run += 1
-        self.locations: npt.NDArray[int] = self.vrp.departures
-        self.loading: npt.NDArray[Tuple[float]] = np.zeros(self.vrp.vehicle_num)
-        self.action_space: spaces.network.Network = spaces.network.Network(self.locations, self.vrp.get_adj_list())
-        self.actions: npt.NDArray[int] = self.action_space.sample()
+        self.locations = self.vrp.departures
+        self.loading = np.zeros(self.vrp.vehicle_num)
+        self.action_space = spaces.network.Network(self.locations, self.vrp.get_adj_list())
+        self.actions = self.action_space.sample()
         self.rewards = np.zeros(self.vrp.vehicle_num)
 
     def step(self, actions):
-        # prev_location = self.locations
-        # prev_loading = self.loading
+        prev_location = self.locations
+        prev_loading = self.loading
         # vehicle_num = self.vrp.vehicle_num
         # self.locations = actions
         # # Todo: what if fully loaded
