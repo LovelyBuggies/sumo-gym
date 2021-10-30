@@ -30,7 +30,6 @@ import gym
 from sumo_gym.envs.vrp import VRP
 
 env = gym.make('VRP-v0', n_vertex, n_depot, n_edge, n_vehicle, vertices, demand=, edges=, departures, ...)
-
 for _ in range(n_episode):
     obs = env.reset()
     for t in range(n_timestamp):
