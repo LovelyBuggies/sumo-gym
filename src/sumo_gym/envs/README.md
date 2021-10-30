@@ -2,14 +2,15 @@
 
 ## VRP
 
-For simplicity, we assume depots are all-connected with any vertex.
+For simplicity, we assume vertices are all-connected.
 
-- State: `locations`, the current locations of the vehicles; `loading`, the current loading of the vehicles.
+- Observation: `locations`, the current locations of the vehicles; `loading`, the current loading of the vehicles.
   
-- Action: `action_space` is determined by the current locations according to the edges.
+- Action: `action_space` is determined by the current locations according to the adjacency list, as well as whether 
+it is fully loaded.
 
-- Transitions: 
+- Transitions: if at the depot, unload; else choose one  avaliable and profitable vertex to go.
 
-- Rewards: 
+- Rewards: with `5 * loading` rewards and manhattan distance discount.
 
 

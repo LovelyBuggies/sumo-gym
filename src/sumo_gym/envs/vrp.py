@@ -128,7 +128,6 @@ class VRPEnv(gym.Env):
         fully_loaded = np.asarray([False] * vehicle_num)
         for i in range(vehicle_num):
             capacity_remaining = self.vrp.capacity[i] - self.loading[i]
-            # print(capacity_remaining)
             location = int(self.locations[i])
             if location in self.vrp.depots:
                 fully_loaded[i] = False
@@ -138,10 +137,9 @@ class VRPEnv(gym.Env):
                 fully_loaded[i] = False if capacity_remaining > 0 else True
                 self.loading[i] += load_amount
                 self.vrp.demand[location] -= load_amount
-                self.rewards[i] += 20 * load_amount # todo: make rewards_rate more customized
+                self.rewards[i] += 5 * load_amount # todo: make rewards_rate more customized
                 self.rewards[i] -= sumo_gym.utils.calculate_dist(prev_location[i], location, self.vrp.vertices)
 
-        print(self.vrp.demand)
         self.action_space: spaces.network.NetworkSpace = spaces.network.NetworkSpace(
             self.locations,
             self.vrp.get_adj_list(),
@@ -154,15 +152,14 @@ class VRPEnv(gym.Env):
             "Loading": self.loading,
             "Locations": self.locations,
         }
-        reward, done, info = self.rewards, True, ""
+        reward, done = self.rewards, True
         for l in self.locations:
             if l not in self.vrp.depots:
                 done = False
                 break
 
         done &= all([True if d == 0 else False for d in self.vrp.demand])
-        print(done)
-        print("-----------")
-        print()
+        info = f"Action: {actions}; \nDemand: {self.vrp.demand.astype(int)}" \
+               + f"; \nReward: {self.rewards.astype(int)}.\n"
         return observation, reward, done, info
 
