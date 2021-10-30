@@ -4,11 +4,22 @@ from typing import Type, Tuple, Dict, Any
 import gym
 from gym import error, spaces, utils
 from gym.utils import seeding
-from sumo_gym.utils.xml_converter import encode_xml, decoder_xml
+import sumo_gym
+import operator
 
 
 class VRP(object):
-    def __init__(self, vertex_num, depot_num, edge_num, vehicle_num, vertices, demand, edges, departures):
+    def __init__(
+            self,
+            vertex_num: int = 0,
+            depot_num: int = 0,
+            edge_num: int = 0,
+            vehicle_num: int = 0,
+            vertices: Dict[int, npt.NDArray[Tuple[np.float64]]] = None,
+            demand: Dict[int, np.float64] = None,
+            edges: npt.NDArray[Tuple[int]] = None,
+            departures: Dict[int, int] = None,
+    ):
         """
         :param vertex_num:      the number of vertices
         :param depot_num:       the number of depots
@@ -28,7 +39,7 @@ class VRP(object):
 
         # network
         self.vertices: Dict[int, npt.NDArray[Tuple[np.float64]]] = vertices
-        self.depots: Dict[int, npt.NDArray[Tuple[np.float64]]] = {x: y for x, y in enumerate(list(vertices.values())[0:depot_num])}
+        self.depots: Dict[int, npt.NDArray[Tuple[np.float64]]] = {x: y for x, y in enumerate(list(vertices.values())[0:depot_num])} if vertices is not None else None
         self.demand: Dict[int, np.float64] = demand
         self.edges: npt.NDArray[Tuple[int]] = edges
 
@@ -42,39 +53,59 @@ class VRP(object):
                 f" {self.departures}.\n"
 
 
-class VRPState(VRP):
-    def __init__(self, id, parent, locations, action):
-        """
-        :param id:          The state id
-        :param parent:      The parent
-        :param locations:   The current locations of vehicles
-        :param action:      The action took in this state
-        A state keeps dynamic features of VRP during evolving.
-        """
-        self.id: int = id
-        self.parent: Type[VRPState] = parent
-        self.locations: Dict[int, npt.NDArray[Tuple[np.float64]]] = locations
-        self.action: Any = action
-
-
 class VRPEnv(gym.Env):
     metadata = {'render.modes': ['human']}
+    vrp = property(operator.attrgetter("_vrp"))
+    __isfrozen = False
+    def __init__(
+            self,
+            net_xml_file_path: str = None,
+            flow_xml_file_path: str = None,
+            **kwargs,
+    ):
+        if net_xml_file_path is not None and flow_xml_file_path is not None:
+            self._vrp = sumo_gym.utils.decoder_xml(net_xml_file_path)
+        else:
+            self._vrp = VRP(**kwargs)
 
-    def __init__(self, net_xml_file_path=None, flow_xml_file_path=None):
-        self.vrp = decoder_xml(net_xml_file_path)
+        self.run = 0
+        self.locations: Dict[int, npt.NDArray[Tuple[np.float64]]] = self._vrp.departures
+        self.action: Any = None
+        self._freeze()
+
+    def __setattr__(self, key, value):
+        if self.__isfrozen and not hasattr(self, key):
+            raise TypeError("Cannot add new attributes once instance %r is initialized" % self)
+        object.__setattr__(self, key, value)
+
+    def _freeze(self):
+        self.__isfrozen = True
 
     def step(self, action):
         pass
 
     def reset(self):
-        pass
+        self.run += 1
+        self.locations: Dict[int, npt.NDArray[Tuple[np.float64]]] = self._vrp.departures
+        self.action: Any = None
 
     def render(self, mode='human', close=False):
         pass
 
 
 class CVRP(VRP):
-    def __init__(self, vertex_num, depot_num, edge_num, vehicle_num, vertices, demand, edges, departures, capacity):
+    def __init__(
+            self,
+            vertex_num: int = 0,
+            depot_num: int = 0,
+            edge_num: int = 0,
+            vehicle_num: int = 0,
+            vertices: Dict[int, npt.NDArray[Tuple[np.float64]]] = None,
+            demand: Dict[int, np.float64] = None,
+            edges: npt.NDArray[Tuple[int]] = None,
+            departures: Dict[int, int] = None,
+            capacity: Dict[int, npt.NDArray[np.float64]] = None,
+    ):
         """
         :param vertex_num:      the number of vertices
         :param depot_num:       the number of depots
@@ -86,7 +117,7 @@ class CVRP(VRP):
         :param departures:      the departures of vehicles
         :param capacity:        the capacity of vehicles
         Create a vehicle routing problem setting with fixed capacity.
-                """
+        """
         super(CVRP, self).__init__(vertex_num, depot_num, edge_num, vehicle_num, vertices, demand, edges, departures)
         self.capacity: Dict[int, npt.NDArray[np.float64]] = capacity
 
@@ -95,23 +126,6 @@ class CVRP(VRP):
                 f" {self.edge_num} edges, and {self.vehicle_num} vehicles.\nVertices are {self.vertices};\n" + \
                 f"Depots are {self.depots};\nDemand are {self.demand};\nEdges are {self.edges};\nDepartures are" + \
                 f" {self.departures};\nCapacity are {self.capacity}.\n"
-
-
-class CVRPState(CVRP):
-    def __init__(self, id, parent, locations, action, load):
-        """
-        :param id:          The state id
-        :param parent:      The parent
-        :param locations:   The current locations of vehicles
-        :param action:      The action took in this state
-        :param load:        The load of vehicles currently
-        A state keeps dynamic features of VRP during evolving.
-        """
-        self.id: int = id
-        self.parent: Type[VRPState] = parent
-        self.locations: Dict[int, npt.NDArray[Tuple[np.float64]]] = locations
-        self.action: Any = action
-        self.load: Dict[int, npt.NDArray[np.float64]] = load
 
 
 class CVRPEnv(gym.Env):

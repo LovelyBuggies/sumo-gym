@@ -1,14 +1,12 @@
-from sumo_gym.envs.vrp import VRP, VRPState, VRPEnv
-from sumo_gym.envs.vrp import CVRP, CVRPState, CVRPEnv
+from sumo_gym.envs.vrp import VRP, VRPEnv
+from sumo_gym.envs.vrp import CVRP, CVRPEnv
 from typing import Tuple
 
 
 __all__ = (
     "VRP",
-    "VRPState",
     "VRPEnv",
     "CVRP",
-    "CVRPState",
     "CVRPEnv",
 )
 

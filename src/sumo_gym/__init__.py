@@ -1,5 +1,6 @@
 from gym.envs.registration import register
 import sumo_gym.envs
+import sumo_gym.utils
 
 register(
     id='VRP-v0',

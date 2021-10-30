@@ -3,8 +3,8 @@ from sumo_gym.envs.vrp import VRP, CVRP
 
 
 def encode_xml(file_path):
-    pass
+    return None
 
 def decoder_xml(file_path):
     # return a VRP object
-    pass
+    return None
