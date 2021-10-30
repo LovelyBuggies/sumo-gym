@@ -84,13 +84,14 @@ class VRPEnv(gym.Env):
 
     def __init__(self, **kwargs):
         self._vrp = VRP(**kwargs)
+        # Todo: action_space.sample
         self._action_space: npt.NDArray[int] = np.arange(0, self.vrp.vertex_num)
 
         self.seed()
         self.run = 0
         self.locations: npt.NDArray[Tuple[float]] = self.vrp.departures
         self.loading: npt.NDArray[Tuple[float]] = np.zeros(self.vrp.vehicle_num)
-        # todo: need to judge whether it's connected
+        # Todo: need to judge whether it's connected
         self.actions: npt.NDArray[int] = np.asarray([self._action_space[i] for i in
                                                      np.random.randint(self.vrp.depot_num, self.vrp.vertex_num,
                                                                        size=self.vrp.vehicle_num)])
@@ -120,7 +121,7 @@ class VRPEnv(gym.Env):
         prev_loading = self.loading
         vehicle_num = self.vrp.vehicle_num
         self.locations = actions
-        # todo: what if fully loaded
+        # Todo: what if fully loaded
         self.loading = np.asarray([
             self.loading[i] + \
             min(self.vrp.demand[self.locations[i]], self.vrp.capacity[i] - self.loading[i]) \
