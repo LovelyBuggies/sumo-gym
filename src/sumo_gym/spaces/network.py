@@ -25,18 +25,25 @@ class NetworkSpace(gym.spaces.Space):
         self.depots = depots
 
     def sample(self) -> npt.NDArray[int]:
-        samples = np.zeros((len(self.locations)))
+        samples = np.copy(self.locations)
         for i, loc in enumerate(self.locations):
             if self.fully_loaded[i]:
                 samples[i] = np.random.choice(self.depots)
             else:
                 destination = []
                 for v in self.adj_list[loc]:
-                    if self.demand[v]:
+                    if self.demand[v] or v < len(self.depots): # if is depot or have demand
                         destination.append(v)
-                samples[i] = np.random.choice(destination, 1)[0]
 
-        return samples
+                if len(destination):
+                    samples[i] = np.random.choice(destination, 1)[0]
+
+        # avoid crash
+        for j, s in enumerate(samples):
+            if s in np.delete(samples, j) and s >= len(self.depots):
+                samples[j] = self.locations[j]
+
+        return samples.astype(int)
 
 
         

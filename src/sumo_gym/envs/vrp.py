@@ -103,11 +103,11 @@ class VRPEnv(gym.Env):
         self.__isfrozen = True
 
     def reset(self):
-        self._reset()
+        return self._reset()
 
     def _reset(self):
         self.run += 1
-        self.locations: sumo_gym.typing.LocationsType = self.vrp.departures
+        self.locations: sumo_gym.typing.LocationsType = self.vrp.departures.astype(int)
         self.loading: sumo_gym.typing.LoadingType = np.zeros(self.vrp.vehicle_num)
         self.action_space: spaces.network.NetworkSpace = spaces.network.NetworkSpace(
             self.locations,
@@ -116,25 +116,39 @@ class VRPEnv(gym.Env):
             np.asarray([False] * self.vrp.vehicle_num),
             self.vrp.depots,
         )
-        self.actions: sumo_gym.typing.ActionsType = self.action_space.sample()
+        self.actions: sumo_gym.typing.ActionsType = None
         self.rewards: sumo_gym.typing.RewardsType = np.zeros(self.vrp.vehicle_num)
 
-    def step(self, actions):
-        prev_location = self.locations
-        vehicle_num = self.vrp.vehicle_num
-        self.locations = actions
-        for i in range(len(vehicle_num)):
-            capacity_remaining = self.vrp.capacity[i] - self.loading[i]
-            load_amount = min(self.vrp.demand[self.locations[i]], capacity_remaining)
-            self.loading[i] += load_amount
-            self.vrp.demand[self.locations[i]] -= load_amount
-            self.rewards[i] += 20 * load_amount # todo: make rewards_rate more customized
-            self.rewards[i] -= sumo_gym.utils.calculate_dist(prev_location[i], self.locations[i], self.vrp.vertices)
+        return {"Loading": self.loading, "Locations": self.locations,}
 
-        observation, reward, done, info = {
+    def step(self, actions):
+        vehicle_num = self.vrp.vehicle_num
+        prev_location = self.locations
+        self.locations = actions
+        fully_loaded = np.asarray([False] * vehicle_num)
+        for i in range(vehicle_num):
+            capacity_remaining = self.vrp.capacity[i] - self.loading[i]
+            location = int(self.locations[i])
+            load_amount = min(self.vrp.demand[location], capacity_remaining)
+            fully_loaded[i] = False if capacity_remaining > 0 else True
+            self.loading[i] += load_amount
+            self.vrp.demand[location] -= load_amount
+            self.rewards[i] += 20 * load_amount # todo: make rewards_rate more customized
+            self.rewards[i] -= sumo_gym.utils.calculate_dist(prev_location[i], location, self.vrp.vertices)
+
+        self.action_space: spaces.network.NetworkSpace = spaces.network.NetworkSpace(
+            self.locations,
+            self.vrp.get_adj_list(),
+            self.vrp.demand,
+            fully_loaded,
+            self.vrp.depots,
+        )
+
+        observation = {
             "Loading": self.loading,
             "Locations": self.locations,
-        }, self.rewards, True, ""
+        }
+        reward, done, info = self.rewards, True, ""
         for l in self.locations:
             if l not in self.vrp.depots:
                 done = False
