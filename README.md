@@ -2,6 +2,8 @@
 
 OpenAI-gym like toolkit for developing and comparing reinforcement learning algorithms on SUMO.
 
+![](./assets/workflow.png)
+
 
 ## Installation
 
@@ -17,13 +19,6 @@ $ source env/bin/activate
 
 ## Features
 
-![](./assets/workflow.png)
-
-SUMO-gym aims to build an interface between SUMO and Reinforcement Learning. With this toolkit, you will be able to convert the data generated from SUMO simulator into RL training setting like OpenAI-gym. Remarkable features include:
-
-1. Automatically import/export data from/to SUMO: `utils/xml_utils`;
-   
-2. OpenAI-gym like RL training environment, for example,
 
 ```python
 import gym
@@ -40,4 +35,12 @@ for _ in range(n_episode):
 env.close()
 ```
 
-P.S. *Be a wheel later*.
+SUMO-gym aims to build an interface between SUMO and Reinforcement Learning. With this toolkit, you will be able to convert the data generated from SUMO simulator into RL training setting like OpenAI-gym. 
+
+**Remarkable features include:**
+
+1. Powerful interface between SUMO simulator and OpenAI-gym liked RL training environment;
+   
+2. RL tranining models for some urban mobility problems (WIP).
+
+P.S. *Will be a wheel later*.
