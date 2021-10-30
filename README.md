@@ -42,7 +42,7 @@ env = gym.make('VRP-v0',
     departures=...,
 )
 
-for i_episode in range(n_episode):
+for _ in range(n_episode):
     observation = env.reset()
     for t in range(n_timestamp):
         # env.render()
