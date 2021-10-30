@@ -63,7 +63,7 @@ class VRP(object):
         # else:
         #     self.n_vertex, self.n_depot, self.n_edge, self.n_vehicle, \
         #     self.vertices, self.depots, self.demand, self.edges, self.departures \
-        #         = sumo_gym.utils.decoder_xml(net_xml_file_path)
+        #         = sumo_gym.utils.decode_xml(net_xml_file_path)
 
     def __repr__(self):
         return f"Vehicle routing problem with {self.n_vertex} vertices, {self.n_depot} depots," + \
