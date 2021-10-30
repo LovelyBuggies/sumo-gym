@@ -2,7 +2,6 @@ import gym
 import sumo_gym
 import numpy as np
 from sumo_gym.envs.vrp import VRP
-from sumo_gym.envs.vrp import CVRP
 
 vertex_num = 5
 depot_num = 1

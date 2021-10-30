@@ -3,7 +3,6 @@ from typing import Tuple, Dict
 import numpy as np
 import numpy.typing as npt
 from sumo_gym.envs.vrp import VRP
-from sumo_gym.envs.vrp import CVRP
 
 
 vertex_num = 5
@@ -21,4 +20,4 @@ def test_vrp_basics():
 
 
 def test_cvrp_basics():
-    assert CVRP(vertex_num, depot_num, edge_num, vehicle_num, vertices, demand, edges, departures, capacity)
+    assert VRP(vertex_num, depot_num, edge_num, vehicle_num, vertices, demand, edges, departures, capacity)

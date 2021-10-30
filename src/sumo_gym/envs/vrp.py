@@ -21,6 +21,7 @@ class VRP(object):
             demand: npt.NDArray[float] = None,
             edges: npt.NDArray[Tuple[int]] = None,
             departures: npt.NDArray[int] = None,
+            capacity: npt.NDArray[float] = None,
     ):
         """
         :param vertex_num:      the number of vertices
@@ -31,7 +32,8 @@ class VRP(object):
         :param demand:          the demand of vertices
         :param edges:           the edges
         :param departures:      the departures of vehicles
-        Create a vehicle routing problem setting.
+        :param capacity:        the capacity of vehicles
+        Create a vehicle routing problem setting (CVRP if capacity is activated).
         """
         if net_xml_file_path is None or flow_xml_file_path is None:
             # number
@@ -48,6 +50,7 @@ class VRP(object):
 
             # vehicles
             self.departures = departures
+            self.capacity = np.asarray([float('inf') for _ in range(vehicle_num)]) if capacity is None else capacity
 
             if not self.is_valid():
                 raise ValueError("VRP setting is not valid")
@@ -61,14 +64,15 @@ class VRP(object):
         return f"Vehicle routing problem with {self.vertex_num} vertices, {self.depot_num} depots," + \
                 f" {self.edge_num} edges, and {self.vehicle_num} vehicles.\nVertices are {self.vertices};\n" + \
                 f"Depots are {self.depots};\nDemand are {self.demand};\nEdges are {self.edges};\nDepartures are" + \
-                f" {self.departures}.\n"
+                f" {self.departures};\nCapacity are {self.capacity}.\n"
 
     def is_valid(self):
         if not self.vertex_num or not self.depot_num or not self.edge_num or not self.vehicle_num\
-                or self.vertices.any() == None or self.demand.any() == None \
-                or self.edges.any() == None or self.departures.any() == None:
+                or self.vertices.any() is None or self.demand.any() is None \
+                or self.edges.any() is None or self.departures.any() is None\
+                or self.capacity.any() is None:
             return False
-        # todo
+        # todo: scale judgement
         return True
 
 
@@ -80,14 +84,16 @@ class VRPEnv(gym.Env):
 
     def __init__(self, **kwargs):
         self._vrp = VRP(**kwargs)
-        self._action_space: npt.NDArray[int] = np.arange(0, self._vrp.vertex_num)
+        self._action_space: npt.NDArray[int] = np.arange(0, self.vrp.vertex_num)
 
         self.seed()
         self.run = 0
-        self.locations: npt.NDArray[Tuple[float]] = self._vrp.departures
-        self.action: npt.NDArray[int] = np.asarray([self._action_space[i] for i in
-                                                    np.random.randint(self._vrp.depot_num, self._vrp.vertex_num,
-                                                                      size=self._vrp.vehicle_num)])
+        self.locations: npt.NDArray[Tuple[float]] = self.vrp.departures
+        self.loading: npt.NDArray[Tuple[float]] = np.zeros(self.vrp.vehicle_num)
+        # todo: need to judge whether it's connected
+        self.actions: npt.NDArray[int] = np.asarray([self._action_space[i] for i in
+                                                     np.random.randint(self.vrp.depot_num, self.vrp.vertex_num,
+                                                                       size=self.vrp.vehicle_num)])
         self.reward = 0.
 
         self._freeze()
@@ -103,77 +109,27 @@ class VRPEnv(gym.Env):
     def reset(self):
         self.seed()
         self.run += 1
-        self.locations = self._vrp.departures
-        self.action = np.asarray([self._action_space[i] for i in
-                                  np.random.randint(self._vrp.depot_num, self._vrp.vertex_num,
-                                                    size=self._vrp.vehicle_num)])
+        self.locations = self.vrp.departures
+        self.actions = np.asarray([self._action_space[i] for i in
+                                   np.random.randint(self.vrp.depot_num, self.vrp.vertex_num,
+                                                     size=self.vrp.vehicle_num)])
         self.reward = 0.
 
-    def step(self, action):
-        pass
-
-    def render(self, mode='human', close=False):
-        # todo: not neccessary
-        pass
-
-
-class CVRP(VRP):
-    def __init__(
-            self,
-            vertex_num: int = 0,
-            depot_num: int = 0,
-            edge_num: int = 0,
-            vehicle_num: int = 0,
-            vertices: npt.NDArray[Tuple[float]] = None,
-            demand: npt.NDArray[float] = None,
-            edges: npt.NDArray[Tuple[int]] = None,
-            departures: npt.NDArray[int] = None,
-            capacity: npt.NDArray[float] = None,
-    ):
-        """
-        :param vertex_num:      the number of vertices
-        :param depot_num:       the number of depots
-        :param edge_num:        the number of edges
-        :param vehicle_num:     the number of vehicles
-        :param vertices:        the vertices
-        :param demand:          the demand of vertices
-        :param edges:           the edges
-        :param departures:      the departures of vehicles
-        :param capacity:        the capacity of vehicles
-        Create a vehicle routing problem setting with fixed capacity.
-        """
-        super(CVRP, self).__init__(vertex_num, depot_num, edge_num, vehicle_num, vertices, demand, edges, departures)
-        self.capacity = capacity
-
-
-    def __repr__(self):
-        return f"Capacitied vehicle routing problem with {self.vertex_num} vertices, {self.depot_num} depots," + \
-                f" {self.edge_num} edges, and {self.vehicle_num} vehicles.\nVertices are {self.vertices};\n" + \
-                f"Depots are {self.depots};\nDemand are {self.demand};\nEdges are {self.edges};\nDepartures are" + \
-                f" {self.departures};\nCapacity are {self.capacity}.\n"
-
-    def is_valid(self):
-        if not super(CVRP, self).is_valid():
-            return False
-
-        if self.capacity.any() == None:
-            return False
-
-        # todo
-        return True
-
-
-class CVRPEnv(gym.Env):
-    metadata = {'render.modes': ['human']}
-
-    def __init__(self):
-        pass
-
-    def step(self, action):
-        pass
-
-    def reset(self):
-        pass
+    def step(self, actions):
+        prev_location = self.locations
+        prev_loading = self.loading
+        vehicle_num = self.vrp.vehicle_num
+        self.locations = actions
+        # todo: what if fully loaded
+        self.loading = np.asarray([
+            self.loading[i] + \
+            min(self.vrp.demand[self.locations[i]], self.vrp.capacity[i] - self.loading[i]) \
+            for i in range(vehicle_num)
+        ])
+        # todo: make reward_rate more customized
+        self.reward += sum([20 * max(0, self.loading[i] - prev_loading[i]) \
+                            - sumo_gym.utils.calculate_dist(prev_location[i], locations[i])
+                            for i in range(vehicle_num)])
 
     def render(self, mode='human', close=False):
         pass
