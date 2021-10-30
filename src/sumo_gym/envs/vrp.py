@@ -1,11 +1,13 @@
+import operator
 import numpy as np
 import numpy.typing as npt
-from typing import Type, Tuple, Dict, Any
+from typing import Type, Tuple, Any
 import gym
 from gym import error, spaces, utils
 from gym.utils import seeding
 import sumo_gym
-import operator
+import sumo_gym.utils.network_utils as network_utils
+import sumo_gym.spaces as spaces
 
 
 class VRP(object):
@@ -52,7 +54,7 @@ class VRP(object):
             self.departures = departures
             self.capacity = np.asarray([float('inf') for _ in range(vehicle_num)]) if capacity is None else capacity
 
-            if not self.is_valid():
+            if not self._is_valid():
                 raise ValueError("VRP setting is not valid")
 
         # else:
@@ -66,7 +68,7 @@ class VRP(object):
                 f"Depots are {self.depots};\nDemand are {self.demand};\nEdges are {self.edges};\nDepartures are" + \
                 f" {self.departures};\nCapacity are {self.capacity}.\n"
 
-    def is_valid(self):
+    def _is_valid(self):
         if not self.vertex_num or not self.depot_num or not self.edge_num or not self.vehicle_num\
                 or self.vertices.any() is None or self.demand.any() is None \
                 or self.edges.any() is None or self.departures.any() is None\
@@ -75,28 +77,23 @@ class VRP(object):
         # todo: scale judgement
         return True
 
+    def get_adj_list(self) -> npt.NDArray[npt.NDArray[int]]:
+        return network_utils.get_adj_list(self.vertices, self.edges)
 
 class VRPEnv(gym.Env):
     metadata = {'render.modes': ['human']}
     vrp = property(operator.attrgetter("_vrp"))
-    action_space = property(operator.attrgetter("_action_space"))
     __isfrozen = False
 
     def __init__(self, **kwargs):
         self._vrp = VRP(**kwargs)
-        # Todo: action_space.sample
-        self._action_space: npt.NDArray[int] = np.arange(0, self.vrp.vertex_num)
-
-        self.seed()
         self.run = 0
-        self.locations: npt.NDArray[Tuple[float]] = self.vrp.departures
-        self.loading: npt.NDArray[Tuple[float]] = np.zeros(self.vrp.vehicle_num)
-        # Todo: need to judge whether it's connected
-        self.actions: npt.NDArray[int] = np.asarray([self._action_space[i] for i in
-                                                     np.random.randint(self.vrp.depot_num, self.vrp.vertex_num,
-                                                                       size=self.vrp.vehicle_num)])
-        self.reward = 0.
 
+        self.locations: npt.NDArray[int] = self.vrp.departures
+        self.loading: npt.NDArray[Tuple[float]] = np.zeros(self.vrp.vehicle_num)
+        self.action_space: spaces.network.Network = spaces.network.Network(self.locations, self.vrp.get_adj_list())
+        self.actions: npt.NDArray[int] = self.action_space.sample()
+        self.rewards = np.zeros(self.vrp.vehicle_num)
         self._freeze()
 
     def __setattr__(self, key, value):
@@ -108,29 +105,26 @@ class VRPEnv(gym.Env):
         self.__isfrozen = True
 
     def reset(self):
-        self.seed()
         self.run += 1
-        self.locations = self.vrp.departures
-        self.actions = np.asarray([self._action_space[i] for i in
-                                   np.random.randint(self.vrp.depot_num, self.vrp.vertex_num,
-                                                     size=self.vrp.vehicle_num)])
-        self.reward = 0.
+        self.locations: npt.NDArray[int] = self.vrp.departures
+        self.loading: npt.NDArray[Tuple[float]] = np.zeros(self.vrp.vehicle_num)
+        self.action_space: spaces.network.Network = spaces.network.Network(self.locations, self.vrp.get_adj_list())
+        self.actions: npt.NDArray[int] = self.action_space.sample()
+        self.rewards = np.zeros(self.vrp.vehicle_num)
 
     def step(self, actions):
-        prev_location = self.locations
-        prev_loading = self.loading
-        vehicle_num = self.vrp.vehicle_num
-        self.locations = actions
-        # Todo: what if fully loaded
-        self.loading = np.asarray([
-            self.loading[i] + \
-            min(self.vrp.demand[self.locations[i]], self.vrp.capacity[i] - self.loading[i]) \
-            for i in range(vehicle_num)
-        ])
-        # todo: make reward_rate more customized
-        self.reward += sum([20 * max(0, self.loading[i] - prev_loading[i]) \
-                            - sumo_gym.utils.calculate_dist(prev_location[i], locations[i])
-                            for i in range(vehicle_num)])
-
-    def render(self, mode='human', close=False):
+        # prev_location = self.locations
+        # prev_loading = self.loading
+        # vehicle_num = self.vrp.vehicle_num
+        # self.locations = actions
+        # # Todo: what if fully loaded
+        # self.loading = np.asarray([
+        #     self.loading[i] + \
+        #     min(self.vrp.demand[self.locations[i]], self.vrp.capacity[i] - self.loading[i]) \
+        #     for i in range(vehicle_num)
+        # ])
+        # # todo: make rewards_rate more customized
+        # self.rewards += [20 * max(0, self.loading[i] - prev_loading[i]) \
+        #                     - sumo_gym.utils.calculate_dist(prev_location[i], locations[i])
+        #                     for i in range(vehicle_num)]
         pass

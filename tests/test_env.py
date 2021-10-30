@@ -21,7 +21,6 @@ def test_env_init():
     with pytest.raises(ValueError):
         env = gym.make('VRP-v0')
         env.reset()
-        env.render()
         env.close()
 
     # init via variables
@@ -37,7 +36,6 @@ def test_env_init():
         departures=departures,
     )
     env.reset()
-    env.render()
     env.close()
 
     # init via files
