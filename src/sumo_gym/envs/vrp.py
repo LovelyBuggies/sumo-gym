@@ -18,10 +18,10 @@ class VRP(object):
             self,
             net_xml_file_path: str = None,
             flow_xml_file_path: str = None,
-            vertex_num: int = 0,
-            depot_num: int = 0,
-            edge_num: int = 0,
-            vehicle_num: int = 0,
+            n_vertex: int = 0,
+            n_depot: int = 0,
+            n_edge: int = 0,
+            n_vehicle: int = 0,
             vertices: sumo_gym.typing.VerticesType = None,
             demand: sumo_gym.typing.DemandType = None,
             edges: sumo_gym.typing.EdgeType = None,
@@ -29,10 +29,10 @@ class VRP(object):
             capacity: sumo_gym.typing.CapacityType = None,
     ):
         """
-        :param vertex_num:      the number of vertices
-        :param depot_num:       the number of depots
-        :param edge_num:        the number of edges
-        :param vehicle_num:     the number of vehicles
+        :param n_vertex:      the number of vertices
+        :param n_depot:       the number of depots
+        :param n_edge:        the number of edges
+        :param n_vehicle:     the number of vehicles
         :param vertices:        the vertices
         :param demand:          the demand of vertices
         :param edges:           the edges
@@ -42,37 +42,37 @@ class VRP(object):
         """
         if net_xml_file_path is None or flow_xml_file_path is None:
             # number
-            self.vertex_num = vertex_num
-            self.depot_num = depot_num
-            self.edge_num = edge_num
-            self.vehicle_num = vehicle_num
+            self.n_vertex = n_vertex
+            self.n_depot = n_depot
+            self.n_edge = n_edge
+            self.n_vehicle = n_vehicle
 
             # network
             self.vertices = vertices
-            self.depots = np.asarray(range(depot_num)).astype(np.int32)
+            self.depots = np.asarray(range(n_depot)).astype(np.int32)
             self.demand = demand
             self.edges = edges
 
             # vehicles
             self.departures = departures
-            self.capacity = np.asarray([float('inf') for _ in range(vehicle_num)]) if capacity is None else capacity
+            self.capacity = np.asarray([float('inf') for _ in range(n_vehicle)]) if capacity is None else capacity
 
             if not self._is_valid():
                 raise ValueError("VRP setting is not valid")
 
         # else:
-        #     self.vertex_num, self.depot_num, self.edge_num, self.vehicle_num, \
+        #     self.n_vertex, self.n_depot, self.n_edge, self.n_vehicle, \
         #     self.vertices, self.depots, self.demand, self.edges, self.departures \
         #         = sumo_gym.utils.decoder_xml(net_xml_file_path)
 
     def __repr__(self):
-        return f"Vehicle routing problem with {self.vertex_num} vertices, {self.depot_num} depots," + \
-                f" {self.edge_num} edges, and {self.vehicle_num} vehicles.\nVertices are {self.vertices};\n" + \
+        return f"Vehicle routing problem with {self.n_vertex} vertices, {self.n_depot} depots," + \
+                f" {self.n_edge} edges, and {self.n_vehicle} vehicles.\nVertices are {self.vertices};\n" + \
                 f"Depots are {self.depots};\nDemand are {self.demand};\nEdges are {self.edges};\nDepartures are" + \
                 f" {self.departures};\nCapacity are {self.capacity}.\n"
 
     def _is_valid(self):
-        if not self.vertex_num or not self.depot_num or not self.edge_num or not self.vehicle_num\
+        if not self.n_vertex or not self.n_depot or not self.n_edge or not self.n_vehicle\
                 or self.vertices.any() is None or self.demand.any() is None \
                 or self.edges.any() is None or self.departures.any() is None\
                 or self.capacity.any() is None:
@@ -108,25 +108,25 @@ class VRPEnv(gym.Env):
     def _reset(self):
         self.run += 1
         self.locations: sumo_gym.typing.LocationsType = self.vrp.departures.astype(int)
-        self.loading: sumo_gym.typing.LoadingType = np.zeros(self.vrp.vehicle_num)
+        self.loading: sumo_gym.typing.LoadingType = np.zeros(self.vrp.n_vehicle)
         self.action_space: spaces.network.NetworkSpace = spaces.network.NetworkSpace(
             self.locations,
             self.vrp.get_adj_list(),
             self.vrp.demand,
-            np.asarray([False] * self.vrp.vehicle_num),
+            np.asarray([False] * self.vrp.n_vehicle),
             self.vrp.depots,
         )
         self.actions: sumo_gym.typing.ActionsType = None
-        self.rewards: sumo_gym.typing.RewardsType = np.zeros(self.vrp.vehicle_num)
+        self.rewards: sumo_gym.typing.RewardsType = np.zeros(self.vrp.n_vehicle)
 
         return {"Loading": self.loading, "Locations": self.locations,}
 
     def step(self, actions):
-        vehicle_num = self.vrp.vehicle_num
+        n_vehicle = self.vrp.n_vehicle
         prev_location = self.locations
         self.locations = actions
-        fully_loaded = np.asarray([False] * vehicle_num)
-        for i in range(vehicle_num):
+        fully_loaded = np.asarray([False] * n_vehicle)
+        for i in range(n_vehicle):
             capacity_remaining = self.vrp.capacity[i] - self.loading[i]
             location = int(self.locations[i])
             if location in self.vrp.depots:
