@@ -2,7 +2,7 @@
 
 OpenAI-gym like toolkit for developing and comparing reinforcement learning algorithms on SUMO.
 
-P.S. *Will a wheel later*.
+P.S. *Be a wheel later*.
 
 
 ## Installation
