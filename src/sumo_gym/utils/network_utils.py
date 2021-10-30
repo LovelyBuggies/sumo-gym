@@ -3,7 +3,8 @@ import numpy.typing as npt
 from typing import Dict
 import sumo_gym.typing
 
-def calculate_dist(l1, l2) -> float:
+def calculate_dist(i, j, vertices) -> float:
+    l1, l2 = vertices[i], vertices[j]
     return np.sqrt( np.power(l1[0] - l2[0], 2) + np.power(l1[1] - l2[1], 2) )
 
 def get_adj_list(vertice, edges) -> sumo_gym.typing.AdjListType:

@@ -1,6 +1,6 @@
 from gym.envs.registration import register
 from sumo_gym.envs.vrp import VRP, VRPEnv
-from sumo_gym.spaces.network import Network
+from sumo_gym.spaces.network import NetworkSpace
 from sumo_gym.utils.xml_utils import encode_xml, decoder_xml
 from sumo_gym.utils.network_utils import calculate_dist, get_adj_list
 from typing import Tuple
@@ -9,7 +9,7 @@ from typing import Tuple
 __all__ = (
     "VRP",
     "VRPEnv",
-    "Network",
+    "NetworkSpace",
     "encode_xml",
     "decoder_xml",
     "calculate_dist",

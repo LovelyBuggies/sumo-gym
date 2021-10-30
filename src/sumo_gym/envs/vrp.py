@@ -49,7 +49,7 @@ class VRP(object):
 
             # network
             self.vertices = vertices
-            self.depots = vertices[0:depot_num] if vertices is not None else None
+            self.depots = np.asarray(range(depot_num)).astype(np.int32)
             self.demand = demand
             self.edges = edges
 
@@ -89,14 +89,9 @@ class VRPEnv(gym.Env):
     __isfrozen = False
 
     def __init__(self, **kwargs):
-        self._vrp = VRP(**kwargs)
-        self.run = 0
-
-        self.locations: sumo_gym.typing.LocationsType = self.vrp.departures
-        self.loading: sumo_gym.typing.LoadingType = np.zeros(self.vrp.vehicle_num)
-        self.action_space: spaces.network.Network = spaces.network.Network(self.locations, self.vrp.get_adj_list())
-        self.actions: sumo_gym.typing.ActionsType = self.action_space.sample()
-        self.rewards: sumo_gym.typing.RewardsType = np.zeros(self.vrp.vehicle_num)
+        self._vrp = VRP(**kwargs) # todo: make it "final"
+        self.run = -1
+        self._reset()
         self._freeze()
 
     def __setattr__(self, key, value):
@@ -108,26 +103,43 @@ class VRPEnv(gym.Env):
         self.__isfrozen = True
 
     def reset(self):
+        self._reset()
+
+    def _reset(self):
         self.run += 1
-        self.locations = self.vrp.departures
-        self.loading = np.zeros(self.vrp.vehicle_num)
-        self.action_space = spaces.network.Network(self.locations, self.vrp.get_adj_list())
-        self.actions = self.action_space.sample()
-        self.rewards = np.zeros(self.vrp.vehicle_num)
+        self.locations: sumo_gym.typing.LocationsType = self.vrp.departures
+        self.loading: sumo_gym.typing.LoadingType = np.zeros(self.vrp.vehicle_num)
+        self.action_space: spaces.network.NetworkSpace = spaces.network.NetworkSpace(
+            self.locations,
+            self.vrp.get_adj_list(),
+            self.vrp.demand,
+            np.asarray([False] * self.vrp.vehicle_num),
+            self.vrp.depots,
+        )
+        self.actions: sumo_gym.typing.ActionsType = self.action_space.sample()
+        self.rewards: sumo_gym.typing.RewardsType = np.zeros(self.vrp.vehicle_num)
 
     def step(self, actions):
         prev_location = self.locations
-        prev_loading = self.loading
-        # vehicle_num = self.vrp.vehicle_num
-        # self.locations = actions
-        # # Todo: what if fully loaded
-        # self.loading = np.asarray([
-        #     self.loading[i] + \
-        #     min(self.vrp.demand[self.locations[i]], self.vrp.capacity[i] - self.loading[i]) \
-        #     for i in range(vehicle_num)
-        # ])
-        # # todo: make rewards_rate more customized
-        # self.rewards += [20 * max(0, self.loading[i] - prev_loading[i]) \
-        #                     - sumo_gym.utils.calculate_dist(prev_location[i], locations[i])
-        #                     for i in range(vehicle_num)]
-        pass
+        vehicle_num = self.vrp.vehicle_num
+        self.locations = actions
+        for i in range(len(vehicle_num)):
+            capacity_remaining = self.vrp.capacity[i] - self.loading[i]
+            load_amount = min(self.vrp.demand[self.locations[i]], capacity_remaining)
+            self.loading[i] += load_amount
+            self.vrp.demand[self.locations[i]] -= load_amount
+            self.rewards[i] += 20 * load_amount # todo: make rewards_rate more customized
+            self.rewards[i] -= sumo_gym.utils.calculate_dist(prev_location[i], self.locations[i], self.vrp.vertices)
+
+        observation, reward, done, info = {
+            "Loading": self.loading,
+            "Locations": self.locations,
+        }, self.rewards, True, ""
+        for l in self.locations:
+            if l not in self.vrp.depots:
+                done = False
+                break
+
+        done = all(self.vrp.demand) == 0 and done
+        return observation, reward, done, info
+

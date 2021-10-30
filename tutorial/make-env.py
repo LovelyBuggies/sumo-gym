@@ -5,7 +5,7 @@ from sumo_gym.envs.vrp import VRP
 
 vertex_num = 5
 depot_num = 1
-edge_num = 5
+edge_num = 7
 vehicle_num = 3
 vertices = np.asarray([(0., 0.), (1., 0.), (2., 1.), (3., 2.), (1., 4.)])
 demand = np.ones(vertex_num) * 10.
@@ -24,4 +24,4 @@ env = gym.make('VRP-v0',
     edges=edges,
     departures=departures,
 )
-print(env.vrp)
+

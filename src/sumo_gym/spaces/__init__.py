@@ -1,5 +1,5 @@
 from typing import Tuple
-from sumo_gym.spaces.network import Network
+from sumo_gym.spaces.network import NetworkSpace
 
 __all__ = (
     "Network",
