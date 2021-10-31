@@ -1,7 +1,7 @@
 import operator
 import numpy as np
 import numpy.typing as npt
-from typing import Type, Tuple, Any
+from typing import Type, Tuple, Dict, Any
 import sumo_gym.typing
 
 import gym
@@ -162,4 +162,14 @@ class VRPEnv(gym.Env):
         info = f"Action: {actions}; \nDemand: {self.vrp.demand.astype(int)}" \
                + f"; \nReward: {self.rewards.astype(int)}.\n"
         return observation, reward, done, info
+
+    def plot(
+        self,
+        *,
+        ax_dict = None,
+        **kwargs: Any,
+    ) -> Any:
+        import sumo_gym.plot
+        return sumo_gym.plot.plot_VRPEnv(self, ax_dict=ax_dict, **kwargs)
+
 
