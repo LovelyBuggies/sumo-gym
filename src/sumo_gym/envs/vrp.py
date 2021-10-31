@@ -67,6 +67,8 @@ class VRP(object):
 
         else:
             self.n_depot = 1 # default value
+
+            # read in the sumo xml files and parse them into VRP initial problem settings
             self.vertices, self.edges, self.departures = sumo_gym.utils.decode_xml(net_xml_file_path, demand_xml_file_path)
             self.n_vertex, _ = self.vertices.shape
             self.n_edge, _ = self.edges.shape
