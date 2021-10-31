@@ -12,5 +12,4 @@ To run the notebook for a visualized version of sumo network:
 $ export SUMO_HOME="<YOUR_PATH_TO_SUMO>/sumo"
 ```
 
-3. run ##simulation.ipynb##
-
+3. run **simulation.ipynb**
