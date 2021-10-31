@@ -14,6 +14,7 @@ except ModuleNotFoundError:
     )
     raise
 
+
 def _expand_shortcuts(key: str) -> str:
     if key == "ls":
         return "linestyle"
@@ -21,7 +22,7 @@ def _expand_shortcuts(key: str) -> str:
 
 
 def _filter_dict(
-        __dict: Dict[str, Any], prefix: str, *, ignore: Union[Set[str], None] = None
+    __dict: Dict[str, Any], prefix: str, *, ignore: Union[Set[str], None] = None
 ) -> Dict[str, Any]:
     """
     Keyword argument conversion: convert the kwargs to several independent args, pulling
@@ -39,6 +40,7 @@ def _filter_dict(
         for key in list(__dict)
         if key.startswith(prefix) and key not in ignore_set
     }
+
 
 def plot_VRP(self: envs.vrp.VRP, *, ax: matplotlib.axes.Axes, **kwargs) -> Any:
     x, y = list(), list()
@@ -58,16 +60,22 @@ def plot_VRP(self: envs.vrp.VRP, *, ax: matplotlib.axes.Axes, **kwargs) -> Any:
 
     # avoid alpha=0 when no demand
     if max(self.demand) == 0:
-        alpha = np.ones(self.demand.shape) * .6
+        alpha = np.ones(self.demand.shape) * 0.6
     else:
-        alpha = self.demand / max(self.demand) * .4 + np.ones(self.demand.shape) * .6
+        alpha = self.demand / max(self.demand) * 0.4 + np.ones(self.demand.shape) * 0.6
 
     for e in self.edges:
         l1, l2 = self.vertices[e[0]], self.vertices[e[1]]
         ax.plot([l1[0], l2[0]], [l1[1], l2[1]], **edge_kwargs)
 
-    ax.scatter(x[:self.n_depot], y[:self.n_depot], alpha=1, **depot_kwargs)
-    return ax.scatter(x[self.n_depot:], y[self.n_depot:], alpha=alpha[self.n_depot:], **vertex_kwargs)
+    ax.scatter(x[: self.n_depot], y[: self.n_depot], alpha=1, **depot_kwargs)
+    return ax.scatter(
+        x[self.n_depot :],
+        y[self.n_depot :],
+        alpha=alpha[self.n_depot :],
+        **vertex_kwargs,
+    )
+
 
 def plot_VRPEnv(
     self: envs.vrp.VRPEnv,
@@ -106,14 +114,21 @@ def plot_VRPEnv(
     x = [self.vrp.vertices[l][0] for l in self.locations]
     y = [self.vrp.vertices[l][1] for l in self.locations]
     vrp_ax.scatter(x, y, alpha=1, **location_kwargs)
-    demand_art = demand_ax.bar(np.arange(self.vrp.n_vertex), self.vrp.demand, **demand_kwargs)
+    demand_art = demand_ax.bar(
+        np.arange(self.vrp.n_vertex), self.vrp.demand, **demand_kwargs
+    )
     demand_ax.spines["top"].set_visible(False)
     demand_ax.spines["right"].set_visible(False)
     demand_ax.xaxis.set_visible(False)
     demand_ax.set_ylabel("Demand")
     base = loading_ax.transData
     rot = transforms.Affine2D().rotate_deg(90).scale(-1, 1)
-    loading_art = loading_ax.bar(np.arange(self.vrp.n_vehicle), self.loading, transform=rot + base, **loading_kwargs)
+    loading_art = loading_ax.bar(
+        np.arange(self.vrp.n_vehicle),
+        self.loading,
+        transform=rot + base,
+        **loading_kwargs,
+    )
     loading_ax.spines["top"].set_visible(False)
     loading_ax.spines["right"].set_visible(False)
     loading_ax.yaxis.set_visible(False)

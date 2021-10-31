@@ -12,21 +12,20 @@ import sumo_gym.utils.network_utils as network_utils
 import sumo_gym.spaces as spaces
 
 
-
 class VRP(object):
     def __init__(
-            self,
-            net_xml_file_path: str = None,
-            flow_xml_file_path: str = None,
-            n_vertex: int = 0,
-            n_depot: int = 0,
-            n_edge: int = 0,
-            n_vehicle: int = 0,
-            vertices: sumo_gym.typing.VerticesType = None,
-            demand: sumo_gym.typing.DemandType = None,
-            edges: sumo_gym.typing.EdgeType = None,
-            departures: sumo_gym.typing.DeparturesType = None,
-            capacity: sumo_gym.typing.CapacityType = None,
+        self,
+        net_xml_file_path: str = None,
+        flow_xml_file_path: str = None,
+        n_vertex: int = 0,
+        n_depot: int = 0,
+        n_edge: int = 0,
+        n_vehicle: int = 0,
+        vertices: sumo_gym.typing.VerticesType = None,
+        demand: sumo_gym.typing.DemandType = None,
+        edges: sumo_gym.typing.EdgeType = None,
+        departures: sumo_gym.typing.DeparturesType = None,
+        capacity: sumo_gym.typing.CapacityType = None,
     ):
         """
         :param n_vertex:      the number of vertices
@@ -55,7 +54,11 @@ class VRP(object):
 
             # vehicles
             self.departures = departures
-            self.capacity = np.asarray([float('inf') for _ in range(n_vehicle)]) if capacity is None else capacity
+            self.capacity = (
+                np.asarray([float("inf") for _ in range(n_vehicle)])
+                if capacity is None
+                else capacity
+            )
 
             if not self._is_valid():
                 raise ValueError("VRP setting is not valid")
@@ -66,16 +69,25 @@ class VRP(object):
         #         = sumo_gym.utils.decode_xml(net_xml_file_path)
 
     def __repr__(self):
-        return f"Vehicle routing problem with {self.n_vertex} vertices, {self.n_depot} depots," + \
-                f" {self.n_edge} edges, and {self.n_vehicle} vehicles.\nVertices are {self.vertices};\n" + \
-                f"Depots are {self.depots};\nDemand are {self.demand};\nEdges are {self.edges};\nDepartures are" + \
-                f" {self.departures};\nCapacity are {self.capacity}.\n"
+        return (
+            f"Vehicle routing problem with {self.n_vertex} vertices, {self.n_depot} depots,"
+            + f" {self.n_edge} edges, and {self.n_vehicle} vehicles.\nVertices are {self.vertices};\n"
+            + f"Depots are {self.depots};\nDemand are {self.demand};\nEdges are {self.edges};\nDepartures are"
+            + f" {self.departures};\nCapacity are {self.capacity}.\n"
+        )
 
     def _is_valid(self):
-        if not self.n_vertex or not self.n_depot or not self.n_edge or not self.n_vehicle\
-                or self.vertices.any() is None or self.demand.any() is None \
-                or self.edges.any() is None or self.departures.any() is None\
-                or self.capacity.any() is None:
+        if (
+            not self.n_vertex
+            or not self.n_depot
+            or not self.n_edge
+            or not self.n_vehicle
+            or self.vertices.any() is None
+            or self.demand.any() is None
+            or self.edges.any() is None
+            or self.departures.any() is None
+            or self.capacity.any() is None
+        ):
             return False
         # todo: scale judgement
         return True
@@ -83,20 +95,23 @@ class VRP(object):
     def get_adj_list(self) -> sumo_gym.typing.AdjListType:
         return network_utils.get_adj_list(self.vertices, self.edges)
 
+
 class VRPEnv(gym.Env):
-    metadata = {'render.modes': ['human']}
+    metadata = {"render.modes": ["human"]}
     vrp = property(operator.attrgetter("_vrp"))
     __isfrozen = False
 
     def __init__(self, **kwargs):
-        self._vrp = VRP(**kwargs) # todo: make it "final"
+        self._vrp = VRP(**kwargs)  # todo: make it "final"
         self.run = -1
         self._reset()
         self._freeze()
 
     def __setattr__(self, key, value):
         if self.__isfrozen and not hasattr(self, key):
-            raise TypeError("Cannot add new attributes once instance %r is initialized" % self)
+            raise TypeError(
+                "Cannot add new attributes once instance %r is initialized" % self
+            )
         object.__setattr__(self, key, value)
 
     def _freeze(self):
@@ -119,7 +134,10 @@ class VRPEnv(gym.Env):
         self.actions: sumo_gym.typing.ActionsType = None
         self.rewards: sumo_gym.typing.RewardsType = np.zeros(self.vrp.n_vehicle)
 
-        return {"Loading": self.loading, "Locations": self.locations,}
+        return {
+            "Loading": self.loading,
+            "Locations": self.locations,
+        }
 
     def step(self, actions):
         n_vehicle = self.vrp.n_vehicle
@@ -137,8 +155,12 @@ class VRPEnv(gym.Env):
                 fully_loaded[i] = False if capacity_remaining > 0 else True
                 self.loading[i] += load_amount
                 self.vrp.demand[location] -= load_amount
-                self.rewards[i] += 5 * load_amount # todo: make rewards_rate more customized
-                self.rewards[i] -= sumo_gym.utils.calculate_dist(prev_location[i], location, self.vrp.vertices)
+                self.rewards[i] += (
+                    5 * load_amount
+                )  # todo: make rewards_rate more customized
+                self.rewards[i] -= sumo_gym.utils.calculate_dist(
+                    prev_location[i], location, self.vrp.vertices
+                )
 
         self.action_space: spaces.network.NetworkSpace = spaces.network.NetworkSpace(
             self.locations,
@@ -159,17 +181,18 @@ class VRPEnv(gym.Env):
                 break
 
         done &= all([True if d == 0 else False for d in self.vrp.demand])
-        info = f"Action: {actions}; \nDemand: {self.vrp.demand.astype(int)}" \
-               + f"; \nReward: {self.rewards.astype(int)}.\n"
+        info = (
+            f"Action: {actions}; \nDemand: {self.vrp.demand.astype(int)}"
+            + f"; \nReward: {self.rewards.astype(int)}.\n"
+        )
         return observation, reward, done, info
 
     def plot(
         self,
         *,
-        ax_dict = None,
+        ax_dict=None,
         **kwargs: Any,
     ) -> Any:
         import sumo_gym.plot
+
         return sumo_gym.plot.plot_VRPEnv(self, ax_dict=ax_dict, **kwargs)
-
-

@@ -3,15 +3,18 @@ import setuptools
 with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
-extras_require = {"plot": [
-    "matplotlib >=3.0",
-    "scipy >=1.4",
-    "iminuit >=2",
-    "mplhep >=0.2.16",
-], "test": [
-    "pytest >=6",
-    "pytest-mpl >=0.12",
-]}
+extras_require = {
+    "plot": [
+        "matplotlib >=3.0",
+        "scipy >=1.4",
+        "iminuit >=2",
+        "mplhep >=0.2.16",
+    ],
+    "test": [
+        "pytest >=6",
+        "pytest-mpl >=0.12",
+    ],
+}
 
 extras_require["dev"] = [*extras_require["test"], *extras_require["plot"], "ipykernel"]
 
@@ -43,6 +46,6 @@ setuptools.setup(
     package_dir={"": "src"},
     packages=setuptools.find_packages(where="src"),
     python_requires=">=3.7",
-    install_requires=['gym'],
+    install_requires=["gym"],
     extras_require=extras_require,
 )

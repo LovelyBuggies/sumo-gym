@@ -18,15 +18,17 @@ __all__ = (
     "vehicle_marker",
 )
 
+
 def __dir__() -> Tuple[str, ...]:
     return __all__
 
+
 register(
-    id='VRP-v0',
-    entry_point='sumo_gym.envs:VRPEnv',
+    id="VRP-v0",
+    entry_point="sumo_gym.envs:VRPEnv",
 )
 
 register(
-    id='CVRP-v0',
-    entry_point='sumo_gym.envs:CVRPEnv',
+    id="CVRP-v0",
+    entry_point="sumo_gym.envs:CVRPEnv",
 )
