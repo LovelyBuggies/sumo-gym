@@ -1,5 +1,6 @@
 import operator
 import numpy as np
+import random
 import numpy.typing as npt
 from typing import Type, Tuple, Dict, Any
 import sumo_gym.typing
@@ -10,6 +11,7 @@ from gym.utils import seeding
 import sumo_gym
 import sumo_gym.utils.network_utils as network_utils
 import sumo_gym.spaces as spaces
+from sumo_gym.utils.svg_uitls import vehicle_marker
 
 
 class VRP(object):
@@ -196,3 +198,24 @@ class VRPEnv(gym.Env):
         import sumo_gym.plot
 
         return sumo_gym.plot.plot_VRPEnv(self, ax_dict=ax_dict, **kwargs)
+
+    def render(self, mode="human"):
+        get_colors = lambda n: list(
+            map(lambda i: "#" + "%06x" % random.randint(0x000000, 0x666666), range(n))
+        )
+        plot_kwargs = {
+            "vrp_depot_s": 200,
+            "vrp_vertex_s": 200,
+            "vrp_depot_c": "darkgreen",
+            "vrp_vertex_c": "navy",
+            "vrp_depot_marker": r"$\otimes$",
+            "vrp_vertex_marker": r"$\odot$",
+            "demand_width": 0.4,
+            "demand_color": get_colors(self.vrp.n_vertex),
+            "loading_width": 0.6,
+            "loading_color": get_colors(self.vrp.n_vehicle),
+            "location_marker": vehicle_marker,
+            "location_s": 2000,
+            "location_c": "lightgrey",
+        }
+        self.plot(**plot_kwargs)

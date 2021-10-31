@@ -19,6 +19,11 @@ $ source env/bin/activate
 
 ## Features
 
+SUMO-gym aims to build an interface between SUMO and Reinforcement Learning. With this toolkit, you will be able to convert the data generated from SUMO simulator into RL training setting like OpenAI-gym. 
+
+**Remarkable features include:**
+
+1. Interface between SUMO simulator and OpenAI-gym liked RL training environment;
 
 ```python
 import gym
@@ -35,12 +40,10 @@ for _ in range(n_episode):
 env.close()
 ```
 
-SUMO-gym aims to build an interface between SUMO and Reinforcement Learning. With this toolkit, you will be able to convert the data generated from SUMO simulator into RL training setting like OpenAI-gym. 
+2. Visualization rendering tools based on matplotlib for urban mobility problems.
 
-**Remarkable features include:**
+![](./assets/obs.png)
 
-1. Powerful interface between SUMO simulator and OpenAI-gym liked RL training environment;
-   
-2. RL tranining models for some urban mobility problems (WIP).
+3. Deep reinforcement learning models for urban mobility problems (WIP).
 
 P.S. *Will be a wheel later*.

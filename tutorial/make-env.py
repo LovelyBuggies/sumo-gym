@@ -1,9 +1,7 @@
 import numpy as np
-import random
 import gym
 import sumo_gym
 from sumo_gym.envs.vrp import VRP
-from sumo_gym.utils.svg_uitls import vehicle_marker
 import matplotlib
 import matplotlib.pyplot as plt
 
@@ -39,25 +37,6 @@ edges = np.asarray(
 departures = np.zeros(n_vehicle).astype(int)
 capacity = np.ones(n_vertex) * 20
 
-get_colors = lambda n: list(
-    map(lambda i: "#" + "%06x" % random.randint(0x000000, 0x666666), range(n))
-)
-plot_kwargs = {
-    "vrp_depot_s": 200,
-    "vrp_vertex_s": 200,
-    "vrp_depot_c": "darkgreen",
-    "vrp_vertex_c": "navy",
-    "vrp_depot_marker": r"$\otimes$",
-    "vrp_vertex_marker": r"$\odot$",
-    "demand_width": 0.4,
-    "demand_color": get_colors(n_vertex),
-    "loading_width": 0.6,
-    "loading_color": get_colors(n_vehicle),
-    "location_marker": vehicle_marker,
-    "location_s": 2000,
-    "location_c": "lightgrey",
-}
-
 env = gym.make(
     "VRP-v0",
     n_vertex=n_vertex,
@@ -70,18 +49,17 @@ env = gym.make(
     departures=departures,
     capacity=capacity,
 )
-env.plot(**plot_kwargs)
+env.render()
 plt.savefig("./img/env_init.pdf")
 
 for i_episode in range(3):
     observation = env.reset()
     for t in range(10):
-        # env.render()
+        env.render()
+        plt.savefig(f"./img/env_{i_episode}_{t}.pdf")
         action = env.action_space.sample()
         observation, reward, done, info = env.step(action)
         print(info)
-        env.plot(**plot_kwargs)
-        plt.savefig(f"./img/env_{i_episode}_{t}.pdf")
         if done:
             print("Episode finished after {} timesteps.\n".format(t + 1))
             break
