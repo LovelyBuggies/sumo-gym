@@ -18,9 +18,9 @@ class VRP(object):
     def __init__(
         self,
         net_xml_file_path: str = None,
-        flow_xml_file_path: str = None,
+        demand_xml_file_path: str = None,
         n_vertex: int = 0,
-        n_depot: int = 0,
+        n_depot: int = 1,
         n_edge: int = 0,
         n_vehicle: int = 0,
         vertices: sumo_gym.typing.VerticesType = None,
@@ -41,7 +41,7 @@ class VRP(object):
         :param capacity:        the capacity of vehicles
         Create a vehicle routing problem setting (CVRP if capacity is activated).
         """
-        if net_xml_file_path is None or flow_xml_file_path is None:
+        if net_xml_file_path is None or demand_xml_file_path is None:
             # number
             self.n_vertex = n_vertex
             self.n_depot = n_depot
@@ -65,10 +65,14 @@ class VRP(object):
             if not self._is_valid():
                 raise ValueError("VRP setting is not valid")
 
-        # else:
-        #     self.n_vertex, self.n_depot, self.n_edge, self.n_vehicle, \
-        #     self.vertices, self.depots, self.demand, self.edges, self.departures \
-        #         = sumo_gym.utils.decode_xml(net_xml_file_path)
+        else:
+            self.n_depot = 1 # default value
+            self.vertices, self.edges, self.departures = sumo_gym.utils.decode_xml(net_xml_file_path, demand_xml_file_path)
+            self.n_vertex, _ = self.vertices.shape
+            self.n_edge, _ = self.edges.shape
+            self.n_vehicle = self.departures.shape
+            self.depots = self.vertices[:self.n_depot]
+            self.demand = np.ones(self.n_vertex) * 10.0
 
     def __repr__(self):
         return (
