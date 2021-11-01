@@ -1,6 +1,7 @@
 import xml.etree.ElementTree as ET
 import numpy as np
-from typing import Dict, Any
+from typing import Dict, Any, List, Tuple
+import numpy.typing as npt
 
 
 VEHICLE_XML_TAG = 'trip'
@@ -14,7 +15,7 @@ EDGE_XML_PRIORITY = '-1'
 def encode_xml(file_path):
     pass
 
-def decode_xml(net_xml_file_path: str = None, demand_xml_file_path: str = None):
+def decode_xml(net_xml_file_path: str = None, demand_xml_file_path: str = None) -> Tuple[npt.NDArray[Any]]:
     """
     Parse the net.xml and rou.xml generated from SUMO and read into VRP initialization environments.
     Return objects: vertices, edges, departures for VRP class
@@ -29,9 +30,9 @@ def decode_xml(net_xml_file_path: str = None, demand_xml_file_path: str = None):
     net_xml_source.close()
     demand_xml_source.close()
 
-    return np.array(vertices), np.array(edges), np.array(departures)
+    return np.asarray(vertices), np.asarray(edges), np.asarray(departures)
 
-def _parse_demand_xml(demand_file_path: str, edge_id_mapDict: Dict[str, int], edges: Any):
+def _parse_demand_xml(demand_file_path: str, edge_id_map: Dict[str, int], edges: Any) -> List:
     """
     :param demand_file_path:      file path of rou.xml
     :param edge_id_map:           sample structure: {'genE0': 0, 'genE1': 1}

@@ -11,13 +11,11 @@ env = gym.make(
     demand_xml_file_path="assets/data/demand.rou.xml",
 )
 env.render()
-plt.savefig("./img/env_init.pdf")
 
 for i_episode in range(3):
     observation = env.reset()
     for t in range(10):
         env.render()
-        plt.savefig(f"./img/env_{i_episode}_{t}.pdf")
         action = env.action_space.sample()
         observation, reward, done, info = env.step(action)
         print(info)
