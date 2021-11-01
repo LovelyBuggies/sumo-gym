@@ -7,8 +7,8 @@ import matplotlib.pyplot as plt
 
 env = gym.make(
     "VRP-v0",
-    net_xml_file_path="assets/network.net.xml",
-    demand_xml_file_path="assets/demand.rou.xml",
+    net_xml_file_path="assets/data/network.net.xml",
+    demand_xml_file_path="assets/data/demand.rou.xml",
 )
 env.render()
 plt.savefig("./img/env_init.pdf")
