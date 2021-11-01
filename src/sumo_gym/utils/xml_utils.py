@@ -1,5 +1,6 @@
 import xml.etree.ElementTree as ET
 import numpy as np
+from typing import Dict, Any
 
 
 VEHICLE_XML_TAG = 'trip'
@@ -13,9 +14,7 @@ EDGE_XML_PRIORITY = '-1'
 def encode_xml(file_path):
     pass
 
-
-
-def decode_xml(net_xml_file_path, demand_xml_file_path):
+def decode_xml(net_xml_file_path: str = None, demand_xml_file_path: str = None):
     """
     Parse the net.xml and rou.xml generated from SUMO and read into VRP initialization environments.
     Return objects: vertices, edges, departures for VRP class
@@ -24,15 +23,15 @@ def decode_xml(net_xml_file_path, demand_xml_file_path):
     net_xml_source = open(net_xml_file_path) 
     demand_xml_source = open(demand_xml_file_path) 
 
-    vertices, edge_id_map, edges = parse_network_xml(net_xml_source)
-    departures = parse_demand_xml(demand_xml_source, edge_id_map, edges)
+    vertices, edge_id_map, edges = _parse_network_xml(net_xml_source)
+    departures = _parse_demand_xml(demand_xml_source, edge_id_map, edges)
 
     net_xml_source.close()
     demand_xml_source.close()
 
     return np.array(vertices), np.array(edges), np.array(departures)
 
-def parse_demand_xml(demand_file_path, edge_id_map, edges):
+def _parse_demand_xml(demand_file_path: str, edge_id_mapDict: Dict[str, int], edges: Any):
     """
     :param demand_file_path:      file path of rou.xml
     :param edge_id_map:           sample structure: {'genE0': 0, 'genE1': 1}
@@ -48,9 +47,7 @@ def parse_demand_xml(demand_file_path, edge_id_map, edges):
 
     return departures
 
-
-
-def parse_network_xml(network_file_path):
+def _parse_network_xml(network_file_path: str):
     """
     :param network_file_path:     file path of net.xml
     """
@@ -76,7 +73,3 @@ def parse_network_xml(network_file_path):
             edge_count += 1
 
     return vertices, edge_id_map, edges
-
-
-if __name__ == "__main__":
-    decode_xml("src/sumo_gym/data/network.net.xml", "src/sumo_gym/data/demand.rou.xml")
