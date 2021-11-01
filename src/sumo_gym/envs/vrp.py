@@ -69,13 +69,11 @@ class VRP(object):
             self.n_depot = 1 # default value
 
             # read in the sumo xml files and parse them into VRP initial problem settings
-            self.vertices, self.edges, self.departures = sumo_gym.utils.decode_xml(net_xml_file_path, demand_xml_file_path)
+            self.vertices, self.demand, self.edges, self.departures, self.capacity = sumo_gym.utils.decode_xml(net_xml_file_path, demand_xml_file_path)
             self.n_vertex, _ = self.vertices.shape
             self.n_edge, _ = self.edges.shape
             self.n_vehicle = self.departures.shape[0]
             self.depots = self.vertices[:self.n_depot]
-            self.demand = np.ones(self.n_vertex) * 10.0
-            self.capacity = np.asarray([float("inf") for _ in range(self.n_vehicle)]) #todo
 
     def __repr__(self):
         return (

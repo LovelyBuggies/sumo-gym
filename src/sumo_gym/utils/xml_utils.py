@@ -5,9 +5,12 @@ import numpy.typing as npt
 
 
 VEHICLE_XML_TAG = 'trip'
+VEHICLE_CAPACITY_TAG = 'personNumber'
 
 VERTEX_XML_TAG = 'junction'
 VERTEX_XML_INVALID_TYPE = 'internal'
+VERTEX_CUSTOMIZED_PARAM = 'param'
+VERTEX_DEMAND_KEY = 'demand'
 
 EDGE_XML_TAG = 'edge'
 EDGE_XML_PRIORITY = '-1'
@@ -15,38 +18,42 @@ EDGE_XML_PRIORITY = '-1'
 def encode_xml(file_path):
     pass
 
-def decode_xml(net_xml_file_path: str = None, demand_xml_file_path: str = None) -> Tuple[npt.NDArray[Any]]:
+def decode_xml(net_xml_file_path: str = None, flow_xml_file_path: str = None) -> Tuple[npt.NDArray[Any]]:
     """
     Parse the net.xml and rou.xml generated from SUMO and read into VRP initialization environments.
-    Return objects: vertices, edges, departures for VRP class
+    Return objects: vertices, demand, edges, departures, capacity for VRP class
     """
 
     net_xml_source = open(net_xml_file_path) 
-    demand_xml_source = open(demand_xml_file_path) 
+    flow_xml_source = open(flow_xml_file_path) 
 
-    vertices, edge_id_map, edges = _parse_network_xml(net_xml_source)
-    departures = _parse_demand_xml(demand_xml_source, edge_id_map, edges)
+    vertices, demand, edge_id_map, edges = _parse_network_xml(net_xml_source)
+    departures, capacity = _parse_flow_xml(flow_xml_source, edge_id_map, edges)
 
     net_xml_source.close()
-    demand_xml_source.close()
+    flow_xml_source.close()
 
-    return np.asarray(vertices), np.asarray(edges), np.asarray(departures)
+    return np.asarray(vertices), np.asarray(demand), np.asarray(edges), np.asarray(departures), np.asarray(capacity)
 
-def _parse_demand_xml(demand_file_path: str, edge_id_map: Dict[str, int], edges: Any) -> List:
+def _parse_flow_xml(flow_file_path: str, edge_id_map: Dict[str, int], edges: Any):
     """
-    :param demand_file_path:      file path of rou.xml
-    :param edge_id_map:           sample structure: {'genE0': 0, 'genE1': 1}
-    :param edges:                 tuple of [edge_from_vertex, edge_to_vertex], sample structure: [[0,4], [1,3], [7,5]]
+    :param flow_file_path:      file path of rou.xml
+    :param edge_id_map:         sample structure: {'genE0': 0, 'genE1': 1}
+    :param edges:               tuple of [edge_from_vertex, edge_to_vertex], sample structure: [[0,4], [1,3], [7,5]]
     """
-    demand_tree = ET.parse(demand_file_path)
-    demand_xml_root = demand_tree.getroot()
+    flow_tree = ET.parse(flow_file_path)
+    flow_xml_root = flow_tree.getroot()
 
-    departures = []   # np int array
-    for vehicle_trip in demand_xml_root.findall(VEHICLE_XML_TAG):
+    departures = []   # int array
+    capacity = [] # float array
+    for vehicle_trip in flow_xml_root.findall(VEHICLE_XML_TAG):
         departure_edge = vehicle_trip.get('from')
-        departures.append(edges[edge_id_map[departure_edge]][0])    
+        departures.append(edges[edge_id_map[departure_edge]][0])  
 
-    return departures
+        capacity_value = vehicle_trip.get(VEHICLE_CAPACITY_TAG) or 20.0
+        capacity.append(float(capacity_value))
+
+    return departures, capacity
 
 def _parse_network_xml(network_file_path: str):
     """
@@ -57,11 +64,19 @@ def _parse_network_xml(network_file_path: str):
 
     vertices_id_map = {} # sample structure: {'genJ1': 0, 'genJ10': 1}
     vertices = [] # tuple of x,y position of each vertex
+    demand = [] # float array
     vertex_count = 0
     for junction in network_xml_data.findall(VERTEX_XML_TAG):
         if (junction.get('type') != VERTEX_XML_INVALID_TYPE):
             vertices.append([float(junction.get('x')), float(junction.get('y'))])
             vertices_id_map[junction.get('id')] = vertex_count
+
+            demand_value = 0.0
+            for customized_params in junction.findall(VERTEX_CUSTOMIZED_PARAM):
+                if (customized_params.get('key') == VERTEX_DEMAND_KEY):
+                    demand_value = float(customized_params.get('value'))
+            demand.append(demand_value)
+
             vertex_count += 1
 
     edge_id_map = {} # sample structure: {'genE0': 0, 'genE1': 1}
@@ -73,4 +88,4 @@ def _parse_network_xml(network_file_path: str):
             edge_id_map[edge.get('id')] = edge_count
             edge_count += 1
 
-    return vertices, edge_id_map, edges
+    return vertices, demand, edge_id_map, edges

@@ -186,52 +186,65 @@
         <lane id="gneE9_0" index="0" speed="13.89" length="16.99" shape="94.09,19.61 96.37,36.45"/>
     </edge>
 
-    <junction id="gneJ0" type="dead_end" x="42.16" y="85.17" incLanes="" intLanes="" shape="43.77,84.73 42.93,81.64 42.09,81.70 41.77,81.57 41.50,81.34 41.30,81.01 41.17,80.57 38.04,81.25 38.41,83.75 38.39,84.64 38.23,85.31 37.94,85.74 37.52,85.94 38.04,89.10 40.33,87.91 40.94,87.05 41.53,86.15 42.39,85.34"/>
+    <junction id="gneJ0" type="dead_end" x="42.16" y="85.17" incLanes="" intLanes="" shape="43.77,84.73 42.93,81.64 42.09,81.70 41.77,81.57 41.50,81.34 41.30,81.01 41.17,80.57 38.04,81.25 38.41,83.75 38.39,84.64 38.23,85.31 37.94,85.74 37.52,85.94 38.04,89.10 40.33,87.91 40.94,87.05 41.53,86.15 42.39,85.34">
+        <param key="demand" value="1"/>
+    </junction>
     <junction id="gneJ1" type="priority" x="75.09" y="76.21" incLanes="gneE4_0 gneE0_0" intLanes=":gneJ1_0_0 :gneJ1_1_0" shape="82.28,74.06 81.36,71.00 79.14,71.20 78.29,70.88 77.60,70.27 77.08,69.39 76.73,68.22 73.59,68.86 73.62,71.32 73.22,72.29 72.55,73.09 71.61,73.72 70.39,74.17 71.23,77.26">
         <request index="0" response="00" foes="10" cont="0"/>
         <request index="1" response="01" foes="01" cont="0"/>
+        <param key="demand" value="8"/>
     </junction>
     <junction id="gneJ10" type="priority" x="-27.50" y="62.41" incLanes="gneE12_0 gneE18_0" intLanes=":gneJ10_2_0 :gneJ10_1_0" shape="-30.04,66.85 -26.88,66.36 -26.43,64.09 -25.55,63.24 -24.25,62.56 -22.51,62.07 -20.34,61.77 -20.62,58.58 -22.87,58.34 -23.70,57.85 -24.32,57.13 -24.74,56.17 -24.96,54.96 -28.15,55.25 -28.17,57.74 -28.61,59.57 -29.24,61.07 -29.84,62.56 -30.18,64.38">
         <request index="0" response="10" foes="10" cont="1"/>
         <request index="1" response="00" foes="01" cont="0"/>
+        <param key="demand" value="0"/>
     </junction>
     <junction id="gneJ11" type="priority" x="7.16" y="59.31" incLanes="gneE15_0 gneE13_0" intLanes=":gneJ11_0_0 :gneJ11_4_0 :gneJ11_2_0 :gneJ11_3_0" shape="4.47,63.67 7.64,63.28 7.82,61.01 8.28,60.15 8.98,59.47 9.94,58.98 11.14,58.68 10.64,55.52 8.38,55.41 7.52,54.95 6.86,54.23 6.37,53.25 6.08,52.00 2.91,52.47 2.79,54.71 2.35,55.52 1.66,56.14 0.71,56.56 -0.49,56.78 -0.20,59.97 2.17,60.21 3.05,60.71 3.73,61.45 4.20,62.43">
         <request index="0" response="1100" foes="1100" cont="0"/>
         <request index="1" response="1000" foes="1000" cont="1"/>
         <request index="2" response="0000" foes="0001" cont="0"/>
         <request index="3" response="0000" foes="0011" cont="0"/>
+        <param key="demand" value="1"/>
     </junction>
     <junction id="gneJ12" type="priority" x="4.40" y="40.69" incLanes="gneE16_0 gneE21_0" intLanes=":gneJ12_0_0 :gneJ12_2_0" shape="2.22,47.83 5.39,47.36 5.29,45.03 5.64,43.30 6.20,41.87 6.74,40.44 7.03,38.72 6.84,36.41 3.69,37.01 3.34,39.12 2.54,39.91 1.33,40.53 -0.29,40.97 -2.32,41.24 -2.06,44.43 0.08,44.67 0.88,45.13 1.50,45.81 1.95,46.71">
         <request index="0" response="00" foes="10" cont="0"/>
         <request index="1" response="01" foes="01" cont="1"/>
+        <param key="demand" value="2"/>
     </junction>
     <junction id="gneJ13" type="priority" x="-29.22" y="43.45" incLanes="gneE17_0" intLanes=":gneJ13_0_0 :gneJ13_1_0" shape="-28.57,50.65 -25.38,50.36 -25.14,48.11 -24.65,47.29 -23.93,46.67 -22.96,46.26 -21.75,46.05 -22.02,42.86 -24.23,42.93 -26.06,42.74 -27.51,42.31 -28.59,41.61 -29.28,40.67 -29.60,39.47 -32.79,39.77 -32.32,42.19 -31.56,43.88 -30.67,45.21 -29.77,46.54 -29.02,48.23">
         <request index="0" response="00" foes="00" cont="0"/>
         <request index="1" response="00" foes="00" cont="0"/>
+        <param key="demand" value="7"/>
     </junction>
     <junction id="gneJ14" type="priority" x="-31.12" y="23.62" incLanes="gneE19_0" intLanes=":gneJ14_0_0" shape="-34.31,23.93 -31.12,23.62 -31.12,20.42 -33.04,20.81 -33.68,21.30 -34.10,21.98 -34.31,22.85">
         <request index="0" response="0" foes="0" cont="0"/>
+        <param key="demand" value="1"/>
     </junction>
     <junction id="gneJ15" type="priority" x="1.12" y="23.62" incLanes="gneE20_0" intLanes=":gneJ15_0_0 :gneJ15_1_0" shape="1.82,27.26 4.96,26.66 4.98,24.83 5.32,24.17 5.87,23.68 6.65,23.35 7.64,23.20 7.43,20.01 -2.29,20.42 -2.29,23.62 -0.32,24.02 0.44,24.53 1.05,25.24 1.51,26.15">
         <request index="0" response="00" foes="00" cont="0"/>
         <request index="1" response="00" foes="00" cont="0"/>
+        <param key="demand" value="0"/>
     </junction>
     <junction id="gneJ2" type="priority" x="104.57" y="67.41" incLanes="gneE1_0" intLanes=":gneJ2_0_0" shape="103.49,64.26 100.47,65.30 101.38,68.36 103.03,67.48 103.50,66.86 103.74,66.12 103.73,65.25">
         <request index="0" response="0" foes="0" cont="0"/>
+        <param key="demand" value="2"/>
     </junction>
     <junction id="gneJ3" type="priority" x="95.26" y="40.17" incLanes="gneE2_0 gneE9_0" intLanes=":gneJ3_0_0 :gneJ3_2_0" shape="94.29,47.23 97.32,46.19 96.85,44.16 96.92,42.61 97.28,41.30 97.73,39.97 98.03,38.36 97.96,36.24 94.78,36.67 94.36,38.76 93.58,39.62 92.44,40.36 90.92,40.98 89.03,41.47 89.69,44.61 91.74,44.58 92.57,44.90 93.27,45.45 93.84,46.23">
         <request index="0" response="00" foes="10" cont="0"/>
         <request index="1" response="01" foes="01" cont="1"/>
+        <param key="demand" value="1"/>
     </junction>
     <junction id="gneJ4" type="priority" x="68.88" y="45.69" incLanes="gneE3_0 gneE6_0" intLanes=":gneJ4_0_0 :gneJ4_2_0" shape="70.31,52.71 73.44,52.07 73.44,49.81 73.82,48.94 74.47,48.24 75.38,47.71 76.54,47.36 75.89,44.22 73.43,44.49 71.57,44.27 70.01,43.81 68.46,43.38 66.62,43.24 64.20,43.66 65.04,46.74 67.33,46.94 68.28,47.71 69.09,48.93 69.76,50.59">
         <request index="0" response="00" foes="10" cont="0"/>
         <request index="1" response="01" foes="01" cont="1"/>
+        <param key="demand" value="0"/>
     </junction>
     <junction id="gneJ5" type="priority" x="35.60" y="54.83" incLanes="gneE5_0 gneE14_0" intLanes=":gneJ5_0_0 :gneJ5_4_0 :gneJ5_2_0 :gneJ5_3_0" shape="33.25,59.10 36.38,58.42 36.41,56.30 36.83,55.44 37.53,54.72 38.51,54.14 39.76,53.69 38.91,50.60 36.91,50.74 36.18,50.42 35.64,49.84 35.28,49.00 35.10,47.91 31.91,48.14 31.64,50.42 31.15,51.28 30.43,51.96 29.48,52.44 28.30,52.74 28.80,55.90 30.91,56.00 31.73,56.41 32.39,57.07 32.90,57.96">
         <request index="0" response="1100" foes="1100" cont="0"/>
         <request index="1" response="1000" foes="1000" cont="1"/>
         <request index="2" response="0000" foes="0001" cont="0"/>
         <request index="3" response="0000" foes="0011" cont="0"/>
+        <param key="demand" value="9"/>
     </junction>
     <junction id="gneJ6" type="priority" x="33.19" y="21.55" incLanes="gneE7_0 gneE22_0" intLanes=":gneJ6_2_0 :gneJ6_1_0" shape="30.29,25.77 33.48,25.54 33.76,23.31 34.26,22.52 35.00,21.94 35.97,21.58 37.19,21.43 37.10,18.24 25.80,18.82 26.00,22.01 28.25,22.32 29.07,22.82 29.68,23.57 30.09,24.55">
         <request index="0" response="10" foes="10" cont="1"/>
@@ -239,13 +252,17 @@
     </junction>
     <junction id="gneJ7" type="priority" x="92.50" y="19.83" incLanes="gneE8_0" intLanes=":gneJ7_0_0" shape="92.50,19.83 95.67,19.40 95.14,17.82 94.66,17.28 94.05,16.90 93.30,16.69 92.41,16.63">
         <request index="0" response="0" foes="0" cont="0"/>
+        <param key="demand" value="1"/>
     </junction>
     <junction id="gneJ8" type="priority" x="10.95" y="90.34" incLanes="gneE10_0" intLanes=":gneJ8_0_0 :gneJ8_1_0" shape="15.42,92.84 14.90,89.69 12.65,89.61 11.82,89.18 11.17,88.50 10.72,87.56 10.47,86.37 7.29,86.76 7.12,89.08 6.67,89.95 5.97,90.63 5.02,91.11 3.83,91.41 4.30,94.57">
         <request index="0" response="00" foes="00" cont="0"/>
         <request index="1" response="00" foes="00" cont="0"/>
+        <param key="demand" value="10"/>
     </junction>
     <junction id="gneJ9" type="priority" x="-22.33" y="95.34" incLanes="gneE11_0" intLanes=":gneJ9_0_0" shape="-21.85,98.50 -22.33,95.34 -25.49,95.84 -24.87,97.53 -24.33,98.08 -23.65,98.42 -22.82,98.56">
         <request index="0" response="0" foes="0" cont="0"/>
+        <param key="demand" value="2"/>
+        <param key="testParam" value="testValue"/>
     </junction>
 
     <junction id=":gneJ10_2_0" type="internal" x="-24.60" y="61.02" incLanes=":gneJ10_0_0 gneE18_0" intLanes=":gneJ10_1_0"/>
