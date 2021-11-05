@@ -16,3 +16,7 @@ LoadingType = npt.NDArray[Tuple[float]]
 SpaceType = Space
 ActionsType = npt.NDArray[int]
 RewardsType = npt.NDArray[float]
+
+FMPElectricVehiclesType = npt.NDArray[Tuple[int]]
+FMPChargingStationType = npt.NDArray[Tuple[int]]
+FMPDemandsType = npt.NDArray[Tuple[int]]
