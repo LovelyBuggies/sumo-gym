@@ -2,7 +2,7 @@ import xml.etree.ElementTree as ET
 import numpy as np
 from typing import Dict, Any, List, Tuple
 import numpy.typing as npt
-
+import sys
 
 VEHICLE_XML_TAG = 'trip'
 VEHICLE_CAPACITY_TAG = 'personNumber'
@@ -14,6 +14,149 @@ VERTEX_DEMAND_KEY = 'demand'
 
 EDGE_XML_TAG = 'edge'
 EDGE_XML_PRIORITY = '-1'
+
+def encode_xml_fmp(net_xml_file_path: str = None, flow_xml_file_path: str = None):
+    # TODO
+    pass
+
+def get_vertices(net_xml_tree):
+    """
+    Helper function for decode_xml_fmp
+
+    Returns vertices 
+    """
+    vtx_lst = []
+
+    junctions = net_xml_tree.findall(VERTEX_XML_TAG)
+
+    for junction in junctions:
+
+        vtx_lst.append([junction.attrib["id"], float(junction.attrib["x"]), float(junction.attrib["y"])])
+
+    return np.asarray(vtx_lst)
+
+def get_electric_vehicles(battery_xml_tree, flow_xml_tree, init_iter):
+    """
+    Helper function for decode_xml_fmp
+
+    https://sumo.dlr.de/docs/Models/Electric.html#battery-output
+
+    Returns electric vehicles
+    """
+    if not init_iter:
+        ev_lst = []
+        timesteps = battery_xml_tree.findall("timestep")
+        latest_timestep = sorted(timesteps, key=lambda ts: ts.attrib["time"])[-1]
+        vehicles = latest_timestep.findall("vehicle")
+        for vehicle in vehicles:
+            atb_ = vehicle.attrib
+            ev_lst.append((atb_["id"], float(atb_["actualBatteryCapacity"])/float(atb_["maximumBatteryCapacity"])))
+
+        return np.array(ev_lst)
+    ev_lst = []
+    vehicles = flow_xml_tree.findall("vehicle")
+    for vehicle in vehicles:
+        # all vehicles start off with 100% energy level
+        ev_lst.append((vehicle.attrib["id"], 1.0))
+    return np.asarray(ev_lst)
+
+
+def get_charging_stations(charging_xml_tree):
+    """ 
+    Helper function for decode_xml_fmp
+
+    Returns charging stations
+    """
+    cs_lst = []
+    stations = charging_xml_tree.findall("chargingStation")
+    for station in stations:
+        cs_lst.append((station.attrib["id"], float(station.attrib["chargeDelay"])))
+    return np.asarray(cs_lst)
+
+def get_edges(net_xml_tree):
+    """
+    Helper function for decode_xml_fmp
+
+    Returns edges
+    """
+    edge_lst = []
+    edges = net_xml_tree.findall("edge")
+    for e in edges:
+        if "function" in e.attrib and e.attrib["function"] == VERTEX_XML_INVALID_TYPE:
+            continue
+        edge_lst.append((e.attrib["from"], e.attrib["to"]))
+    return np.asarray(edge_lst)
+
+
+def get_departures(net_xml_tree, flow_xml_tree, init_iter):
+    """ 
+    Helper function for decode_xml_fmp
+
+    Returns departures for each vehicle
+
+    [vehicle_index, starting_vertex_index]
+    """
+    departures_lst = []
+    if init_iter:
+        vehicles = flow_xml_tree.findall("vehicle")
+        routes = flow_xml_tree.findall("route")
+        edges = net_xml_tree.findall("edge")
+        edge_map = {}
+        # edge_id to `from` vertex id
+        for edge in edges:
+            if "function" in edge.attrib and edge.attrib["function"] == VERTEX_XML_INVALID_TYPE:
+                continue
+            edge_map[edge.attrib["id"]] = edge.attrib["from"]
+        # route_id to first edge_id
+        route_map = {}
+        for route in routes:
+            route_map[route.attrib["id"]] = route.attrib["edges"].split()[0]
+        for ev in vehicles:
+            if "route" in ev.attrib:
+                route_id = ev.attrib["route"]
+                edge_id = route_map[route_id]
+                departures_lst.append([ev.attrib["id"], edge_map[edge_id]])
+
+    return np.asarray(departures_lst)
+
+
+
+def decode_xml_fmp(net_xml_file_path: str = None, flow_xml_file_path: str = None,
+                   battery_xml_file_path: str = None,
+                   charging_xml_path: str = None,
+                   init_iter: bool = False):
+    """
+    Parse net.xml, rou.xml, and battery.out.xml files 
+    generated from SUMO and return a FMP instance 
+    (if this is the first invocation, no battery.out.xml 
+    file will be passed in)
+
+    Returns vertices, charging_stations, electric_vehicles,
+    edges, and departures 
+    """
+    net_xml_tree = ET.parse(net_xml_file_path)
+    flow_xml_tree = ET.parse(flow_xml_file_path)
+    battery_xml_tree = ET.parse(battery_xml_file_path)
+    charging_xml_tree = ET.parse(charging_xml_path)
+
+    vertices = get_vertices(net_xml_tree)
+    print(vertices)
+
+    charging_stations = get_charging_stations(charging_xml_tree)
+    print(charging_stations)
+
+    electric_vehicles = get_electric_vehicles(battery_xml_tree, flow_xml_tree, init_iter)
+    print(electric_vehicles)
+
+    edges = get_edges(net_xml_tree)
+    print(edges)
+
+    departures = get_departures(net_xml_tree, flow_xml_tree, init_iter)
+    print(departures)
+
+    return vertices, charging_stations, electric_vehicles, edges, departures
+
+
 
 def encode_xml(file_path):
     pass

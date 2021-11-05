@@ -5,6 +5,8 @@ from typing import Tuple
 __all__ = (
     "VRP",
     "VRPEnv",
+    "FMP",
+    "FMPEnv"
 )
 
 
