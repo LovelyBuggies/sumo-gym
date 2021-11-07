@@ -1,8 +1,9 @@
+import sys
 import xml.etree.ElementTree as ET
 import numpy as np
+#from sumo-gym.src.sumo_gym.envs.fmp import FMP
 from typing import Dict, Any, List, Tuple
 import numpy.typing as npt
-
 
 VEHICLE_XML_TAG = 'trip'
 VEHICLE_CAPACITY_TAG = 'personNumber'
@@ -19,19 +20,78 @@ def encode_xml_fmp(net_xml_file_path: str = None, flow_xml_file_path: str = None
     # TODO
     pass
 
-def decode_xml_fmp(net_xml_file_path: str = None, flow_xml_file_path: str = None):
-    # TODO
-    # decode xml into FMP problem setting, for specific types, refer to typing.py and VRP decoding below
-    pass
+
+
+def get_edges_and_lanes(net_xml_tree):
+    """
+    Given next_xml_tree, 
+    return dictionary of edges and lanes
+
+    Assumes no edges contain stopOffset elements
+    """
+    # map edge id to dictionary with attributes
+    edges_and_lanes = {}
+
+    edge_attr = ["from", "to", "priority", "function"]
+    lane_attr = ["index", "speed", "length", "shape"]
+
+    edges = net_xml_tree.findall("edge")
+    print(edges)
+    for edge in edges:
+
+        edge_id = edge.attrib["id"]
+        val = edge.attrib
+        del val["id"]
+        
+        if "priority" in val:
+            val["priority"] = int(val["priority"])
+        
+        edges_and_lanes[edge_id] = val
+
+        lanes = edge.findall("lane")
+
+        for lane in lanes:
+
+            val = lane.attrib
+            
+            if "index" in val:
+                val["index"] = int(val["index"])
+            
+            for float_attr in ["speed", "length"]:
+                if float_attr in val:
+                    val[float_attr] = float(val[float_attr])
+
+            lane_list = edges_and_lanes[edge_id].get("lanes", [])
+            lane_list.append(val)
+            edges_and_lanes[edge_id]["lanes"] = lane_list
+
+    return edges_and_lanes
+
+
+
+def decode_xml_fmp(net_xml_file_path: str = None):
+    """
+    Parse net.xml file from SUMO and create FMP instance
+
+    https://sumo.dlr.de/docs/Networks/SUMO_Road_Networks.html
+    """
+    net_xml_tree = ET.parse(net_xml_file_path)
+    
+    edges_and_lanes = get_edges_and_lanes(net_xml_tree)
+
+    print(edges_and_lanes)
+
+
+
 
 def encode_xml(file_path):
     pass
-
+"""
 def decode_xml(net_xml_file_path: str = None, flow_xml_file_path: str = None) -> Tuple[npt.NDArray[Any]]:
-    """
+    
     Parse the net.xml and rou.xml generated from SUMO and read into VRP initialization environments.
     Return objects: vertices, demand, edges, departures, capacity for VRP class
-    """
+    
 
     net_xml_source = open(net_xml_file_path) 
     flow_xml_source = open(flow_xml_file_path) 
@@ -43,7 +103,7 @@ def decode_xml(net_xml_file_path: str = None, flow_xml_file_path: str = None) ->
     flow_xml_source.close()
 
     return np.asarray(vertices), np.asarray(demand), np.asarray(edges), np.asarray(departures), np.asarray(capacity)
-
+"""
 def _parse_flow_xml(flow_file_path: str, edge_id_map: Dict[str, int], edges: Any):
     """
     :param flow_file_path:      file path of rou.xml
@@ -98,3 +158,32 @@ def _parse_network_xml(network_file_path: str):
             edge_count += 1
 
     return vertices, demand, edge_id_map, edges
+
+
+def cli_main():
+    """ CLI commands for testing """
+
+    if len(sys.argv) == 1:
+        return
+
+    # python3 xml_utils.py decode_xml_fmp {net_xml_file_path}
+    if sys.argv[1] == "decode_xml_fmp":
+        decode_xml_fmp(sys.argv[2])
+
+
+
+# entry point to CLI
+if __name__ == "__main__":
+
+    cli_main()
+
+
+
+
+
+
+
+
+
+
+
