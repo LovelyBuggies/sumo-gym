@@ -22,6 +22,7 @@ class FMP(object):
         n_vertex: int = 0,
         n_edge: int = 0,
         n_vehicle: int = 0,
+        n_electric_vehicles: int = 0,
         n_charging_station: int = 1,
         vertices: sumo_gym.typing.VerticesType = None,
         demand: sumo_gym.typing.FMPDemandsType = None,
@@ -48,11 +49,11 @@ class FMP(object):
             self.n_vertex = n_vertex
             self.n_edge = n_edge
             self.n_vehicle = n_vehicle
+            self.n_electric_vehicles = n_electric_vehicles
             self.n_charging_station = n_charging_station
 
             # network
             self.vertices = vertices
-            self.charging_stations = charging_stations
             self.demand = demand
             self.edges = edges
 
@@ -116,7 +117,9 @@ class FMPEnv(gym.Env):
         return self._reset()
 
     def _reset(self):
-        pass
+        self.locations: sumo_gym.typing.LocationsType = self.fmp.departures.astype(int)
+        self.battery: npt.NDArray[float] = np.asarray([ev[-1] for ev in self.fmp.electric_vehicles])
+        self.is_loading: npt.NDArray[bool] = np.zeros(self.fmp.n_vehicle).astype(int)
 
     def step(self, actions):
         # return observation, reward, done, info
