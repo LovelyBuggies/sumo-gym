@@ -37,7 +37,8 @@ n_charging_station = 3
 electric_vehicles = np.asarray([(0, 1, 220, 100), (1, 1, 220, 100), (2, 1, 220, 100), (3, 1, 220, 100), (4, 1, 220, 100)])
 charging_stations = np.asarray([(np.random.randint(35), 1000) for i in range(5)])
 available_vertices = np.asarray([v for v in range(35) if v not in (charging_station[0] for charging_station in charging_stations)])
-departures = np.asarray([random.choice(available_vertices) for i in range(5)])
+departures = np.asarray(random.choices(available_vertices, k=n_vehicle))
+print(departures)
 demand = np.asarray([(random.choice(available_vertices), random.choice(available_vertices)) for i in range(10)])
 
 env = gym.make(
@@ -55,16 +56,16 @@ env = gym.make(
     charging_stations=charging_stations
 )
 env.render()
-plt.plot()
+plt.show()
 
-for i_episode in range(3):
-    observation = env.reset()
-    for t in range(10):
-        action = env.action_space.sample()
-        observation, reward, done, info = env.step(action)
-        print(info)
-        if done:
-            print("Episode finished after {} timesteps.\n".format(t + 1))
-            break
-
-env.close()
+# for i_episode in range(3):
+#     observation = env.reset()
+#     for t in range(10):
+#         action = env.action_space.sample()
+#         observation, reward, done, info = env.step(action)
+#         print(info)
+#         if done:
+#             print("Episode finished after {} timesteps.\n".format(t + 1))
+#             break
+#
+# env.close()
