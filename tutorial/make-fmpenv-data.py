@@ -3,23 +3,16 @@ import gym
 import sumo_gym
 from sumo_gym.envs.fmp import FMP
 
-n_vertex = 5 * 5
-n_depot = 1
-n_edge = 16
-n_vehicle = 3
 vertices = np.asarray([(0.0, 0.0), (0.0, 1.0), (0.0, 2.0), (0.0, 3.0), (0.0, 4.0), (0.0, 5.0),
                        (1.0, 0.0), (1.0, 1.0), (1.0, 2.0), (1.0, 3.0), (1.0, 4.0), (1.0, 5.0),
                        (2.0, 0.0), (2.0, 1.0), (2.0, 2.0), (2.0, 3.0), (2.0, 4.0), (2.0, 5.0),
                        (3.0, 0.0), (3.0, 1.0), (3.0, 2.0), (3.0, 3.0), (3.0, 4.0), (3.0, 5.0),
                        (4.0, 0.0), (4.0, 1.0), (4.0, 2.0), (4.0, 3.0), (4.0, 4.0), (4.0, 5.0),
                        (5.0, 0.0), (5.0, 1.0), (5.0, 2.0), (5.0, 3.0), (5.0, 4.0), (5.0, 5.0)])
-demand = np.asarray(
-    [0.0] * n_depot + (50 * np.random.random(n_vertex - n_depot)).tolist()
-)
 edges = np.asarray(
     [
         (0, 1),   (1, 0),   (1, 2),   (2, 1),   (2, 3),   (3, 2),   (3, 4),   (4, 3),   (4, 5),   (5, 4),
-        (0, 6)    (6, 0),   (1, 7),   (7, 1),   (2, 8),   (8, 2),   (3, 9),   (9, 3),   (4, 10),  (10, 4),  (5, 11),  (11, 5),
+        (0, 6),   (6, 0),   (1, 7),   (7, 1),   (2, 8),   (8, 2),   (3, 9),   (9, 3),   (4, 10),  (10, 4),  (5, 11),  (11, 5),
         (6, 7),   (7, 6),   (7, 8),   (8, 7),   (8, 9),   (9, 8),   (9, 10),  (10, 9),  (10, 11), (11, 10),
         (6, 12),  (12, 6),  (7, 13),  (13, 7),  (8, 14),  (14, 8),  (9, 15),  (15, 9),  (10, 16), (16, 10), (11, 17), (17, 11),
         (12, 13), (13, 12), (13, 14), (14, 13), (14, 15), (15, 14), (15, 16), (16, 15), (16, 17), (17, 16),
@@ -31,20 +24,27 @@ edges = np.asarray(
         (30, 31), (31, 30), (31, 32), (32, 31), (32, 33), (33, 32), (33, 34), (34, 33), (34, 35), (35, 34),
     ]
 )
-departures = np.zeros(n_vehicle).astype(int)
-capacity = np.ones(n_vertex) * 20.
+
+n_vertex = len(vertices)
+n_edge = len(edges)
+n_vehicle = 5
+n_electric_vehicles = 5
+n_charging_station = 3
+electric_vehicles = None
+departures = None
+charging_stations = None
+departures = None
+capacity = None
 
 env = gym.make(
     "FMP-v0",
     n_vertex=n_vertex,
-    n_depot=n_depot,
     n_edge=n_edge,
     n_vehicle=n_vehicle,
     vertices=vertices,
     demand=demand,
     edges=edges,
     departures=departures,
-    capacity=capacity,
 )
 env.render()
 

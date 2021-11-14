@@ -79,8 +79,8 @@ class FMP(object):
             or not self.n_vehicle
             or not self.n_charging_station
             or self.vertices.any() is None
-            or self.charging_stations.any() is None
-            or self.electric_vehicles.any() is None
+            or self.charging_stations is None
+            or self.electric_vehicles is None
             or self.demand.any() is None
             or self.edges.any() is None
             or self.departures.any() is None
@@ -92,7 +92,7 @@ class FMP(object):
 
 class FMPEnv(gym.Env):
     metadata = {"render.modes": ["human"]}
-    vrp = property(operator.attrgetter("_fmp"))
+    fmp = property(operator.attrgetter("_fmp"))
     __isfrozen = False
 
     def __init__(self, **kwargs):
@@ -167,9 +167,7 @@ class FMPEnv(gym.Env):
         plot_kwargs = {
             "vrp_depot_s": 200,
             "vrp_vertex_s": 200,
-            "vrp_depot_c": "darkgreen",
             "vrp_vertex_c": "navy",
-            "vrp_depot_marker": r"$\otimes$",
             "vrp_vertex_marker": r"$\odot$",
             "demand_width": 0.4,
             "demand_color": get_colors(self.vrp.n_vertex),
