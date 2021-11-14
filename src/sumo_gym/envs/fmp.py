@@ -144,7 +144,7 @@ class FMPEnv(gym.Env):
             self.is_charing[i] = actions[i][1]
             self.rewards[i] -= func(self.locations[i] - prev_location) # should be based on current battery, if low, f is high
             if prev_is_loading != -1 and self.is_loading[i] == -1:
-                self.rewards[i] += hot_spot_weight * dist_between(self.fmp.demand[prev_is_loading][1] - self.fmp.demand[prev_is_loading][0])
+                self.rewards[i] += get_hot_spot_weight(self.fmp.demand[prev_is_loading][0]) * dist_between(self.fmp.demand[prev_is_loading][1], self.fmp.demand[prev_is_loading][0])
 
             if prev_is_charging != -1 and self.is_charing == -1:
                 self.rewards[i] += self.fmp.electric_vehicles[-1]
