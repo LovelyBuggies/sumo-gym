@@ -1,6 +1,7 @@
 from typing import Tuple
 
 import sumo_gym.typing
+import sumo_gym.utils.grid_utils as grid_utils
 
 
 class GridSpace(gym.spaces.Space):
@@ -34,7 +35,7 @@ class GridSpace(gym.spaces.Space):
         samples = np.zeros(n_vehicle)
         for i in range(n_vehicle):
             if self.is_loading[i] != -1:
-                loc = self.demand[self.is_loading][1]  # one step towards this direction
+                loc = grid_utils.one_step_to_destination(self.locations[i], self.demand[self.is_loading][1])
                 samples[i] = (-1, -1, loc) if loc == self.demand[self.is_loading][1] else (self.is_loading, -1, loc)
             else:
                 if self.is_charging[i] != -1:
@@ -44,10 +45,9 @@ class GridSpace(gym.spaces.Space):
                         samples[i] = (-1, -1, self.charging_stations[self.is_charging[i]])
                 else:
                     ncs, battery_threshold = find_the_nearest_charging_station_and_its_distance()  # one step towards
-                    self.batteries[i] - battery_threshold
                     possibility_of_togo_charge = -(self.batteries[i] - battery_threshold) / (self.electric_vehicles[i][3] - battery_threshold) + 1
                     if np.random.random() < possibility_of_togo_charge:
-                        loc = self.charging_stations[ncs] # one step towards this direction
+                        loc = grid_utils.one_step_to_destination(self.locations[i], self.charging_stations[ncs])
                         samples[i] = (-1, ncs, loc) if loc == self.charging_stations[ncs] else (-1, -1, loc)
                     else:
                         dmd_idx = find_a_request_to_respond()
