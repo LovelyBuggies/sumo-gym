@@ -9,6 +9,7 @@ class GridSpace(gym.spaces.Space):
         vertices: sumo_gym.typing.VerticesType = None,
         demand: sumo_gym.typing.FMPDemandsType = None,
         edges: sumo_gym.typing.EdgeType = None,
+        electric_vehicles: FMPElectricVehiclesType = None,
         charging_stations: sumo_gym.typing.FMPChargingStationType = None,
         locations: sumo_gym.typing.LocationsType = None,
         batteries: npt.NDArray[float] = None,
@@ -21,6 +22,7 @@ class GridSpace(gym.spaces.Space):
         self.vertices = vertices
         self.demand = demand
         self.edges = edges
+        self.electric_vehicles = electric_vehicles
         self.charging_stations = charging_stations
         self.locations = locations
         self.batteries = batteries
@@ -36,8 +38,10 @@ class GridSpace(gym.spaces.Space):
                 samples[i] = (-1, -1, loc) if loc == self.demand[self.is_loading][1] else (self.is_loading, -1, loc)
             else:
                 if self.is_charging[i] != -1:
-                    # judge whether finished
-                    samples[i] = (-1, True, self.charging_stations[self.is_charging[i]])
+                    if self.electric_vehicles[i][2] - self.batteries[i] > speed:
+                        samples[i] = (-1, self.is_charging[i], self.charging_stations[self.is_charging[i]])
+                    else:
+                        samples[i] = (-1, -1, self.charging_stations[self.is_charging[i]])
                 else:
                     ncs, battery_threshold = find_the_nearest_charging_station_and_its_distance()  # one step towards
                     possibility_of_togo_charge = -log(self.batteries[i] - battery_threshold)
@@ -48,3 +52,5 @@ class GridSpace(gym.spaces.Space):
                         dmd_idx = find_a_request_to_respond()
                         loc = self.demand[dmd_idx]  # one step towards this direction
                         samples[i] = (dmd_idx, -1, loc) if loc == self.demand[dmd_idx] else (-1, -1, loc)
+
+        return samples

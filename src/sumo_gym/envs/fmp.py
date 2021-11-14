@@ -122,6 +122,7 @@ class FMPEnv(gym.Env):
             self.fmp.vertices,
             self.fmp.demand,
             self.fmp.edges,
+            self.electric_vehicles,
             self.fmp.charging_stations,
             self.locations,
             self.batteries,
@@ -155,3 +156,4 @@ class FMPEnv(gym.Env):
             "Is_charging": self.is_charing
         }
         reward, done, info = self.rewards, False, ""
+        return reward, done, info
