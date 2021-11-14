@@ -9,8 +9,8 @@ def calculate_dist(i, j, vertices) -> float:
     return np.sqrt(np.power(l1[0] - l2[0], 2) + np.power(l1[1] - l2[1], 2))
 
 
-def get_adj_list(vertice, edges) -> sumo_gym.typing.AdjListType:
-    adj = [[] for _ in range(len(vertice))]
+def get_adj_list(vertices, edges) -> sumo_gym.typing.AdjListType:
+    adj = [[] for _ in range(len(vertices))]
     for e in edges:
         adj[e[0]].append(e[1])
 
