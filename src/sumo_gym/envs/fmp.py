@@ -117,14 +117,15 @@ class FMPEnv(gym.Env):
     def _reset(self):
         self.locations: sumo_gym.typing.LocationsType = self.fmp.departures.astype(int)
         self.batteries: npt.NDArray[float] = np.asarray([ev[-1] for ev in self.fmp.electric_vehicles])
-        self.is_loading: npt.NDArray[int] = np.asarray([-1] * self.fmp.electric_vehicles) # -1 means responding no demand, else demand i
-        self.is_charging: npt.NDArray[int] = np.asarray([-1] * self.fmp.electric_vehicles) # -1 means not charing ,else charge station i
+        self.is_loading: npt.NDArray[int] = np.asarray([-1] * len(self.fmp.electric_vehicles)) # -1 means responding no demand, else demand i
+        self.is_charging: npt.NDArray[int] = np.asarray([-1] * len(self.fmp.electric_vehicles)) # -1 means not charing ,else charge station i
         self.responded: set = set()
         self.action_space: spaces.grid.GridSpace = spaces.grid.GridSpace(
             self.fmp.vertices,
             self.fmp.demand,
             self.responded,
             self.fmp.edges,
+            self.fmp.electric_vehicles,
             self.fmp.charging_stations,
             self.locations,
             self.batteries,

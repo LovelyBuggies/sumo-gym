@@ -2,7 +2,8 @@ import sumo_gym.utils.network_utils as network_utils
 
 
 def one_step_to_destination(vertices, edges, start_index, dest_index):
-    visited = [False] * vertices
+    print(dest_index)
+    visited = [False] * len(vertices)
     bfs_queue = [dest_index]
     visited[dest_index] = True
 
@@ -20,7 +21,7 @@ def one_step_to_destination(vertices, edges, start_index, dest_index):
 
 def nearest_charging_station_with_distance(vertices, charging_stations, edges, start_index):
     charging_station_vertices = [charging_station[0] for charging_station in charging_stations]
-    visited = [False] * vertices
+    visited = [False] * len(vertices)
 
     bfs_queue = [[start_index, 0]]
     visited[start_index] = True
@@ -38,7 +39,7 @@ def nearest_charging_station_with_distance(vertices, charging_stations, edges, s
 
 
 def dist_between(vertices, edges, start_index, dest_index):
-    visited = [False] * vertices
+    visited = [False] * len(vertices)
 
     bfs_queue = [[start_index, 0]]
     visited[start_index] = True
