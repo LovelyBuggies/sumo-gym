@@ -158,3 +158,25 @@ class FMPEnv(gym.Env):
             "Is_charging": self.is_charging
         }
         reward, done, info = self.rewards, self.responded == set(range(len(self.demand))), ""
+        return reward, done, info
+
+    def render(self, mode="human"):
+        get_colors = lambda n: list(
+            map(lambda i: "#" + "%06x" % random.randint(0x000000, 0x666666), range(n))
+        )
+        plot_kwargs = {
+            "vrp_depot_s": 200,
+            "vrp_vertex_s": 200,
+            "vrp_depot_c": "darkgreen",
+            "vrp_vertex_c": "navy",
+            "vrp_depot_marker": r"$\otimes$",
+            "vrp_vertex_marker": r"$\odot$",
+            "demand_width": 0.4,
+            "demand_color": get_colors(self.vrp.n_vertex),
+            "loading_width": 0.6,
+            "loading_color": get_colors(self.vrp.n_vehicle),
+            "location_marker": vehicle_marker,
+            "location_s": 2000,
+            "location_c": "lightgrey",
+        }
+        self.plot(**plot_kwargs)
