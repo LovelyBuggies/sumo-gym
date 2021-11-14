@@ -40,7 +40,8 @@ class GridSpace(gym.spaces.Space):
 
     def sample(self) -> npt.NDArray[int]: # returned samples' ele (is_loading, is_charing, the one-step loc)
         n_vehicle = len(self.is_loading)
-        samples = np.zeros(n_vehicle)
+        samples = [(-1, -1, 0) for i in range(n_vehicle)]
+        print(samples)
         for i in range(n_vehicle):
             if self.is_loading[i] != -1:
                 loc = grid_utils.one_step_to_destination(self.vertices, self.edges, self.locations[i], self.demand[self.is_loading][1])
@@ -59,7 +60,7 @@ class GridSpace(gym.spaces.Space):
                         samples[i] = (-1, ncs, loc) if loc == self.charging_stations[ncs] else (-1, -1, loc)
                     else:
                         dmd_idx = random.sample(set(range(len(self.demand))) - self.responded, 1)[0]
-                        loc = grid_utils.one_step_to_destination(self.vertices, self.edges, self.locations[i], self.demand[dmd_idx][1])
-                        samples[i] = (dmd_idx, -1, loc) if loc == self.demand[dmd_idx] else (-1, -1, loc)
+                        loc = grid_utils.one_step_to_destination(self.vertices, self.edges, self.locations[i], self.demand[dmd_idx][0])
+                        samples[i] = (dmd_idx, -1, loc) if loc == self.demand[dmd_idx][0] else (-1, -1, loc)
 
         return samples

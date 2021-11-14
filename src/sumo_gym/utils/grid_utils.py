@@ -2,7 +2,6 @@ import sumo_gym.utils.network_utils as network_utils
 
 
 def one_step_to_destination(vertices, edges, start_index, dest_index):
-    print(dest_index)
     visited = [False] * len(vertices)
     bfs_queue = [dest_index]
     visited[dest_index] = True
