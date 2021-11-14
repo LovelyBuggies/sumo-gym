@@ -56,7 +56,7 @@ class GridSpace(gym.spaces.Space):
                     possibility_of_togo_charge = -(self.batteries[i] - battery_threshold) / (self.electric_vehicles[i][3] - battery_threshold) + 1
                     if np.random.random() < possibility_of_togo_charge:
                         loc = grid_utils.one_step_to_destination(self.vertices, self.edges, self.locations[i], self.charging_stations[ncs][0])
-                        samples[i] = (-1, ncs, loc) if loc == self.charging_stations[ncs] else (-1, -1, loc)
+                        samples[i] = (-1, ncs, loc) if loc == self.charging_stations[ncs][0] else (-1, -1, loc)
                     else:
                         available_dmd = set(range(len(self.demand))) - self.responded
                         if len(available_dmd):
