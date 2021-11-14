@@ -35,12 +35,12 @@ class FMP(object):
         :param n_charging_station:      the number of charging stations
         :param n_edge:                  the number of edges
         :param n_vehicle:               the number of vehicles
-        :param vertices:                the vertices, [x_position, y_position]
-        :param charging_stations:       the charging stations, [vertex_index, charging_level]
-        :param electric_vehicles:       the vehicles, [vehicle_index, charging_level]
+        :param vertices:                the vertices, [vertex_index, x_position, y_position]
+        :param charging_stations:       the charging stations, [vertex_index, chargeDelay]
+        :param electric_vehicles:       the vehicles, [vehicle_index, charging_level (actualBatteryCapacity/maximumBatteryCapacity)]
         :param demand:                  the demand at vertices, [start_vertex_index, end_vertex_index]
         :param edges:                   the edges, [from_vertex_index, to_vertex_index]
-        :param departures:              the initial settings of vehicles, [starting_vertex_index]
+        :param departures:              the initial settings of vehicles, [vehicle_index, starting_vertex_index]
         Create a Fleet Management Problem setting (assume capacity of all vehicles = 1, all demands at each possible node = 1).
         """
         if net_xml_file_path is None or demand_xml_file_path is None:
@@ -70,6 +70,7 @@ class FMP(object):
             # self.vertices, self.charging_stations, self.electric_vehicles, self.demand, self.edges, self.departures 
             #      = sumo_gym.utils.decode_xml_fmp(net_xml_file_path, demand_xml_file_path)
             # other settings...
+            
 
     def _is_valid(self):
         if (
