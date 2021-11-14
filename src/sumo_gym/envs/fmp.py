@@ -145,7 +145,7 @@ class FMPEnv(gym.Env):
             ncs, battery_threshold = grid_utils.nearest_charging_station_with_distance(self.vertices, self.charging_stations, self.edges, self.locations[i])
             self.rewards[i] -= 5 * (-(self.batteries[i] - battery_threshold) / (self.fmp.electric_vehicles[3] - battery_threshold) + 1)
             if prev_is_loading != -1 and self.is_loading[i] == -1:
-            self.rewards[i] += grid_utils.get_hot_spot_weight(self.fmp.vertices, self.fmp.edges, self.locations[i], self.fmp.demand[prev_is_loading][0]) \
+                self.rewards[i] += grid_utils.get_hot_spot_weight(self.fmp.vertices, self.fmp.edges, self.locations[i], self.fmp.demand[prev_is_loading][0]) \
                                    * grid_utils.dist_between(self.fmp.vertices, self.fmp.edges, self.fmp.demand[prev_is_loading][1], self.fmp.demand[prev_is_loading][0])
 
             if prev_is_charging != -1 and self.is_charging == -1:
