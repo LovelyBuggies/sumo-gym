@@ -117,17 +117,16 @@ class FMPEnv(gym.Env):
         self.locations: sumo_gym.typing.LocationsType = self.fmp.departures.astype(int)
         self.batteries: npt.NDArray[float] = np.asarray([ev[-1] for ev in self.fmp.electric_vehicles])
         self.is_loading: npt.NDArray[int] = np.asarray([-1] * self.fmp.electric_vehicles) # -1 means responding no demand, else demand i
-        self.is_charing: npt.NDArray[int] = np.asarray([-1] * self.fmp.electric_vehicles) # -1 means not charing ,else charge station i
+        self.is_charging: npt.NDArray[int] = np.asarray([-1] * self.fmp.electric_vehicles) # -1 means not charing ,else charge station i
         self.action_space: spaces.grid.GridSpace = spaces.grid.GridSpace(
             self.fmp.vertices,
             self.fmp.demand,
             self.fmp.edges,
-            self.electric_vehicles,
             self.fmp.charging_stations,
             self.locations,
             self.batteries,
             self.is_loading,
-            self.is_charing,
+            self.is_charging,
         )
 
         self.actions: sumo_gym.typing.ActionsType = None
@@ -137,23 +136,22 @@ class FMPEnv(gym.Env):
         for i in range(self.fmp.n_vehicle):
             prev_location = self.locations[i]
             prev_is_loading = self.is_loading[i]
-            prev_is_charging = self.is_charing[i]
+            prev_is_charging = self.is_charging[i]
             self.locations[i] = actions[i][2]
             self.batteries -= self.locations[i] - prev_location
             self.is_loading[i] = actions[i][0]
-            self.is_charing[i] = actions[i][1]
+            self.is_charging[i] = actions[i][1]
             self.rewards[i] -= func(self.locations[i] - prev_location) # should be based on current battery, if low, f is high
             if prev_is_loading != -1 and self.is_loading[i] == -1:
                 self.rewards[i] += hot_spot_weight * dist_between(self.fmp.demand[prev_is_loading][1] - self.fmp.demand[prev_is_loading][0])
 
-            if prev_is_charging != -1 and self.is_charing == -1:
+            if prev_is_charging != -1 and self.is_charging == -1:
                 self.rewards[i] += self.fmp.electric_vehicles[-1]
 
         observation = {
             "Locations": self.locations,
             "Batteries": self.batteries,
             "Is_loading": self.is_loading,
-            "Is_charging": self.is_charing
+            "Is_charging": self.is_charging
         }
         reward, done, info = self.rewards, False, ""
-        return reward, done, info
