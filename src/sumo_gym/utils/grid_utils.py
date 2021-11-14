@@ -56,7 +56,6 @@ def dist_between(vertices, edges, start_index, dest_index):
 
 
 def get_hot_spot_weight(vertices, edges, demands, demand_start):
-    print("demands", demands)
     total_demands = len(demands)
 
     adjacent_vertices = network_utils.get_adj_list(vertices, edges)[demand_start]

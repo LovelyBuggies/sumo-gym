@@ -67,4 +67,5 @@ class GridSpace(gym.spaces.Space):
                         else:
                             samples[i] = (-1, -1, self.locations[i])
 
+        print("Samples: ", samples)
         return samples
