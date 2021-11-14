@@ -55,7 +55,7 @@ env = gym.make(
     charging_stations=charging_stations
 )
 env.render()
-plt.plot()
+plt.show()
 
 # for i_episode in range(3):
 #     observation = env.reset()

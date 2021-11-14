@@ -197,22 +197,22 @@ def plot_FMPEnv(
     # keyword arguments
     fmp_kwargs = _filter_dict(kwargs, "fmp_", ignore={"fmp_alpha"})
     location_kwargs = _filter_dict(kwargs, "location_")
-    demand_kwargs = _filter_dict(kwargs, "demand_")
-    loading_kwargs = _filter_dict(kwargs, "loading_")
-    if len(kwargs):
-        raise ValueError(f"{set(kwargs)} not needed")
+    # demand_kwargs = _filter_dict(kwargs, "demand_")
+    # loading_kwargs = _filter_dict(kwargs, "loading_")
+    # if len(kwargs):
+    #     raise ValueError(f"{set(kwargs)} not needed")
 
     fmp_art = plot_FMP(self.fmp, ax=fmp_ax, **fmp_kwargs)
-    # x = [self.fmp.vertices[l][0] for l in self.locations]
-    # y = [self.fmp.vertices[l][1] for l in self.locations]
-    # fmp_ax.scatter(x, y, alpha=1, **location_kwargs)
+    x = [self.fmp.vertices[l][0] for l in self.locations]
+    y = [self.fmp.vertices[l][1] for l in self.locations]
+    fmp_ax.scatter(x, y, alpha=1, **location_kwargs)
     # demand_art = demand_ax.bar(
     #     np.arange(self.fmp.n_vertex), self.fmp.demand, **demand_kwargs
     # )
-    # demand_ax.spines["top"].set_visible(False)
-    # demand_ax.spines["right"].set_visible(False)
-    # demand_ax.xaxis.set_visible(False)
-    # demand_ax.set_ylabel("Demand")
+    demand_ax.spines["top"].set_visible(False)
+    demand_ax.spines["right"].set_visible(False)
+    demand_ax.xaxis.set_visible(False)
+    demand_ax.set_ylabel("Demand")
     # base = loading_ax.transData
     # rot = transforms.Affine2D().rotate_deg(90).scale(-1, 1)
     # loading_art = loading_ax.bar(
@@ -221,9 +221,8 @@ def plot_FMPEnv(
     #     transform=rot + base,
     #     **loading_kwargs,
     # )
-    # loading_ax.spines["top"].set_visible(False)
-    # loading_ax.spines["right"].set_visible(False)
-    # loading_ax.yaxis.set_visible(False)
-    # loading_ax.set_xlabel("Loading")
-
+    loading_ax.spines["top"].set_visible(False)
+    loading_ax.spines["right"].set_visible(False)
+    loading_ax.yaxis.set_visible(False)
+    loading_ax.set_xlabel("Loading")
     return fmp_art
