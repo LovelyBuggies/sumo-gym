@@ -38,14 +38,15 @@ class GridSpace(gym.spaces.Space):
                 samples[i] = (-1, -1, loc) if loc == self.demand[self.is_loading][1] else (self.is_loading, -1, loc)
             else:
                 if self.is_charging[i] != -1:
-                    if self.electric_vehicles[i][2] - self.batteries[i] > speed:
+                    if self.electric_vehicles[i][3] - self.batteries[i] > speed:
                         samples[i] = (-1, self.is_charging[i], self.charging_stations[self.is_charging[i]])
                     else:
                         samples[i] = (-1, -1, self.charging_stations[self.is_charging[i]])
                 else:
                     ncs, battery_threshold = find_the_nearest_charging_station_and_its_distance()  # one step towards
-                    possibility_of_togo_charge = -log(self.batteries[i] - battery_threshold)
-                    if self.batteries[i] < battery_threshold or np.random.random() < possibility_of_togo_charge:
+                    self.batteries[i] - battery_threshold
+                    possibility_of_togo_charge = -(self.batteries[i] - battery_threshold) / (self.electric_vehicles[i][3] - battery_threshold) + 1
+                    if np.random.random() < possibility_of_togo_charge:
                         loc = self.charging_stations[ncs] # one step towards this direction
                         samples[i] = (-1, ncs, loc) if loc == self.charging_stations[ncs] else (-1, -1, loc)
                     else:
