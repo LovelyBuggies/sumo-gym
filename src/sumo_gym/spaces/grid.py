@@ -1,5 +1,5 @@
 from typing import Tuple
-
+import random
 import sumo_gym.typing
 import sumo_gym.utils.grid_utils as grid_utils
 
@@ -9,6 +9,7 @@ class GridSpace(gym.spaces.Space):
         self,
         vertices: sumo_gym.typing.VerticesType = None,
         demand: sumo_gym.typing.FMPDemandsType = None,
+        responded: set = None,
         edges: sumo_gym.typing.EdgeType = None,
         electric_vehicles: FMPElectricVehiclesType = None,
         charging_stations: sumo_gym.typing.FMPChargingStationType = None,
@@ -22,6 +23,7 @@ class GridSpace(gym.spaces.Space):
         super(NetworkSpace, self).__init__()
         self.vertices = vertices
         self.demand = demand
+        self.responded = responded
         self.edges = edges
         self.electric_vehicles = electric_vehicles
         self.charging_stations = charging_stations
@@ -50,7 +52,7 @@ class GridSpace(gym.spaces.Space):
                         loc = grid_utils.one_step_to_destination(self.vertices, self.edges, self.locations[i], self.charging_stations[ncs])
                         samples[i] = (-1, ncs, loc) if loc == self.charging_stations[ncs] else (-1, -1, loc)
                     else:
-                        dmd_idx = find_a_request_to_respond()
+                        dmd_idx = random.sample(set(range(len(self.demand))) - self.responded, 1)[0]
                         loc = grid_utils.one_step_to_destination(self.locations[i], self.demand[dmd_idx])
                         samples[i] = (dmd_idx, -1, loc) if loc == self.demand[dmd_idx] else (-1, -1, loc)
 

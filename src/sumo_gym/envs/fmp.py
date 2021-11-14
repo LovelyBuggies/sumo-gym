@@ -118,9 +118,11 @@ class FMPEnv(gym.Env):
         self.batteries: npt.NDArray[float] = np.asarray([ev[-1] for ev in self.fmp.electric_vehicles])
         self.is_loading: npt.NDArray[int] = np.asarray([-1] * self.fmp.electric_vehicles) # -1 means responding no demand, else demand i
         self.is_charging: npt.NDArray[int] = np.asarray([-1] * self.fmp.electric_vehicles) # -1 means not charing ,else charge station i
+        self.responded: set = set()
         self.action_space: spaces.grid.GridSpace = spaces.grid.GridSpace(
             self.fmp.vertices,
             self.fmp.demand,
+            self.responded,
             self.fmp.edges,
             self.fmp.charging_stations,
             self.locations,
@@ -144,6 +146,7 @@ class FMPEnv(gym.Env):
             self.rewards[i] -= func(self.locations[i] - prev_location) # should be based on current battery, if low, f is high
             if prev_is_loading != -1 and self.is_loading[i] == -1:
                 self.rewards[i] += get_hot_spot_weight(self.fmp.demand[prev_is_loading][0]) * dist_between(self.fmp.demand[prev_is_loading][1], self.fmp.demand[prev_is_loading][0])
+                self.responded.add(prev_is_loading)
 
             if prev_is_charging != -1 and self.is_charging == -1:
                 self.rewards[i] += self.fmp.electric_vehicles[-1]
@@ -154,4 +157,4 @@ class FMPEnv(gym.Env):
             "Is_loading": self.is_loading,
             "Is_charging": self.is_charging
         }
-        reward, done, info = self.rewards, False, ""
+        reward, done, info = self.rewards, self.responded == set(range(len(self.demand))), ""
