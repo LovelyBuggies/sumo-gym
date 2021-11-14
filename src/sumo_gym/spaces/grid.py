@@ -59,6 +59,7 @@ class GridSpace(gym.spaces.Space):
                         samples[i] = (-1, ncs, loc) if loc == self.charging_stations[ncs] else (-1, -1, loc)
                     else:
                         dmd_idx = random.sample(set(range(len(self.demand))) - self.responded, 1)[0]
+                        self.responded.add(dmd_idx)
                         loc = grid_utils.one_step_to_destination(self.vertices, self.edges, self.locations[i], self.demand[dmd_idx][0])
                         samples[i] = (dmd_idx, -1, loc) if loc == self.demand[dmd_idx][0] else (-1, -1, loc)
 
