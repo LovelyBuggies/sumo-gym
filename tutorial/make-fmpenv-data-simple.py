@@ -31,14 +31,14 @@ edges = np.asarray(
 
 n_vertex = len(vertices)
 n_edge = len(edges)
-n_vehicle = 5
-n_electric_vehicles = 5
+n_vehicle = 1
+n_electric_vehicles = 1
 n_charging_station = 3
-electric_vehicles = np.asarray([(0, 1, 220, 10), (1, 1, 220, 14), (2, 1, 220, 15), (3, 1, 220, 10), (4, 1, 220, 20)])
+electric_vehicles = np.asarray([(0, 1, 220, 10)])
 charging_stations = np.asarray([(np.random.randint(35), 1000) for i in range(5)])
 available_vertices = np.asarray([v for v in range(35) if v not in (charging_station[0] for charging_station in charging_stations)])
-departures = np.asarray(random.choices(available_vertices, k=n_vehicle))
-demand = np.asarray([(random.choice(available_vertices), random.choice(available_vertices)) for i in range(10)])
+departures = np.asarray([19])
+demand = np.asarray([(6,4),(5,16),(13,20),(28,11),(12,30),(27,5),(1,28),(13,24),(19,18),(11,32)])
 
 print(departures, demand)
 env = gym.make(
