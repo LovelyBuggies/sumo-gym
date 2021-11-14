@@ -19,12 +19,13 @@ class GridSpace(gym.spaces.Space):
         charging_stations: sumo_gym.typing.FMPChargingStationType = None,
         locations: sumo_gym.typing.LocationsType = None,
         batteries: npt.NDArray[float] = None,
-        is_loading: npt.NDArray[bool] = None,
+        is_loading: npt.NDArray[int] = None,
+        is_charging: npt.NDArray[int] = None,
         shape=None,
         dtype=None,
         seed=None,
     ):
-        super(NetworkSpace, self).__init__()
+        super(GridSpace, self).__init__()
         self.vertices = vertices
         self.demand = demand
         self.responded = responded
@@ -36,7 +37,7 @@ class GridSpace(gym.spaces.Space):
         self.is_loading = is_loading
         self.is_charging = is_charging
 
-    def sample(self) -> npt.NDArray[bool, int]: # returned samples' ele (is_loading, is_charing, the one-step loc)
+    def sample(self) -> npt.NDArray[int]: # returned samples' ele (is_loading, is_charing, the one-step loc)
         n_vehicle = len(self.is_loading)
         samples = np.zeros(n_vehicle)
         for i in range(n_vehicle):
