@@ -159,7 +159,7 @@ class FMPEnv(gym.Env):
             "Is_charging": self.is_charging
         }
         reward, done, info = self.rewards, self.responded == set(range(len(self.fmp.demand))), ""
-        return reward, done, info
+        return observation, reward, done, info
 
     def plot(
         self,
