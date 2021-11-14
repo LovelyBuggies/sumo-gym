@@ -160,19 +160,29 @@ class FMPEnv(gym.Env):
         reward, done, info = self.rewards, self.responded == set(range(len(self.demand))), ""
         return reward, done, info
 
+    def plot(
+        self,
+        *,
+        ax_dict=None,
+        **kwargs: Any,
+    ) -> Any:
+        import sumo_gym.plot
+
+        return sumo_gym.plot.plot_FMPEnv(self, ax_dict=ax_dict, **kwargs)
+
+
     def render(self, mode="human"):
         get_colors = lambda n: list(
             map(lambda i: "#" + "%06x" % random.randint(0x000000, 0x666666), range(n))
         )
         plot_kwargs = {
-            "vrp_depot_s": 200,
-            "vrp_vertex_s": 200,
-            "vrp_vertex_c": "navy",
-            "vrp_vertex_marker": r"$\odot$",
+            "fmp_vertex_s": 200,
+            "fmp_vertex_c": "navy",
+            "fmp_vertex_marker": r"$\odot$",
             "demand_width": 0.4,
-            "demand_color": get_colors(self.vrp.n_vertex),
+            "demand_color": get_colors(self.fmp.n_vertex),
             "loading_width": 0.6,
-            "loading_color": get_colors(self.vrp.n_vehicle),
+            "loading_color": get_colors(self.fmp.n_vehicle),
             "location_marker": vehicle_marker,
             "location_s": 2000,
             "location_c": "lightgrey",

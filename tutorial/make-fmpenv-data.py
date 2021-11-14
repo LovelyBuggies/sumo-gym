@@ -4,6 +4,8 @@ import sumo_gym
 from sumo_gym.envs.fmp import FMP
 import random
 
+import matplotlib.pyplot as plt
+
 vertices = np.asarray([(0.0, 0.0), (0.0, 1.0), (0.0, 2.0), (0.0, 3.0), (0.0, 4.0), (0.0, 5.0),
                        (1.0, 0.0), (1.0, 1.0), (1.0, 2.0), (1.0, 3.0), (1.0, 4.0), (1.0, 5.0),
                        (2.0, 0.0), (2.0, 1.0), (2.0, 2.0), (2.0, 3.0), (2.0, 4.0), (2.0, 5.0),
@@ -53,6 +55,7 @@ env = gym.make(
     charging_stations=charging_stations
 )
 env.render()
+plt.plot()
 
 # for i_episode in range(3):
 #     observation = env.reset()
