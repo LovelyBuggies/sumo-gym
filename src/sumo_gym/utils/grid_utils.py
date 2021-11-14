@@ -16,3 +16,22 @@ def one_step_to_destination(vertices, edges, start_index, dest_index):
             elif not visited[v]:
                 bfs_queue.append(v)
                 visited[v] = False
+
+
+def nearest_charging_station_with_distance(vertices, charging_stations, edges, start_index):
+    charging_station_vertices = [charging_station[0] for charging_station in charging_stations]
+    visited = [False] * vertices
+
+    bfs_queue = [[start_index, 0]]
+    visited[start_index] = True
+
+    while bfs_queue:
+        curr, curr_depth = bfs_queue.pop(0)
+        adjacent_map = network_utils.get_adj_list(vertices, edges)
+
+        for v in adjacent_map[curr]:
+            if not visited[v] and v in charging_station_vertices:
+                return charging_station_vertices.index(v), curr_depth + 1
+            elif not visited[v]:
+                bfs_queue.append([v, curr_depth+1])
+                visited[v] = False
