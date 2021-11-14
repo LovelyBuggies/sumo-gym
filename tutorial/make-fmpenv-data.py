@@ -13,7 +13,6 @@ vertices = np.asarray([(0.0, 0.0), (0.0, 1.0), (0.0, 2.0), (0.0, 3.0), (0.0, 4.0
                        (3.0, 0.0), (3.0, 1.0), (3.0, 2.0), (3.0, 3.0), (3.0, 4.0), (3.0, 5.0),
                        (4.0, 0.0), (4.0, 1.0), (4.0, 2.0), (4.0, 3.0), (4.0, 4.0), (4.0, 5.0),
                        (5.0, 0.0), (5.0, 1.0), (5.0, 2.0), (5.0, 3.0), (5.0, 4.0), (5.0, 5.0)])
-# demand = np.asarray([0.] * n_depot + [5.] * (n_vertex - n_depot))
 demand = np.asarray(
     [0.0] * n_depot + (50 * np.random.random(n_vertex - n_depot)).tolist()
 )
@@ -36,7 +35,7 @@ departures = np.zeros(n_vehicle).astype(int)
 capacity = np.ones(n_vertex) * 20.
 
 env = gym.make(
-    "VRP-v0",
+    "FMP-v0",
     n_vertex=n_vertex,
     n_depot=n_depot,
     n_edge=n_edge,
@@ -47,15 +46,16 @@ env = gym.make(
     departures=departures,
     capacity=capacity,
 )
+env.render()
 
-for i_episode in range(3):
-    observation = env.reset()
-    for t in range(10):
-        action = env.action_space.sample()
-        observation, reward, done, info = env.step(action)
-        print(info)
-        if done:
-            print("Episode finished after {} timesteps.\n".format(t + 1))
-            break
-
-env.close()
+# for i_episode in range(3):
+#     observation = env.reset()
+#     for t in range(10):
+#         action = env.action_space.sample()
+#         observation, reward, done, info = env.step(action)
+#         print(info)
+#         if done:
+#             print("Episode finished after {} timesteps.\n".format(t + 1))
+#             break
+#
+# env.close()
