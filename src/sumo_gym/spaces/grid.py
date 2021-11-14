@@ -41,7 +41,6 @@ class GridSpace(gym.spaces.Space):
     def sample(self) -> npt.NDArray[int]: # returned samples' ele (is_loading, is_charing, the one-step loc)
         n_vehicle = len(self.is_loading)
         samples = [(-1, -1, 0) for i in range(n_vehicle)]
-        print(samples)
         for i in range(n_vehicle):
             if self.is_loading[i] != -1:
                 loc = grid_utils.one_step_to_destination(self.vertices, self.edges, self.locations[i], self.demand[self.is_loading][1])

@@ -38,7 +38,6 @@ electric_vehicles = np.asarray([(0, 1, 220, 100), (1, 1, 220, 100), (2, 1, 220, 
 charging_stations = np.asarray([(np.random.randint(35), 1000) for i in range(5)])
 available_vertices = np.asarray([v for v in range(35) if v not in (charging_station[0] for charging_station in charging_stations)])
 departures = np.asarray(random.choices(available_vertices, k=n_vehicle))
-print(departures)
 demand = np.asarray([(random.choice(available_vertices), random.choice(available_vertices)) for i in range(10)])
 
 env = gym.make(
