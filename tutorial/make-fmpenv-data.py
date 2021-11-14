@@ -2,6 +2,7 @@ import numpy as np
 import gym
 import sumo_gym
 from sumo_gym.envs.fmp import FMP
+import random
 
 vertices = np.asarray([(0.0, 0.0), (0.0, 1.0), (0.0, 2.0), (0.0, 3.0), (0.0, 4.0), (0.0, 5.0),
                        (1.0, 0.0), (1.0, 1.0), (1.0, 2.0), (1.0, 3.0), (1.0, 4.0), (1.0, 5.0),
@@ -9,6 +10,7 @@ vertices = np.asarray([(0.0, 0.0), (0.0, 1.0), (0.0, 2.0), (0.0, 3.0), (0.0, 4.0
                        (3.0, 0.0), (3.0, 1.0), (3.0, 2.0), (3.0, 3.0), (3.0, 4.0), (3.0, 5.0),
                        (4.0, 0.0), (4.0, 1.0), (4.0, 2.0), (4.0, 3.0), (4.0, 4.0), (4.0, 5.0),
                        (5.0, 0.0), (5.0, 1.0), (5.0, 2.0), (5.0, 3.0), (5.0, 4.0), (5.0, 5.0)])
+
 edges = np.asarray(
     [
         (0, 1),   (1, 0),   (1, 2),   (2, 1),   (2, 3),   (3, 2),   (3, 4),   (4, 3),   (4, 5),   (5, 4),
@@ -32,7 +34,9 @@ n_electric_vehicles = 5
 n_charging_station = 3
 electric_vehicles = None
 departures = None
-charging_stations = None
+charging_stations = np.random.randint(35, size=3)
+available_vertices = [v for v in vertices if v not in charging_stations]
+demand = [(random.choice(available_vertices), random.choice(available_vertices)) for i in range(10)]
 departures = None
 capacity = None
 
