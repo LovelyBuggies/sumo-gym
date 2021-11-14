@@ -153,7 +153,7 @@ class FMPEnv(gym.Env):
                                    * grid_utils.dist_between(self.fmp.vertices, self.fmp.edges, self.fmp.demand[prev_is_loading][1], self.fmp.demand[prev_is_loading][0])
 
             if prev_is_charging != -1 and self.is_charging == -1:
-                self.rewards[i] += self.fmp.electric_vehicles[-1]
+                self.rewards[i] += self.fmp.electric_vehicles[i][-1]
 
         observation = {
             "Locations": self.locations,

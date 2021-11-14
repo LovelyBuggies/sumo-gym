@@ -47,10 +47,10 @@ class GridSpace(gym.spaces.Space):
                 samples[i] = (-1, -1, loc) if loc == self.demand[self.is_loading[i]][1] else (self.is_loading[i], -1, loc)
             else:
                 if self.is_charging[i] != -1:
-                    if self.electric_vehicles[i][3] - self.batteries[i] > speed:
-                        samples[i] = (-1, self.is_charging[i], self.charging_stations[self.is_charging[i]])
+                    if self.electric_vehicles[i][3] - self.batteries[i] > self.charging_stations[self.is_charging[i]][1]:
+                        samples[i] = (-1, self.is_charging[i], self.charging_stations[self.is_charging[i]][0])
                     else:
-                        samples[i] = (-1, -1, self.charging_stations[self.is_charging[i]])
+                        samples[i] = (-1, -1, self.charging_stations[self.is_charging[i]][0])
                 else:
                     ncs, battery_threshold = grid_utils.nearest_charging_station_with_distance(self.vertices, self.charging_stations, self.edges, self.locations[i])  # one step towards
                     possibility_of_togo_charge = -(self.batteries[i] - battery_threshold) / (self.electric_vehicles[i][3] - battery_threshold) + 1
@@ -58,9 +58,10 @@ class GridSpace(gym.spaces.Space):
                         loc = grid_utils.one_step_to_destination(self.vertices, self.edges, self.locations[i], self.charging_stations[ncs][0])
                         samples[i] = (-1, ncs, loc) if loc == self.charging_stations[ncs][0] else (-1, -1, loc)
                     else:
-                        available_dmd = set(range(len(self.demand))) - self.responded
+                        available_dmd = [d for d in range(len(self.demand)) if d not in self.responded]
                         if len(available_dmd):
-                            dmd_idx = random.sample(available_dmd, 1)[0]
+                            dmd_idx = random.choices(available_dmd)[0]
+                            print("----- CHOSEN INDEX:", dmd_idx)
                             self.responded.add(dmd_idx)
                             loc = grid_utils.one_step_to_destination(self.vertices, self.edges, self.locations[i], self.demand[dmd_idx][0])
                             samples[i] = (dmd_idx, -1, loc) if loc == self.demand[dmd_idx][0] else (-1, -1, loc)
