@@ -1,8 +1,12 @@
 from typing import Tuple
 import random
-import sumo_gym.typing
-import sumo_gym.utils.grid_utils as grid_utils
 
+import sumo_gym
+import sumo_gym.utils.grid_utils as grid_utils
+import gym
+from sumo_gym.typing import FMPElectricVehiclesType, FMPDemandsType, FMPChargingStationType
+
+import numpy.typing as npt
 
 class GridSpace(gym.spaces.Space):
     def __init__(
