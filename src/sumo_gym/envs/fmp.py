@@ -78,12 +78,12 @@ class FMP(object):
             or not self.n_edge
             or not self.n_vehicle
             or not self.n_charging_station
-            or self.vertices.any() is None
+            or self.vertices is None
             or self.charging_stations is None
             or self.electric_vehicles is None
-            or self.demand.any() is None
-            or self.edges.any() is None
-            or self.departures.any() is None
+            or self.demand is None
+            or self.edges is None
+            or self.departures is None
         ):
             return False
         # todo: scale judgement
