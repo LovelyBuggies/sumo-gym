@@ -56,16 +56,16 @@ env = gym.make(
     charging_stations=charging_stations
 )
 env.render()
-plt.show()
+# plt.show()
 
-# for i_episode in range(3):
-#     observation = env.reset()
-#     for t in range(10):
-#         action = env.action_space.sample()
-#         observation, reward, done, info = env.step(action)
-#         print(info)
-#         if done:
-#             print("Episode finished after {} timesteps.\n".format(t + 1))
-#             break
-#
-# env.close()
+for i_episode in range(3):
+    observation = env.reset()
+    for t in range(10):
+        action = env.action_space.sample()
+        observation, reward, done, info = env.step(action)
+        print(info)
+        if done:
+            print("Episode finished after {} timesteps.\n".format(t + 1))
+            break
+
+env.close()
