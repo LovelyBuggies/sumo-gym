@@ -41,10 +41,14 @@ env = gym.make(
     n_vertex=n_vertex,
     n_edge=n_edge,
     n_vehicle=n_vehicle,
+    n_electric_vehicles=n_electric_vehicles,
+    n_charging_station=n_charging_station,
     vertices=vertices,
     demand=demand,
     edges=edges,
+    electric_vehicles=electric_vehicles,
     departures=departures,
+    charging_stations=charging_stations
 )
 env.render()
 
