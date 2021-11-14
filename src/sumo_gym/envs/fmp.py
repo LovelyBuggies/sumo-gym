@@ -11,6 +11,7 @@ from gym.utils import seeding
 import sumo_gym
 import sumo_gym.spaces as spaces
 from sumo_gym.utils.svg_uitls import vehicle_marker
+import sumo_gym.utils.grid_utils as grid_utils
 
 
 class FMP(object):
@@ -143,7 +144,8 @@ class FMPEnv(gym.Env):
             self.is_charging[i] = actions[i][1]
             self.rewards[i] -= func(self.locations[i] - prev_location) # should be based on current battery, if low, f is high
             if prev_is_loading != -1 and self.is_loading[i] == -1:
-                self.rewards[i] += get_hot_spot_weight(self.fmp.demand[prev_is_loading][0]) * dist_between(self.fmp.demand[prev_is_loading][1], self.fmp.demand[prev_is_loading][0])
+                self.rewards[i] += grid_utils.get_hot_spot_weight(self.fmp.vertices, self.fmp.edges, self.locations[i], self.fmp.demand[prev_is_loading][0]) \
+                                   * grid_utils.dist_between(self.fmp.vertices, self.fmp.edges, self.fmp.demand[prev_is_loading][1], self.fmp.demand[prev_is_loading][0])
 
             if prev_is_charging != -1 and self.is_charging == -1:
                 self.rewards[i] += self.fmp.electric_vehicles[-1]
