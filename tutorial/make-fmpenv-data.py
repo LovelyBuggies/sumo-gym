@@ -31,6 +31,7 @@ n_vertex = len(vertices)
 n_edge = len(edges)
 n_vehicle = 5
 n_electric_vehicles = 5
+n_charging_station = 3
 electric_vehicles = [(0, 1, 220, 100), (1, 1, 220, 100), (2, 1, 220, 100), (3, 1, 220, 100), (4, 1, 220, 100)]
 charging_stations = np.random.randint(35, size=3)
 available_vertices = [v for v in vertices if v not in charging_stations]
