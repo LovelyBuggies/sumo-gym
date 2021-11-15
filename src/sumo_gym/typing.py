@@ -18,5 +18,5 @@ ActionsType = npt.NDArray[int]
 RewardsType = npt.NDArray[float]
 
 FMPElectricVehiclesType = npt.NDArray[Tuple[float]]     # vehicle index, speed, indicator, capacity
-FMPChargingStationType = npt.NDArray[Tuple[int]]        # vertex index, indicator
+FMPChargingStationType = npt.NDArray[Tuple[int]]        # vertex index, indicator, speed
 FMPDemandsType = npt.NDArray[Tuple[int]]                # departure, destination

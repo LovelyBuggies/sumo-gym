@@ -42,31 +42,41 @@ class GridSpace(gym.spaces.Space):
         n_vehicle = len(self.is_loading)
         samples = [(-1, -1, 0) for i in range(n_vehicle)]
         for i in range(n_vehicle):
-            if self.is_loading[i] != -1:
-                loc = grid_utils.one_step_to_destination(self.vertices, self.edges, self.locations[i], self.demand[self.is_loading[i]][1])
-                samples[i] = (-1, -1, loc) if loc == self.demand[self.is_loading[i]][1] else (self.is_loading[i], -1, loc)
-            else:
-                if self.is_charging[i] != -1:
-                    if self.electric_vehicles[i][3] - self.batteries[i] > self.charging_stations[self.is_charging[i]][1]:
-                        samples[i] = (-1, self.is_charging[i], self.charging_stations[self.is_charging[i]][0])
-                    else:
-                        samples[i] = (-1, -1, self.charging_stations[self.is_charging[i]][0])
+            if self.is_loading[i][0] != -1: # is on the way
+                loc = grid_utils.one_step_to_destination(self.vertices, self.edges, self.locations[i], self.demand[self.is_loading[i][0]][1])
+                print("----- In the way of demand:", self.is_loading[i][0])
+                samples[i] = ((-1, -1), -1, loc) if loc == self.demand[self.is_loading[i][0]][1] else ((self.is_loading[i][0], self.is_loading[i][1]), -1, loc)
+            elif self.is_loading[i][1] != -1: # is to the way
+                loc = grid_utils.one_step_to_destination(self.vertices, self.edges, self.locations[i], self.demand[self.is_loading[i][1]][0])
+                print("----- In the way to respond:", self.is_loading[i][1])
+                samples[i] = ((self.is_loading[i][1], self.is_loading[i][1]), -1, loc) if loc == self.demand[self.is_loading[i][1]][0] else ((self.is_loading[i][0], self.is_loading[i][1]), -1, loc)
+            elif self.is_charging[i] != -1: # is charging
+                if self.electric_vehicles[i][3] - self.batteries[i] > self.charging_stations[self.is_charging[i]][2]:
+                    print("----- Still charging")
+                    samples[i] = ((-1, -1), self.is_charging[i], self.charging_stations[self.is_charging[i]][0])
                 else:
-                    ncs, battery_threshold = grid_utils.nearest_charging_station_with_distance(self.vertices, self.charging_stations, self.edges, self.locations[i])  # one step towards
-                    possibility_of_togo_charge = -(self.batteries[i] - battery_threshold) / (self.electric_vehicles[i][3] - battery_threshold) + 1
-                    if np.random.random() < possibility_of_togo_charge:
-                        loc = grid_utils.one_step_to_destination(self.vertices, self.edges, self.locations[i], self.charging_stations[ncs][0])
-                        samples[i] = (-1, ncs, loc) if loc == self.charging_stations[ncs][0] else (-1, -1, loc)
+                    print("----- Charging finished")
+                    samples[i] = ((-1, -1), -1, self.charging_stations[self.is_charging[i]][0])
+            else: # available
+                ncs, _ = grid_utils.nearest_charging_station_with_distance(self.vertices, self.charging_stations, self.edges, self.locations[i])
+                diagonal_len = 2 * (max(self.vertices, key=lambda item:item[1])[1] - min(self.vertices, key=lambda item:item[1])[1] \
+                               + max(self.vertices, key=lambda item:item[0])[0] - min(self.vertices, key=lambda item:item[0])[0])
+                possibility_of_togo_charge = self.batteries[i] / (diagonal_len - self.electric_vehicles[i][3]) \
+                                + self.electric_vehicles[i][3] / (self.electric_vehicles[i][3] - diagonal_len)
+                if np.random.random() < possibility_of_togo_charge:
+                    loc = grid_utils.one_step_to_destination(self.vertices, self.edges, self.locations[i], self.charging_stations[ncs][0])
+                    print("----- Goto charge:", ncs)
+                    samples[i] = ((-1, -1), ncs, loc) if loc == self.charging_stations[ncs][0] else ((-1, -1), -1, loc)
+                else:
+                    available_dmd = [d for d in range(len(self.demand)) if d not in self.responded]
+                    if len(available_dmd):
+                        dmd_idx = random.choices(available_dmd)[0]
+                        print("----- Choose dmd_idx:", dmd_idx)
+                        self.responded.add(dmd_idx)
+                        loc = grid_utils.one_step_to_destination(self.vertices, self.edges, self.locations[i], self.demand[dmd_idx][0])
+                        samples[i] = ((dmd_idx, dmd_idx), -1, loc) if loc == self.demand[dmd_idx][0] else ((-1, dmd_idx), -1, loc)
                     else:
-                        available_dmd = [d for d in range(len(self.demand)) if d not in self.responded]
-                        if len(available_dmd):
-                            dmd_idx = random.choices(available_dmd)[0]
-                            print("----- CHOSEN INDEX:", dmd_idx)
-                            self.responded.add(dmd_idx)
-                            loc = grid_utils.one_step_to_destination(self.vertices, self.edges, self.locations[i], self.demand[dmd_idx][0])
-                            samples[i] = (dmd_idx, -1, loc) if loc == self.demand[dmd_idx][0] else (-1, -1, loc)
-                        else:
-                            samples[i] = (-1, -1, self.locations[i])
+                        samples[i] = ((-1, -1), -1, self.locations[i])
 
         print("Samples: ", samples)
         return samples
