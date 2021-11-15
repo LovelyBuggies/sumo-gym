@@ -57,10 +57,9 @@ env = gym.make(
 )
 env.render()
 # plt.show()
-
-for i_episode in range(3):
+for i_episode in range(1):
     observation = env.reset()
-    for t in range(200):
+    for t in range(100):
         action = env.action_space.sample()
         observation, reward, done, info = env.step(action)
         if done:
