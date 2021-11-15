@@ -149,15 +149,13 @@ class FMPEnv(gym.Env):
                 self.batteries[i] += self.fmp.charging_stations[self.is_charging[i]][2]
 
             self.rewards[i] += min(self.batteries[i] - prev_batteries,0)
-            if prev_is_loading == -1 and self.is_loading[i][0] != -1:
-                self.responded.add(tuple(self.is_loading[i])[0])
 
             if prev_is_loading != -1 and self.is_loading[i][0] == -1:
+                self.responded.add(prev_is_loading)
+
                 self.rewards[i] += grid_utils.get_hot_spot_weight(self.fmp.vertices, self.fmp.edges, self.fmp.demand, self.fmp.demand[prev_is_loading][0]) \
                                    * grid_utils.dist_between(self.fmp.vertices, self.fmp.edges, self.fmp.demand[prev_is_loading][0], self.fmp.demand[prev_is_loading][1])
-                self.tests[i] += grid_utils.get_hot_spot_weight(self.fmp.vertices, self.fmp.edges, self.fmp.demand, self.fmp.demand[prev_is_loading][0]) \
-                                   * grid_utils.dist_between(self.fmp.vertices, self.fmp.edges, self.fmp.demand[prev_is_loading][0], self.fmp.demand[prev_is_loading][1])
-
+ 
         print("Batteries:", self.batteries)
         print("Rewards:", self.rewards)
         observation = {
@@ -166,7 +164,6 @@ class FMPEnv(gym.Env):
             "Is_loading": self.is_loading,
             "Is_charging": self.is_charging
         }
-        print("Test", self.tests)
         reward, done, info = self.rewards, self.responded == set(range(len(self.fmp.demand))), ""
         return observation, reward, done, info
 

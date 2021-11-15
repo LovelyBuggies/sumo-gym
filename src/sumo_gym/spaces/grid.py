@@ -72,7 +72,6 @@ class GridSpace(gym.spaces.Space):
                     if len(available_dmd):
                         dmd_idx = random.choices(available_dmd)[0]
                         print("----- Choose dmd_idx:", dmd_idx)
-                        self.responded.add(dmd_idx)
                         loc = grid_utils.one_step_to_destination(self.vertices, self.edges, self.locations[i], self.demand[dmd_idx][0])
                         samples[i] = ((dmd_idx, dmd_idx), -1, loc) if loc == self.demand[dmd_idx][0] else ((-1, dmd_idx), -1, loc)
                     else:
