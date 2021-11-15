@@ -134,6 +134,7 @@ class FMPEnv(gym.Env):
 
         self.actions: sumo_gym.typing.ActionsType = None
         self.rewards: sumo_gym.typing.RewardsType = np.zeros(self.fmp.n_vehicle)
+        self.tests: sumo_gym.typing.RewardsType = np.zeros(self.fmp.n_vehicle)
 
     def step(self, actions):
         for i in range(self.fmp.n_vehicle):
@@ -154,6 +155,8 @@ class FMPEnv(gym.Env):
             if prev_is_loading != -1 and self.is_loading[i][0] == -1:
                 self.rewards[i] += grid_utils.get_hot_spot_weight(self.fmp.vertices, self.fmp.edges, self.fmp.demand, self.fmp.demand[prev_is_loading][0]) \
                                    * grid_utils.dist_between(self.fmp.vertices, self.fmp.edges, self.fmp.demand[prev_is_loading][0], self.fmp.demand[prev_is_loading][1])
+                self.tests[i] += grid_utils.get_hot_spot_weight(self.fmp.vertices, self.fmp.edges, self.fmp.demand, self.fmp.demand[prev_is_loading][0]) \
+                                   * grid_utils.dist_between(self.fmp.vertices, self.fmp.edges, self.fmp.demand[prev_is_loading][0], self.fmp.demand[prev_is_loading][1])
 
         print("Batteries:", self.batteries)
         print("Rewards:", self.rewards)
@@ -163,7 +166,7 @@ class FMPEnv(gym.Env):
             "Is_loading": self.is_loading,
             "Is_charging": self.is_charging
         }
-
+        print("Test", self.tests)
         reward, done, info = self.rewards, self.responded == set(range(len(self.fmp.demand))), ""
         return observation, reward, done, info
 
