@@ -13,7 +13,6 @@ import sumo_gym.spaces as spaces
 from sumo_gym.utils.svg_uitls import vehicle_marker
 import sumo_gym.utils.grid_utils as grid_utils
 
-
 class FMP(object):
     def __init__(
         self,
@@ -117,7 +116,7 @@ class FMPEnv(gym.Env):
     def _reset(self):
         self.locations: sumo_gym.typing.LocationsType = self.fmp.departures.astype(int)
         self.batteries: npt.NDArray[float] = np.asarray([ev[-1] for ev in self.fmp.electric_vehicles])
-        self.is_loading: npt.NDArray[int] = np.asarray([(-1, -1)] * len(self.fmp.electric_vehicles)) # -1 means responding no demand, else demand i
+        self.is_loading: npt.NDArray[Tuple] = np.asarray([(-1, -1)] * len(self.fmp.electric_vehicles)) # -1 means responding no demand, else demand i
         self.is_charging: npt.NDArray[int] = np.asarray([-1] * len(self.fmp.electric_vehicles)) # -1 means not charing ,else charge station i
         self.responded: set = set()
         self.action_space: spaces.grid.GridSpace = spaces.grid.GridSpace(
@@ -139,26 +138,23 @@ class FMPEnv(gym.Env):
     def step(self, actions):
         for i in range(self.fmp.n_vehicle):
             prev_location = self.locations[i]
-            prev_is_loading = self.is_loading[i]
+            prev_is_loading = tuple(self.is_loading[i])
             prev_is_charging = self.is_charging[i]
             prev_batteries = self.batteries[i]
-
             self.is_loading[i], self.is_charging[i], self.locations[i] = actions[i]
             self.batteries[i] -= grid_utils.dist_between(self.fmp.vertices, self.fmp.edges, self.locations[i], prev_location)
             assert self.batteries[i] >= 0
             if self.is_charging[i] != -1:
                 self.batteries[i] += self.fmp.charging_stations[self.is_charging[i]][2]
 
-            self.rewards[i] += self.batteries[i] - prev_batteries
+            self.rewards[i] += min(self.batteries[i] - prev_batteries,0)
             if prev_is_loading[0] == -1 and self.is_loading[i][0] != -1:
-                self.responded.add(self.is_loading[i])
+                self.responded.add(tuple(self.is_loading[i]))
 
+            print("############", prev_is_loading[0], self.is_loading[i][0])
             if prev_is_loading[0] != -1 and self.is_loading[i][0] == -1:
-                self.rewards[i] += grid_utils.get_hot_spot_weight(self.fmp.vertices, self.fmp.edges, self.fmp.demand, self.fmp.demand[prev_is_loading][0]) \
-                                   * grid_utils.dist_between(self.fmp.vertices, self.fmp.edges, self.fmp.demand[prev_is_loading][1], self.fmp.demand[prev_is_loading][0])
-
-            if prev_is_charging != -1 and self.is_charging == -1:
-                self.rewards[i] += self.fmp.electric_vehicles[i][-1]
+                self.rewards[i] += grid_utils.get_hot_spot_weight(self.fmp.vertices, self.fmp.edges, self.fmp.demand, self.fmp.demand[prev_is_loading[0]][0]) \
+                                   * grid_utils.dist_between(self.fmp.vertices, self.fmp.edges, self.fmp.demand[prev_is_loading[0]][0], self.fmp.demand[prev_is_loading[0]][1])
 
         print("Batteries:", self.batteries)
         print("Rewards:", self.rewards)

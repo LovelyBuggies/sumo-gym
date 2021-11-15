@@ -1,5 +1,5 @@
 import sumo_gym.utils.network_utils as network_utils
-
+import numpy as np
 
 def one_step_to_destination(vertices, edges, start_index, dest_index):
     if start_index == dest_index:
@@ -58,8 +58,7 @@ def dist_between(vertices, edges, start_index, dest_index):
 
 
 def get_hot_spot_weight(vertices, edges, demands, demand_start):
-    adjacent_vertices = network_utils.get_adj_list(vertices, edges)[demand_start]
-    adjacent_vertices.append(demand_start)
+    adjacent_vertices = np.append(network_utils.get_adj_list(vertices, edges)[demand_start], demand_start)
     local_demands = len([d for d in demands if d[0] in adjacent_vertices])
 
     return local_demands / len(demands) * 100
