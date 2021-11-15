@@ -40,11 +40,11 @@ def nearest_charging_station_with_distance(vertices, charging_stations, edges, s
 
 
 def dist_between(vertices, edges, start_index, dest_index):
+    if start_index == dest_index:
+        return 0
     visited = [False] * len(vertices)
-
     bfs_queue = [[start_index, 0]]
     visited[start_index] = True
-
     while bfs_queue:
         curr, curr_depth = bfs_queue.pop(0)
         adjacent_map = network_utils.get_adj_list(vertices, edges)
