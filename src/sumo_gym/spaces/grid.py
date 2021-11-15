@@ -1,6 +1,8 @@
 from typing import Tuple
 import random
 
+from numpy.random.mtrand import f
+
 import sumo_gym
 import sumo_gym.utils.grid_utils as grid_utils
 import gym
@@ -41,6 +43,13 @@ class GridSpace(gym.spaces.Space):
     def sample(self) -> npt.NDArray[int]: # returned samples' ele (is_loading, is_charing, the one-step loc)
         n_vehicle = len(self.is_loading)
         samples = [(-1, -1, 0) for i in range(n_vehicle)]
+        responding = set()
+        for i in range(n_vehicle):
+            if self.is_loading[i][0] != -1:
+                responding.add(self.is_loading[i][0])
+            elif self.is_loading[i][1] != -1:
+                responding.add(self.is_loading[i][1])
+
         for i in range(n_vehicle):
             if self.is_loading[i][0] != -1: # is on the way
                 loc = grid_utils.one_step_to_destination(self.vertices, self.edges, self.locations[i], self.demand[self.is_loading[i][0]][1])
@@ -68,13 +77,16 @@ class GridSpace(gym.spaces.Space):
                     print("----- Goto charge:", ncs)
                     samples[i] = ((-1, -1), ncs, loc) if loc == self.charging_stations[ncs][0] else ((-1, -1), -1, loc)
                 else:
-                    available_dmd = [d for d in range(len(self.demand)) if d not in self.responded]
+                    available_dmd = [d for d in range(len(self.demand)) if d not in self.responded and d not in responding]
+                    # print("      ", responding, available_dmd)
                     if len(available_dmd):
                         dmd_idx = random.choices(available_dmd)[0]
+                        responding.add(dmd_idx)
                         print("----- Choose dmd_idx:", dmd_idx)
                         loc = grid_utils.one_step_to_destination(self.vertices, self.edges, self.locations[i], self.demand[dmd_idx][0])
                         samples[i] = ((dmd_idx, dmd_idx), -1, loc) if loc == self.demand[dmd_idx][0] else ((-1, dmd_idx), -1, loc)
                     else:
+                        print("----- IDLE...")
                         samples[i] = ((-1, -1), -1, self.locations[i])
 
         print("Samples: ", samples)

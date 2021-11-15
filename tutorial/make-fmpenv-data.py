@@ -34,8 +34,8 @@ n_edge = len(edges)
 n_vehicle = 5
 n_electric_vehicles = 5
 n_charging_station = 3
-electric_vehicles = np.asarray([(0, 1, 220, 10), (1, 1, 220, 14), (2, 1, 220, 15), (3, 1, 220, 10), (4, 1, 220, 20)])
-charging_stations = np.asarray([(np.random.randint(35), 1000) for i in range(5)])
+electric_vehicles = np.asarray([(0, 1, 220, 50), (1, 1, 220, 60), (2, 1, 220, 55), (3, 1, 220, 50), (4, 1, 220, 60)])
+charging_stations = np.asarray([(3, 220, 20), (33, 220, 20), (22, 220, 30)])
 available_vertices = np.asarray([v for v in range(35) if v not in (charging_station[0] for charging_station in charging_stations)])
 departures = np.asarray(random.choices(available_vertices, k=n_vehicle))
 demand = np.asarray([(random.choice(available_vertices), random.choice(available_vertices)) for i in range(10)])
@@ -58,9 +58,9 @@ env = gym.make(
 env.render()
 # plt.show()
 
-for i_episode in range(3):
+for i_episode in range(1):
     observation = env.reset()
-    for t in range(10):
+    for t in range(120):
         action = env.action_space.sample()
         observation, reward, done, info = env.step(action)
         if done:
