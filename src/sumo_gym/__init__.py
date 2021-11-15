@@ -29,6 +29,6 @@ register(
 )
 
 register(
-    id="CVRP-v0",
-    entry_point="sumo_gym.envs:CVRPEnv",
+    id="FMP-v0",
+    entry_point="sumo_gym.envs:FMPEnv",
 )
