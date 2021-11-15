@@ -15,6 +15,15 @@ VERTEX_DEMAND_KEY = 'demand'
 EDGE_XML_TAG = 'edge'
 EDGE_XML_PRIORITY = '-1'
 
+def encode_xml_fmp(net_xml_file_path: str = None, flow_xml_file_path: str = None):
+    # TODO
+    pass
+
+def decode_xml_fmp(net_xml_file_path: str = None, flow_xml_file_path: str = None):
+    # TODO
+    # decode xml into FMP problem setting, for specific types, refer to typing.py and VRP decoding below
+    pass
+
 def encode_xml(file_path):
     pass
 
