@@ -138,7 +138,7 @@ class FMPEnv(gym.Env):
     def step(self, actions):
         for i in range(self.fmp.n_vehicle):
             prev_location = self.locations[i]
-            prev_is_loading = tuple(self.is_loading[i])
+            prev_is_loading = tuple(self.is_loading[i])[0]
             prev_is_charging = self.is_charging[i]
             prev_batteries = self.batteries[i]
             self.is_loading[i], self.is_charging[i], self.locations[i] = actions[i]
@@ -148,12 +148,12 @@ class FMPEnv(gym.Env):
                 self.batteries[i] += self.fmp.charging_stations[self.is_charging[i]][2]
 
             self.rewards[i] += min(self.batteries[i] - prev_batteries,0)
-            if prev_is_loading[0] == -1 and self.is_loading[i][0] != -1:
-                self.responded.add(tuple(self.is_loading[i]))
+            if prev_is_loading == -1 and self.is_loading[i][0] != -1:
+                self.responded.add(tuple(self.is_loading[i])[0])
 
-            if prev_is_loading[0] != -1 and self.is_loading[i][0] == -1:
-                self.rewards[i] += grid_utils.get_hot_spot_weight(self.fmp.vertices, self.fmp.edges, self.fmp.demand, self.fmp.demand[prev_is_loading[0]][0]) \
-                                   * grid_utils.dist_between(self.fmp.vertices, self.fmp.edges, self.fmp.demand[prev_is_loading[0]][0], self.fmp.demand[prev_is_loading[0]][1])
+            if prev_is_loading != -1 and self.is_loading[i][0] == -1:
+                self.rewards[i] += grid_utils.get_hot_spot_weight(self.fmp.vertices, self.fmp.edges, self.fmp.demand, self.fmp.demand[prev_is_loading][0]) \
+                                   * grid_utils.dist_between(self.fmp.vertices, self.fmp.edges, self.fmp.demand[prev_is_loading][0], self.fmp.demand[prev_is_loading][1])
 
         print("Batteries:", self.batteries)
         print("Rewards:", self.rewards)
@@ -163,6 +163,7 @@ class FMPEnv(gym.Env):
             "Is_loading": self.is_loading,
             "Is_charging": self.is_charging
         }
+
         reward, done, info = self.rewards, self.responded == set(range(len(self.fmp.demand))), ""
         return observation, reward, done, info
 
