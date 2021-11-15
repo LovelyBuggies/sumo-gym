@@ -151,7 +151,6 @@ class FMPEnv(gym.Env):
             if prev_is_loading[0] == -1 and self.is_loading[i][0] != -1:
                 self.responded.add(tuple(self.is_loading[i]))
 
-            print("############", prev_is_loading[0], self.is_loading[i][0])
             if prev_is_loading[0] != -1 and self.is_loading[i][0] == -1:
                 self.rewards[i] += grid_utils.get_hot_spot_weight(self.fmp.vertices, self.fmp.edges, self.fmp.demand, self.fmp.demand[prev_is_loading[0]][0]) \
                                    * grid_utils.dist_between(self.fmp.vertices, self.fmp.edges, self.fmp.demand[prev_is_loading[0]][0], self.fmp.demand[prev_is_loading[0]][1])
