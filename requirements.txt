@@ -1,5 +1,5 @@
 numpy>=1.18.0
-pytorch>=1.10.0
+torch>=1.10.0
 torchaudio>=0.10.0
 torchvision>=0.2.2
 flake8>=3.9.1

@@ -15,6 +15,7 @@ This software is under active development, it has not been published on PyPI, an
 ```shell
 $ python3 -m venv env
 $ source env/bin/activate
+(venv)$ pip install -r requirements.txt
 (venv)$ pip install -e .
 (venv)$ pytest tests/
 #(venv)$ python -m ipykernel install --user --name sumo_gym
