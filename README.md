@@ -1,7 +1,9 @@
 # SUMO-gym
-<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-2-orange.svg?style=flat-square)](#contributors-)
-<!-- ALL-CONTRIBUTORS-BADGE:END -->
+
+[![Actions Status][actions-badge]][actions-link]
+[![pre-commit.ci status][pre-commit-badge]][pre-commit-link]
+[![Code style: black][black-badge]][black-link]
+[![All Contributors](https://img.shields.io/badge/all_contributors-2-orange.svg?)](#contributors-)
 
 OpenAI-gym like toolkit for developing and comparing reinforcement learning algorithms on SUMO.
 
@@ -72,3 +74,11 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
 <!-- ALL-CONTRIBUTORS-LIST:END -->
 
 This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind welcome!
+
+
+[actions-badge]:            https://github.com/LovelyBuggies/sumo-gym/workflows/CI/badge.svg
+[actions-link]:             https://github.com/LovelyBuggies/sumo-gym/actions
+[black-badge]:              https://img.shields.io/badge/code%20style-black-000000.svg
+[black-link]:               https://github.com/psf/black
+[pre-commit-badge]:         https://results.pre-commit.ci/badge/github/LovelyBuggies/sumo-gym/main.svg
+[pre-commit-link]:          https://results.pre-commit.ci/repo/github/LovelyBuggies/sumo-gym
