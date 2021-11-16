@@ -12,3 +12,4 @@ svgwrite>=1.4.1
 svgpath2mpl>=1.0.0
 pre-commit>=2.15.0
 black>=21
+mypy>=0.910

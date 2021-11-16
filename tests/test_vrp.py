@@ -19,12 +19,26 @@ capacity = np.ones(n_vertex) * 5
 
 def test_vrp_basics():
     assert VRP(
-        n_vertex=n_vertex, n_depot=n_depot, n_edge=n_edge, n_vehicle=n_vehicle, vertices=vertices, demand=demand, edges=edges, departures=departures
+        n_vertex=n_vertex,
+        n_depot=n_depot,
+        n_edge=n_edge,
+        n_vehicle=n_vehicle,
+        vertices=vertices,
+        demand=demand,
+        edges=edges,
+        departures=departures,
     )
 
 
 def test_cvrp_basics():
     assert VRP(
-        n_vertex=n_vertex, n_depot=n_depot, n_edge=n_edge, n_vehicle=n_vehicle, vertices=vertices, demand=demand,
-        edges=edges, departures=departures, capacity=capacity
+        n_vertex=n_vertex,
+        n_depot=n_depot,
+        n_edge=n_edge,
+        n_vehicle=n_vehicle,
+        vertices=vertices,
+        demand=demand,
+        edges=edges,
+        departures=departures,
+        capacity=capacity,
     )

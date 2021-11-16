@@ -1,6 +1,7 @@
 import sumo_gym.utils.network_utils as network_utils
 import numpy as np
 
+
 def one_step_to_destination(vertices, edges, start_index, dest_index):
     if start_index == dest_index:
         return dest_index
@@ -20,8 +21,12 @@ def one_step_to_destination(vertices, edges, start_index, dest_index):
                 visited[v] = False
 
 
-def nearest_charging_station_with_distance(vertices, charging_stations, edges, start_index):
-    charging_station_vertices = [charging_station[0] for charging_station in charging_stations]
+def nearest_charging_station_with_distance(
+    vertices, charging_stations, edges, start_index
+):
+    charging_station_vertices = [
+        charging_station[0] for charging_station in charging_stations
+    ]
     visited = [False] * len(vertices)
 
     bfs_queue = [[start_index, 0]]
@@ -35,7 +40,7 @@ def nearest_charging_station_with_distance(vertices, charging_stations, edges, s
             if not visited[v] and v in charging_station_vertices:
                 return charging_station_vertices.index(v), curr_depth + 1
             elif not visited[v]:
-                bfs_queue.append([v, curr_depth+1])
+                bfs_queue.append([v, curr_depth + 1])
                 visited[v] = False
 
 
@@ -53,13 +58,14 @@ def dist_between(vertices, edges, start_index, dest_index):
             if not visited[v] and v == dest_index:
                 return curr_depth + 1
             elif not visited[v]:
-                bfs_queue.append([v, curr_depth+1])
+                bfs_queue.append([v, curr_depth + 1])
                 visited[v] = False
 
 
 def get_hot_spot_weight(vertices, edges, demands, demand_start):
-    adjacent_vertices = np.append(network_utils.get_adj_list(vertices, edges)[demand_start], demand_start)
+    adjacent_vertices = np.append(
+        network_utils.get_adj_list(vertices, edges)[demand_start], demand_start
+    )
     local_demands = len([d for d in demands if d[0] in adjacent_vertices])
 
     return local_demands / len(demands) * 100
-

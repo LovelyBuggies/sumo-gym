@@ -35,7 +35,7 @@ edges = np.asarray(
     ]
 )
 departures = np.zeros(n_vehicle).astype(int)
-capacity = np.ones(n_vertex) * 20.
+capacity = np.ones(n_vertex) * 20.0
 
 env = gym.make(
     "VRP-v0",
