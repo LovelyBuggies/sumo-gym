@@ -48,7 +48,7 @@ def plot_VRP(self: envs.vrp.VRP, *, ax: matplotlib.axes.Axes, **kwargs) -> Any:
         x.append(v[0])
         y.append(v[1])
 
-    if ax == None:
+    if ax is None:
         fig = plt.gcf()
         ax = fig.add_subplot(1, 0, 0)
 
@@ -143,7 +143,7 @@ def plot_FMP(self: envs.fmp.FMP, *, ax: matplotlib.axes.Axes, **kwargs) -> Any:
         x.append(v[0])
         y.append(v[1])
 
-    if ax == None:
+    if ax is None:
         fig = plt.gcf()
         ax = fig.add_subplot(1, 0, 0)
 
@@ -168,6 +168,7 @@ def plot_FMP(self: envs.fmp.FMP, *, ax: matplotlib.axes.Axes, **kwargs) -> Any:
         y,
         **vertex_kwargs,
     )
+
 
 def plot_FMPEnv(
     self: envs.fmp.FMPEnv,

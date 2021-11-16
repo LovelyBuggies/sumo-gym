@@ -9,9 +9,9 @@ import gym
 from gym import error, spaces, utils
 from gym.utils import seeding
 import sumo_gym
-import sumo_gym.spaces as spaces
 from sumo_gym.utils.svg_uitls import vehicle_marker
 import sumo_gym.utils.grid_utils as grid_utils
+
 
 class FMP(object):
     def __init__(
@@ -67,7 +67,7 @@ class FMP(object):
         else:
             pass
             # read in the sumo xml files and parse them into FMP initial problem settings
-            # self.vertices, self.charging_stations, self.electric_vehicles, self.demand, self.edges, self.departures 
+            # self.vertices, self.charging_stations, self.electric_vehicles, self.demand, self.edges, self.departures
             #      = sumo_gym.utils.decode_xml_fmp(net_xml_file_path, demand_xml_file_path)
             # other settings...
 
@@ -115,21 +115,29 @@ class FMPEnv(gym.Env):
 
     def _reset(self):
         self.locations: sumo_gym.typing.LocationsType = self.fmp.departures.astype(int)
-        self.batteries: npt.NDArray[float] = np.asarray([ev[-1] for ev in self.fmp.electric_vehicles])
-        self.is_loading: npt.NDArray[Tuple] = np.asarray([(-1, -1)] * len(self.fmp.electric_vehicles)) # -1 means responding no demand, else demand i
-        self.is_charging: npt.NDArray[int] = np.asarray([-1] * len(self.fmp.electric_vehicles)) # -1 means not charing ,else charge station i
+        self.batteries: npt.NDArray[float] = np.asarray(
+            [ev[-1] for ev in self.fmp.electric_vehicles]
+        )
+        self.is_loading: npt.NDArray[Tuple] = np.asarray(
+            [(-1, -1)] * len(self.fmp.electric_vehicles)
+        )  # -1 means responding no demand, else demand i
+        self.is_charging: npt.NDArray[int] = np.asarray(
+            [-1] * len(self.fmp.electric_vehicles)
+        )  # -1 means not charing ,else charge station i
         self.responded: set = set()
-        self.action_space: spaces.grid.GridSpace = spaces.grid.GridSpace(
-            self.fmp.vertices,
-            self.fmp.demand,
-            self.responded,
-            self.fmp.edges,
-            self.fmp.electric_vehicles,
-            self.fmp.charging_stations,
-            self.locations,
-            self.batteries,
-            self.is_loading,
-            self.is_charging,
+        self.action_space: sumo_gym.spaces.grid.GridSpace = (
+            sumo_gym.spaces.grid.GridSpace(
+                self.fmp.vertices,
+                self.fmp.demand,
+                self.responded,
+                self.fmp.edges,
+                self.fmp.electric_vehicles,
+                self.fmp.charging_stations,
+                self.locations,
+                self.batteries,
+                self.is_loading,
+                self.is_charging,
+            )
         )
 
         self.actions: sumo_gym.typing.ActionsType = None
@@ -143,28 +151,43 @@ class FMPEnv(gym.Env):
             prev_is_charging = self.is_charging[i]
             prev_batteries = self.batteries[i]
             self.is_loading[i], self.is_charging[i], self.locations[i] = actions[i]
-            self.batteries[i] -= grid_utils.dist_between(self.fmp.vertices, self.fmp.edges, self.locations[i], prev_location)
+            self.batteries[i] -= grid_utils.dist_between(
+                self.fmp.vertices, self.fmp.edges, self.locations[i], prev_location
+            )
             assert self.batteries[i] >= 0
             if self.is_charging[i] != -1:
                 self.batteries[i] += self.fmp.charging_stations[self.is_charging[i]][2]
 
-            self.rewards[i] += min(self.batteries[i] - prev_batteries,0)
+            self.rewards[i] += min(self.batteries[i] - prev_batteries, 0)
 
             if prev_is_loading != -1 and self.is_loading[i][0] == -1:
                 self.responded.add(prev_is_loading)
 
-                self.rewards[i] += grid_utils.get_hot_spot_weight(self.fmp.vertices, self.fmp.edges, self.fmp.demand, self.fmp.demand[prev_is_loading][0]) \
-                                   * grid_utils.dist_between(self.fmp.vertices, self.fmp.edges, self.fmp.demand[prev_is_loading][0], self.fmp.demand[prev_is_loading][1])
- 
+                self.rewards[i] += grid_utils.get_hot_spot_weight(
+                    self.fmp.vertices,
+                    self.fmp.edges,
+                    self.fmp.demand,
+                    self.fmp.demand[prev_is_loading][0],
+                ) * grid_utils.dist_between(
+                    self.fmp.vertices,
+                    self.fmp.edges,
+                    self.fmp.demand[prev_is_loading][0],
+                    self.fmp.demand[prev_is_loading][1],
+                )
+
         print("Batteries:", self.batteries)
         print("Rewards:", self.rewards)
         observation = {
             "Locations": self.locations,
             "Batteries": self.batteries,
             "Is_loading": self.is_loading,
-            "Is_charging": self.is_charging
+            "Is_charging": self.is_charging,
         }
-        reward, done, info = self.rewards, self.responded == set(range(len(self.fmp.demand))), ""
+        reward, done, info = (
+            self.rewards,
+            self.responded == set(range(len(self.fmp.demand))),
+            "",
+        )
         return observation, reward, done, info
 
     def plot(
@@ -176,7 +199,6 @@ class FMPEnv(gym.Env):
         import sumo_gym.plot
 
         return sumo_gym.plot.plot_FMPEnv(self, ax_dict=ax_dict, **kwargs)
-
 
     def render(self, mode="human"):
         get_colors = lambda n: list(
