@@ -1,7 +1,11 @@
 # SUMO-gym
-<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-2-orange.svg?style=flat-square)](#contributors-)
-<!-- ALL-CONTRIBUTORS-BADGE:END -->
+
+[![Actions Status][actions-badge]][actions-link]
+[![Documentation Status][rtd-badge]][rtd-link]
+[![pre-commit.ci status][pre-commit-badge]][pre-commit-link]
+[![Code style: black][black-badge]][black-link]
+[![All Contributors](https://img.shields.io/badge/all_contributors-2-orange.svg?)](#contributors-)
+[![GitHub Discussion][github-discussions-badge]][github-discussions-link]
 
 OpenAI-gym like toolkit for developing and comparing reinforcement learning algorithms on SUMO.
 
