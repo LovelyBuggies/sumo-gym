@@ -1,7 +1,4 @@
 numpy>=1.18.0
-torch>=1.10.0
-torchaudio>=0.10.0
-torchvision>=0.2.2
 flake8>=3.9.1
 matplotlib>=3.4.1
 pandas>=1.2.4
@@ -11,5 +8,6 @@ svgpathtools>=1.4.2
 svgwrite>=1.4.1
 svgpath2mpl>=1.0.0
 pre-commit>=2.15.0
-black>=21
+black==21.5b0
 mypy>=0.910
+pytest>=6.2.5

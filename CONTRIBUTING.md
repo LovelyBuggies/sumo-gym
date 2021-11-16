@@ -8,3 +8,6 @@ At this time we are currently accepting the current forms of contributions:
 
 The commits are supposed to follow [Conventional Commits.](https://www.conventionalcommits.org/)
 
+# Pre-commit
+
+Refer [.pre-commit-config.yaml](./.pre-commit-config.yaml) to see what are the hooks.
