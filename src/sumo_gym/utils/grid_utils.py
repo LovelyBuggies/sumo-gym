@@ -21,6 +21,9 @@ def one_step_to_destination(vertices, edges, start_index, dest_index):
                 visited[v] = False
 
 
+                
+
+
 def nearest_charging_station_with_distance(
     vertices, charging_stations, edges, start_index
 ):
