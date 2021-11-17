@@ -1,5 +1,7 @@
 import sumo_gym.utils.network_utils as network_utils
 import numpy as np
+import numpy.typing as npt
+from typing import Tuple
 
 
 def one_step_to_destination(vertices, edges, start_index, dest_index):

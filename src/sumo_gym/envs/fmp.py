@@ -150,7 +150,11 @@ class FMPEnv(gym.Env):
             prev_is_loading = tuple(self.is_loading[i])[0]
             prev_is_charging = self.is_charging[i]
             prev_batteries = self.batteries[i]
-            self.is_loading[i], self.is_charging[i], self.locations[i] = actions[i]
+            self.is_loading[i], self.is_charging[i], self.locations[i] = (
+                (actions[i].is_loading.current, actions[i].is_loading.target),
+                actions[i].is_charging,
+                actions[i].location,
+            )
             self.batteries[i] -= grid_utils.dist_between(
                 self.fmp.vertices, self.fmp.edges, self.locations[i], prev_location
             )
