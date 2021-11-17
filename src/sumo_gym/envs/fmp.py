@@ -11,6 +11,7 @@ from gym.utils import seeding
 import sumo_gym
 from sumo_gym.utils.svg_uitls import vehicle_marker
 import sumo_gym.utils.grid_utils as grid_utils
+from sumo_gym.utils.grid_utils import Loading, GridAction
 
 
 class FMP(object):
@@ -89,6 +90,24 @@ class FMP(object):
         return True
 
 
+class FMPState(object):
+    def __init__(
+        self, location=0, is_loading=Loading(-1, -1), is_charging=-1, battery=0
+    ):
+        self.location = location
+        self.is_loading = is_loading
+        self.is_charging = is_charging
+        self.battery = battery
+
+    def __repr__(self):
+        return (
+            f"Location: {self.location}, "
+            + f"Is loading: {(self.is_loading.current, self.is_loading.target)},"
+            + f"Is charging: {(self.is_charging)} "
+            + f"Battery: {(self.battery)}"
+        )
+
+
 class FMPEnv(gym.Env):
     metadata = {"render.modes": ["human"]}
     fmp = property(operator.attrgetter("_fmp"))
@@ -114,17 +133,12 @@ class FMPEnv(gym.Env):
         return self._reset()
 
     def _reset(self):
-        self.locations: sumo_gym.typing.LocationsType = self.fmp.departures.astype(int)
-        self.batteries: npt.NDArray[float] = np.asarray(
-            [ev[-1] for ev in self.fmp.electric_vehicles]
-        )
-        self.is_loading: npt.NDArray[Tuple] = np.asarray(
-            [(-1, -1)] * len(self.fmp.electric_vehicles)
-        )  # -1 means responding no demand, else demand i
-        self.is_charging: npt.NDArray[int] = np.asarray(
-            [-1] * len(self.fmp.electric_vehicles)
-        )  # -1 means not charing ,else charge station i
-        self.responded: set = set()
+        self.states = [FMPState() for _ in range(self.fmp.n_electric_vehicles)]
+        self.responded = set()
+        for i in range(self.fmp.n_electric_vehicles):
+            self.states[i].location = self.fmp.departures[i]
+            self.states[i].battery = self.fmp.electric_vehicles[i][-1]
+
         self.action_space: sumo_gym.spaces.grid.GridSpace = (
             sumo_gym.spaces.grid.GridSpace(
                 self.fmp.vertices,
@@ -133,38 +147,41 @@ class FMPEnv(gym.Env):
                 self.fmp.edges,
                 self.fmp.electric_vehicles,
                 self.fmp.charging_stations,
-                self.locations,
-                self.batteries,
-                self.is_loading,
-                self.is_charging,
+                self.states,
             )
         )
-
         self.actions: sumo_gym.typing.ActionsType = None
         self.rewards: sumo_gym.typing.RewardsType = np.zeros(self.fmp.n_vehicle)
-        self.tests: sumo_gym.typing.RewardsType = np.zeros(self.fmp.n_vehicle)
 
     def step(self, actions):
         for i in range(self.fmp.n_vehicle):
-            prev_location = self.locations[i]
-            prev_is_loading = tuple(self.is_loading[i])[0]
-            prev_is_charging = self.is_charging[i]
-            prev_batteries = self.batteries[i]
-            self.is_loading[i], self.is_charging[i], self.locations[i] = (
-                (actions[i].is_loading.current, actions[i].is_loading.target),
+            prev_location = self.states[i].location
+            prev_is_loading = self.states[i].is_loading.current
+            prev_battery = self.states[i].battery
+            (
+                self.states[i].is_loading,
+                self.states[i].is_charging,
+                self.states[i].location,
+            ) = (
+                Loading(actions[i].is_loading.current, actions[i].is_loading.target),
                 actions[i].is_charging,
                 actions[i].location,
             )
-            self.batteries[i] -= grid_utils.dist_between(
-                self.fmp.vertices, self.fmp.edges, self.locations[i], prev_location
+            self.states[i].battery -= grid_utils.dist_between(
+                self.fmp.vertices,
+                self.fmp.edges,
+                self.states[i].location,
+                prev_location,
             )
-            assert self.batteries[i] >= 0
-            if self.is_charging[i] != -1:
-                self.batteries[i] += self.fmp.charging_stations[self.is_charging[i]][2]
+            assert self.states[i].battery >= 0
+            if self.states[i].is_charging != -1:
+                self.states[i].battery += self.fmp.charging_stations[
+                    self.states[i].is_charging
+                ][2]
 
-            self.rewards[i] += min(self.batteries[i] - prev_batteries, 0)
+            self.rewards[i] += min(self.states[i].battery - prev_battery, 0)
 
-            if prev_is_loading != -1 and self.is_loading[i][0] == -1:
+            if prev_is_loading != -1 and self.states[i].is_loading.current == -1:
                 self.responded.add(prev_is_loading)
 
                 self.rewards[i] += grid_utils.get_hot_spot_weight(
@@ -179,13 +196,13 @@ class FMPEnv(gym.Env):
                     self.fmp.demand[prev_is_loading][1],
                 )
 
-        print("Batteries:", self.batteries)
+        print("Batteries:", [s.battery for s in self.states])
         print("Rewards:", self.rewards)
         observation = {
-            "Locations": self.locations,
-            "Batteries": self.batteries,
-            "Is_loading": self.is_loading,
-            "Is_charging": self.is_charging,
+            "Locations": [s.location for s in self.states],
+            "Batteries": [s.battery for s in self.states],
+            "Is_loading": [s.is_loading for s in self.states],
+            "Is_charging": [s.is_charging for s in self.states],
         }
         reward, done, info = (
             self.rewards,
