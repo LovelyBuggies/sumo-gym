@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import Tuple, List
 import random
 
 from numpy.random.mtrand import f
@@ -47,8 +47,8 @@ class GridSpace(gym.spaces.Space):
 
     def sample(
         self,
-    ) -> npt.NDArray[
-        int
+    ) -> List[
+        Tuple[int, int, int]
     ]:  # returned samples' ele (is_loading, is_charing, the one-step loc)
         n_vehicle = len(self.is_loading)
         samples = [(-1, -1, 0) for i in range(n_vehicle)]
