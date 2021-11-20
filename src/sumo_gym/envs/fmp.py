@@ -93,6 +93,13 @@ class FMP(object):
             return False
         if len(set(self.charging_stations)) != len(self.charging_stations):
             return False
+        charging_station_locations = set([cs.location for cs in self.charging_stations])
+        for d in self.demand:
+            if (
+                d.departure in charging_station_locations
+                or d.destination in charging_station_locations
+            ):
+                return False
         # todo: scale judgement
         return True
 
