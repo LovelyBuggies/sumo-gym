@@ -3,6 +3,99 @@ import numpy as np
 import numpy.typing as npt
 from typing import Tuple
 
+NO_LOADING = -1
+NO_CHARGING = -1
+
+
+class Vertex(object):
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+
+    def __eq__(self, other):
+        return (self.x, self.y) == (other.x, other.y)
+
+    def __lt__(self, other):
+        return (self.x, self.y) < (other.x, other.y)
+
+    def __hash__(self):
+        return hash(str(self))
+
+    def __repr__(self):
+        return f"vertex ({self.x}, {self.y})"
+
+
+class Edge(object):
+    def __init__(self, start, end):
+        self.start = start
+        self.end = end
+
+    def __eq__(self, other):
+        return (self.start, self.end) == (other.start, other.end)
+
+    def __lt__(self, other):
+        return (self.start, self.end) < (other.start, other.end)
+
+    def __hash__(self):
+        return hash(str(self))
+
+    def __repr__(self):
+        return f"edge ({self.start}, {self.end})"
+
+
+class Demand(object):
+    def __init__(self, departure, destination):
+        self.departure = departure
+        self.destination = destination
+
+    def __eq__(self, other):
+        return (self.departure, self.destination) == (
+            other.departure,
+            other.destination,
+        )
+
+    def __lt__(self, other):
+        return (self.departure, self.destination) < (other.departure, other.destination)
+
+    def __hash__(self):
+        return hash(str(self))
+
+    def __repr__(self):
+        return f"demand ({self.departure}, {self.destination})"
+
+
+class ElectricVehicles(object):
+    def __init__(self, id, speed, indicator, capacity):
+        self.id = id
+        self.speed = speed
+        self.indicator = indicator
+        self.capacity = capacity
+
+    def __eq__(self, other):
+        return self.location == other.location
+
+    def __lt__(self, other):
+        return self.location < other.location
+
+    def __hash__(self):
+        return hash(str(self))
+
+
+class ChargingStation(object):
+    def __init__(self, location, indicator, charging_speed):
+        self.location = location
+        self.indicator = indicator
+        self.charging_speed = charging_speed
+
+    def __eq__(self, other):
+        return self.location == other.location
+
+    def __lt__(self, other):
+        return self.location < other.location
+
+    def __hash__(self):
+        return hash(str(self))
+
 
 class Loading(object):
     def __init__(self, current=-1, target=-1):
@@ -10,7 +103,7 @@ class Loading(object):
         self.target = target
 
     def __repr__(self):
-        return f"({self.current}, {self.target})"
+        return f"(responding {self.current}, goto respond {self.target})"
 
 
 class GridAction(object):
@@ -20,7 +113,7 @@ class GridAction(object):
         self.location = location
 
     def __repr__(self):
-        return f"({self.is_loading}, {self.is_charging}, {self.location})"
+        return f"({self.is_loading}, goto charge {self.is_charging}, location {self.location})"
 
 
 def one_step_to_destination(vertices, edges, start_index, dest_index):
@@ -46,7 +139,7 @@ def nearest_charging_station_with_distance(
     vertices, charging_stations, edges, start_index
 ):
     charging_station_vertices = [
-        charging_station[0] for charging_station in charging_stations
+        charging_station.location for charging_station in charging_stations
     ]
     visited = [False] * len(vertices)
 
@@ -87,6 +180,6 @@ def get_hot_spot_weight(vertices, edges, demands, demand_start):
     adjacent_vertices = np.append(
         network_utils.get_adj_list(vertices, edges)[demand_start], demand_start
     )
-    local_demands = len([d for d in demands if d[0] in adjacent_vertices])
+    local_demands = len([d for d in demands if d.departure in adjacent_vertices])
 
     return local_demands / len(demands) * 100

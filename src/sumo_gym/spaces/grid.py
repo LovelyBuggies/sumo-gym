@@ -1,9 +1,8 @@
-from typing import Tuple, List, Any
+from typing import Any
 import random
 
 import sumo_gym
-import sumo_gym.utils.grid_utils as grid_utils
-from sumo_gym.utils.grid_utils import Loading, GridAction
+from sumo_gym.utils.fmp_utils import Loading, GridAction, NO_LOADING, NO_CHARGING
 import gym
 from sumo_gym.typing import (
     FMPElectricVehiclesType,
@@ -45,39 +44,39 @@ class GridSpace(gym.spaces.Space):
         samples = [GridAction() for _ in range(n_vehicle)]
         responding = set()
         for i in range(n_vehicle):
-            if self.states[i].is_loading.current != -1:
+            if self.states[i].is_loading.current != NO_LOADING:
                 responding.add(self.states[i].is_loading.current)
-            elif self.states[i].is_loading.target != -1:
+            elif self.states[i].is_loading.target != NO_LOADING:
                 responding.add(self.states[i].is_loading.target)  # todo
 
         for i in range(n_vehicle):
-            if self.states[i].is_loading.current != -1:  # is on the way
+            if self.states[i].is_loading.current != NO_LOADING:  # is on the way
                 print("----- In the way of demand:", self.states[i].is_loading.current)
-                loc = grid_utils.one_step_to_destination(
+                loc = sumo_gym.utils.fmp_utils.one_step_to_destination(
                     self.vertices,
                     self.edges,
                     self.states[i].location,
-                    self.demand[self.states[i].is_loading.current][1],
+                    self.demand[self.states[i].is_loading.current].destination,
                 )
                 self.states[i].location = loc
-                if loc == self.demand[self.states[i].is_loading.current][1]:
-                    samples[i].is_loading = Loading(-1, -1)
+                if loc == self.demand[self.states[i].is_loading.current].destination:
+                    samples[i].is_loading = Loading(NO_LOADING, NO_LOADING)
                 else:
                     samples[i].is_loading = Loading(
                         self.states[i].is_loading.current,
                         self.states[i].is_loading.target,
                     )
                     samples[i].location = loc
-            elif self.states[i].is_loading.target != -1:  # is to the way
+            elif self.states[i].is_loading.target != NO_LOADING:  # is to the way
                 print("----- In the way to respond:", self.states[i].is_loading.target)
-                loc = grid_utils.one_step_to_destination(
+                loc = sumo_gym.utils.fmp_utils.one_step_to_destination(
                     self.vertices,
                     self.edges,
                     self.states[i].location,
-                    self.demand[self.states[i].is_loading.target][0],
+                    self.demand[self.states[i].is_loading.target].departure,
                 )
                 samples[i].location = loc
-                if loc == self.demand[self.states[i].is_loading.target][0]:
+                if loc == self.demand[self.states[i].is_loading.target].departure:
                     samples[i].is_loading = Loading(
                         self.states[i].is_loading.target,
                         self.states[i].is_loading.target,
@@ -87,46 +86,49 @@ class GridSpace(gym.spaces.Space):
                         self.states[i].is_loading.current,
                         self.states[i].is_loading.target,
                     )
-            elif self.states[i].is_charging != -1:  # is charging
+            elif self.states[i].is_charging != NO_CHARGING:  # is charging
                 samples[i].location = self.charging_stations[
                     self.states[i].is_charging
-                ][0]
+                ].location
                 if (
-                    self.electric_vehicles[i][3] - self.states[i].battery
-                    > self.charging_stations[self.states[i].is_charging][2]
+                    self.electric_vehicles[i].capacity - self.states[i].battery
+                    > self.charging_stations[self.states[i].is_charging].charging_speed
                 ):
                     print("----- Still charging")
                     samples[i].is_charging = self.states[i].is_charging
                 else:
                     print("----- Charging finished")
             else:  # available
-                ncs, _ = grid_utils.nearest_charging_station_with_distance(
-                    self.vertices,
-                    self.charging_stations,
-                    self.edges,
-                    self.states[i].location,
-                )
                 diagonal_len = 2 * (
-                    max(self.vertices, key=lambda item: item[1])[1]
-                    - min(self.vertices, key=lambda item: item[1])[1]
-                    + max(self.vertices, key=lambda item: item[0])[0]
-                    - min(self.vertices, key=lambda item: item[0])[0]
+                    max(self.vertices, key=lambda item: item.y).y
+                    - min(self.vertices, key=lambda item: item.y).y
+                    + max(self.vertices, key=lambda item: item.x).x
+                    - min(self.vertices, key=lambda item: item.x).x
                 )
                 possibility_of_togo_charge = self.states[i].battery / (
-                    diagonal_len - self.electric_vehicles[i][3]
-                ) + self.electric_vehicles[i][3] / (
-                    self.electric_vehicles[i][3] - diagonal_len
+                    diagonal_len - self.electric_vehicles[i].capacity
+                ) + self.electric_vehicles[i].capacity / (
+                    self.electric_vehicles[i].capacity - diagonal_len
                 )
                 if np.random.random() < possibility_of_togo_charge:
+                    (
+                        ncs,
+                        _,
+                    ) = sumo_gym.utils.fmp_utils.nearest_charging_station_with_distance(
+                        self.vertices,
+                        self.charging_stations,
+                        self.edges,
+                        self.states[i].location,
+                    )
                     print("----- Goto charge:", ncs)
-                    loc = grid_utils.one_step_to_destination(
+                    loc = sumo_gym.utils.fmp_utils.one_step_to_destination(
                         self.vertices,
                         self.edges,
                         self.states[i].location,
-                        self.charging_stations[ncs][0],
+                        self.charging_stations[ncs].location,
                     )
                     samples[i].location = loc
-                    if loc == self.charging_stations[ncs][0]:
+                    if loc == self.charging_stations[ncs].location:
                         samples[i].is_charging = ncs
                 else:
                     available_dmd = [
@@ -138,17 +140,17 @@ class GridSpace(gym.spaces.Space):
                         dmd_idx = random.choices(available_dmd)[0]
                         print("----- Choose dmd_idx:", dmd_idx)
                         responding.add(dmd_idx)
-                        loc = grid_utils.one_step_to_destination(
+                        loc = sumo_gym.utils.fmp_utils.one_step_to_destination(
                             self.vertices,
                             self.edges,
                             self.states[i].location,
-                            self.demand[dmd_idx][0],
+                            self.demand[dmd_idx].departure,
                         )
                         samples[i].location = loc
-                        if loc == self.demand[dmd_idx][0]:
+                        if loc == self.demand[dmd_idx].departure:
                             samples[i].is_loading = Loading(dmd_idx, dmd_idx)
                         else:
-                            samples[i].is_loading = Loading(-1, dmd_idx)
+                            samples[i].is_loading = Loading(NO_LOADING, dmd_idx)
                     else:
                         print("----- IDLE...")
                         samples[i].location = self.states[i].location

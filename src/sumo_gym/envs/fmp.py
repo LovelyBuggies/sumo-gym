@@ -10,8 +10,7 @@ from gym import error, spaces, utils
 from gym.utils import seeding
 import sumo_gym
 from sumo_gym.utils.svg_uitls import vehicle_marker
-import sumo_gym.utils.grid_utils as grid_utils
-from sumo_gym.utils.grid_utils import Loading, GridAction
+from sumo_gym.utils.fmp_utils import Loading, GridAction
 
 
 class FMP(object):
@@ -86,6 +85,14 @@ class FMP(object):
             or self.departures is None
         ):
             return False
+        if len(set(self.vertices)) != len(self.vertices):
+            return False
+        if len(set(self.edges)) != len(self.edges):
+            return False
+        if len(set(self.electric_vehicles)) != len(self.electric_vehicles):
+            return False
+        if len(set(self.charging_stations)) != len(self.charging_stations):
+            return False
         # todo: scale judgement
         return True
 
@@ -137,7 +144,7 @@ class FMPEnv(gym.Env):
         self.responded = set()
         for i in range(self.fmp.n_electric_vehicles):
             self.states[i].location = self.fmp.departures[i]
-            self.states[i].battery = self.fmp.electric_vehicles[i][-1]
+            self.states[i].battery = self.fmp.electric_vehicles[i].capacity
 
         self.action_space: sumo_gym.spaces.grid.GridSpace = (
             sumo_gym.spaces.grid.GridSpace(
@@ -167,7 +174,7 @@ class FMPEnv(gym.Env):
                 actions[i].is_charging,
                 actions[i].location,
             )
-            self.states[i].battery -= grid_utils.dist_between(
+            self.states[i].battery -= sumo_gym.utils.fmp_utils.dist_between(
                 self.fmp.vertices,
                 self.fmp.edges,
                 self.states[i].location,
@@ -177,23 +184,23 @@ class FMPEnv(gym.Env):
             if self.states[i].is_charging != -1:
                 self.states[i].battery += self.fmp.charging_stations[
                     self.states[i].is_charging
-                ][2]
+                ].charging_speed
 
             self.rewards[i] += min(self.states[i].battery - prev_battery, 0)
 
             if prev_is_loading != -1 and self.states[i].is_loading.current == -1:
                 self.responded.add(prev_is_loading)
 
-                self.rewards[i] += grid_utils.get_hot_spot_weight(
+                self.rewards[i] += sumo_gym.utils.fmp_utils.get_hot_spot_weight(
                     self.fmp.vertices,
                     self.fmp.edges,
                     self.fmp.demand,
-                    self.fmp.demand[prev_is_loading][0],
-                ) * grid_utils.dist_between(
+                    self.fmp.demand[prev_is_loading].departure,
+                ) * sumo_gym.utils.fmp_utils.dist_between(
                     self.fmp.vertices,
                     self.fmp.edges,
-                    self.fmp.demand[prev_is_loading][0],
-                    self.fmp.demand[prev_is_loading][1],
+                    self.fmp.demand[prev_is_loading].departure,
+                    self.fmp.demand[prev_is_loading].destination,
                 )
 
         print("Batteries:", [s.battery for s in self.states])
