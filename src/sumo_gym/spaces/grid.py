@@ -1,4 +1,4 @@
-from typing import Tuple, List, Any
+from typing import Any
 import random
 
 import sumo_gym
