@@ -2,7 +2,7 @@ import numpy as np
 import gym
 import sumo_gym
 from sumo_gym.envs.fmp import FMP
-from sumo_gym.utils.graph_utils import Vertex, Edge
+from sumo_gym.utils.fmp_utils import Vertex, Edge, Demand
 from sumo_gym.utils.fmp_utils import ChargingStation, ElectricVehicles
 import random
 
@@ -200,20 +200,23 @@ available_vertices = np.asarray(
 departures = np.asarray([19])
 demand = np.asarray(
     [
-        (6, 4),
-        (5, 16),
-        (13, 20),
-        (28, 11),
-        (12, 30),
-        (27, 5),
-        (1, 28),
-        (13, 24),
-        (19, 18),
-        (11, 32),
+        Demand(6, 4),
+        Demand(5, 16),
+        Demand(13, 20),
+        Demand(28, 11),
+        Demand(12, 30),
+        Demand(27, 5),
+        Demand(1, 28),
+        Demand(13, 24),
+        Demand(19, 18),
+        Demand(11, 32),
     ]
 )
 
-print(departures, demand)
+print(departures)
+print(demand)
+print()
+
 env = gym.make(
     "FMP-v0",
     n_vertex=n_vertex,
