@@ -59,6 +59,7 @@ class GridSpace(gym.spaces.Space):
                     self.states[i].location,
                     self.demand[self.states[i].is_loading.current][1],
                 )
+                #print("     ", loc)
                 self.states[i].location = loc
                 if loc == self.demand[self.states[i].is_loading.current][1]:
                     self.states[i].is_loading = Loading(-1, -1)
@@ -67,6 +68,7 @@ class GridSpace(gym.spaces.Space):
                         self.states[i].is_loading.current,
                         self.states[i].is_loading.target,
                     )
+                    samples[i].location = loc
             elif self.states[i].is_loading.target != -1:  # is to the way
                 print("----- In the way to respond:", self.states[i].is_loading.target)
                 loc = grid_utils.one_step_to_destination(
@@ -92,7 +94,7 @@ class GridSpace(gym.spaces.Space):
                 ][0]
                 if (
                     self.electric_vehicles[i][3] - self.states[i].battery
-                    > self.charging_stations[self.self.states[i].is_charging][2]
+                    > self.charging_stations[self.states[i].is_charging][2]
                 ):
                     print("----- Still charging")
                     samples[i].is_charging = self.states[i].is_charging
