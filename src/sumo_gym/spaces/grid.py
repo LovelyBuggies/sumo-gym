@@ -59,10 +59,9 @@ class GridSpace(gym.spaces.Space):
                     self.states[i].location,
                     self.demand[self.states[i].is_loading.current][1],
                 )
-                #print("     ", loc)
                 self.states[i].location = loc
                 if loc == self.demand[self.states[i].is_loading.current][1]:
-                    self.states[i].is_loading = Loading(-1, -1)
+                    samples[i].is_loading = Loading(-1, -1)
                 else:
                     samples[i].is_loading = Loading(
                         self.states[i].is_loading.current,
