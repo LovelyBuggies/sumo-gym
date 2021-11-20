@@ -1,5 +1,26 @@
 import sumo_gym.utils.network_utils as network_utils
 import numpy as np
+import numpy.typing as npt
+from typing import Tuple
+
+
+class Loading(object):
+    def __init__(self, current=-1, target=-1):
+        self.current = current
+        self.target = target
+
+    def __repr__(self):
+        return f"({self.current}, {self.target})"
+
+
+class GridAction(object):
+    def __init__(self, is_loading=Loading(-1, -1), is_charging=-1, location=0):
+        self.is_loading = is_loading
+        self.is_charging = is_charging
+        self.location = location
+
+    def __repr__(self):
+        return f"({self.is_loading}, {self.is_charging}, {self.location})"
 
 
 def one_step_to_destination(vertices, edges, start_index, dest_index):

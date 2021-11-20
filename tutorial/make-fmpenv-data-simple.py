@@ -221,7 +221,7 @@ env.render()
 # plt.show()
 for i_episode in range(1):
     observation = env.reset()
-    for t in range(100):
+    for t in range(150):
         action = env.action_space.sample()
         observation, reward, done, info = env.step(action)
         if done:

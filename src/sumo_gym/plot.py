@@ -204,8 +204,8 @@ def plot_FMPEnv(
     #     raise ValueError(f"{set(kwargs)} not needed")
 
     fmp_art = plot_FMP(self.fmp, ax=fmp_ax, **fmp_kwargs)
-    x = [self.fmp.vertices[l][0] for l in self.locations]
-    y = [self.fmp.vertices[l][1] for l in self.locations]
+    x = [self.fmp.vertices[s.location][0] for s in self.states]
+    y = [self.fmp.vertices[s.location][1] for s in self.states]
     fmp_ax.scatter(x, y, alpha=1, **location_kwargs)
     # demand_art = demand_ax.bar(
     #     np.arange(self.fmp.n_vertex), self.fmp.demand, **demand_kwargs
