@@ -26,9 +26,10 @@ class Vertex(object):
 
 
 class Edge(object):
-    def __init__(self, start, end):
+    def __init__(self, start, end, length):
         self.start = start
         self.end = end
+        self.length = length
 
     def __eq__(self, other):
         return (self.start, self.end) == (other.start, other.end)
@@ -65,36 +66,35 @@ class Demand(object):
 
 
 class ElectricVehicles(object):
-    def __init__(self, id, speed, indicator, capacity):
+    def __init__(self, id, charging_level):
         self.id = id
-        self.speed = speed
-        self.indicator = indicator
-        self.capacity = capacity
+        self.charging_level = charging_level
 
     def __eq__(self, other):
-        return self.location == other.location
-
-    def __lt__(self, other):
-        return self.location < other.location
+        return self.id == other.id
 
     def __hash__(self):
         return hash(str(self))
 
 
 class ChargingStation(object):
-    def __init__(self, location, indicator, charging_speed):
-        self.location = location
-        self.indicator = indicator
-        self.charging_speed = charging_speed
+    def __init__(self, id, charging_delay):
+        self.id = id
+        self.charging_delay = charging_delay
 
     def __eq__(self, other):
-        return self.location == other.location
-
-    def __lt__(self, other):
-        return self.location < other.location
+        return self.id == other.id
 
     def __hash__(self):
         return hash(str(self))
+
+class Departure(object):
+    def __init__(self, vehicle, destination):
+        self.vehicle = vehicle
+        self.destination = destination
+
+    def __eq__(self, other):
+        return self.vehicle == other.vehicle and self.destination == other.destination
 
 
 class Loading(object):
