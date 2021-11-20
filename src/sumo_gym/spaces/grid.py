@@ -90,43 +90,43 @@ class GridSpace(gym.spaces.Space):
             elif self.states[i].is_charging != -1:  # is charging
                 samples[i].location = self.charging_stations[
                     self.states[i].is_charging
-                ][0]
+                ].location
                 if (
-                    self.electric_vehicles[i][3] - self.states[i].battery
-                    > self.charging_stations[self.states[i].is_charging][2]
+                    self.electric_vehicles[i].capacity - self.states[i].battery
+                    > self.charging_stations[self.states[i].is_charging].charging_speed
                 ):
                     print("----- Still charging")
                     samples[i].is_charging = self.states[i].is_charging
                 else:
                     print("----- Charging finished")
             else:  # available
-                ncs, _ = grid_utils.nearest_charging_station_with_distance(
-                    self.vertices,
-                    self.charging_stations,
-                    self.edges,
-                    self.states[i].location,
-                )
                 diagonal_len = 2 * (
-                    max(self.vertices, key=lambda item: item[1])[1]
-                    - min(self.vertices, key=lambda item: item[1])[1]
-                    + max(self.vertices, key=lambda item: item[0])[0]
-                    - min(self.vertices, key=lambda item: item[0])[0]
+                    max(self.vertices, key=lambda item: item.y).y
+                    - min(self.vertices, key=lambda item: item.y).y
+                    + max(self.vertices, key=lambda item: item.x).x
+                    - min(self.vertices, key=lambda item: item.x).x
                 )
                 possibility_of_togo_charge = self.states[i].battery / (
-                    diagonal_len - self.electric_vehicles[i][3]
-                ) + self.electric_vehicles[i][3] / (
-                    self.electric_vehicles[i][3] - diagonal_len
+                    diagonal_len - self.electric_vehicles[i].capacity
+                ) + self.electric_vehicles[i].capacity / (
+                    self.electric_vehicles[i].capacity - diagonal_len
                 )
                 if np.random.random() < possibility_of_togo_charge:
+                    ncs, _ = grid_utils.nearest_charging_station_with_distance(
+                        self.vertices,
+                        self.charging_stations,
+                        self.edges,
+                        self.states[i].location,
+                    )
                     print("----- Goto charge:", ncs)
                     loc = grid_utils.one_step_to_destination(
                         self.vertices,
                         self.edges,
                         self.states[i].location,
-                        self.charging_stations[ncs][0],
+                        self.charging_stations[ncs].location,
                     )
                     samples[i].location = loc
-                    if loc == self.charging_stations[ncs][0]:
+                    if loc == self.charging_stations[ncs].location:
                         samples[i].is_charging = ncs
                 else:
                     available_dmd = [

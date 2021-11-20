@@ -10,7 +10,7 @@ class Loading(object):
         self.target = target
 
     def __repr__(self):
-        return f"({self.current}, {self.target})"
+        return f"(responding {self.current}, goto respond {self.target})"
 
 
 class GridAction(object):
@@ -20,7 +20,7 @@ class GridAction(object):
         self.location = location
 
     def __repr__(self):
-        return f"({self.is_loading}, {self.is_charging}, {self.location})"
+        return f"({self.is_loading}, goto charge {self.is_charging}, location {self.location})"
 
 
 def one_step_to_destination(vertices, edges, start_index, dest_index):
@@ -46,7 +46,7 @@ def nearest_charging_station_with_distance(
     vertices, charging_stations, edges, start_index
 ):
     charging_station_vertices = [
-        charging_station[0] for charging_station in charging_stations
+        charging_station.location for charging_station in charging_stations
     ]
     visited = [False] * len(vertices)
 

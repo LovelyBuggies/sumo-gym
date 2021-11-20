@@ -140,8 +140,8 @@ def plot_VRPEnv(
 def plot_FMP(self: envs.fmp.FMP, *, ax: matplotlib.axes.Axes, **kwargs) -> Any:
     x, y = list(), list()
     for v in self.vertices:
-        x.append(v[0])
-        y.append(v[1])
+        x.append(v.x)
+        y.append(v.y)
 
     if ax is None:
         fig = plt.gcf()
@@ -159,8 +159,8 @@ def plot_FMP(self: envs.fmp.FMP, *, ax: matplotlib.axes.Axes, **kwargs) -> Any:
     #     alpha = self.demand / max(self.demand) * 0.4 + np.ones(self.demand.shape) * 0.6
 
     for e in self.edges:
-        l1, l2 = self.vertices[e[0]], self.vertices[e[1]]
-        ax.plot([l1[0], l2[0]], [l1[1], l2[1]], **edge_kwargs)
+        l1, l2 = self.vertices[e.start], self.vertices[e.end]
+        ax.plot([l1.x, l2.x], [l1.y, l2.y], **edge_kwargs)
 
     # ax.scatter(x[: self.n_depot], y[: self.n_depot], alpha=1, **depot_kwargs)
     return ax.scatter(
@@ -204,8 +204,8 @@ def plot_FMPEnv(
     #     raise ValueError(f"{set(kwargs)} not needed")
 
     fmp_art = plot_FMP(self.fmp, ax=fmp_ax, **fmp_kwargs)
-    x = [self.fmp.vertices[s.location][0] for s in self.states]
-    y = [self.fmp.vertices[s.location][1] for s in self.states]
+    x = [self.fmp.vertices[s.location].x for s in self.states]
+    y = [self.fmp.vertices[s.location].y for s in self.states]
     fmp_ax.scatter(x, y, alpha=1, **location_kwargs)
     # demand_art = demand_ax.bar(
     #     np.arange(self.fmp.n_vertex), self.fmp.demand, **demand_kwargs

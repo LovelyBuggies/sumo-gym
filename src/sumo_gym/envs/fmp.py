@@ -137,7 +137,7 @@ class FMPEnv(gym.Env):
         self.responded = set()
         for i in range(self.fmp.n_electric_vehicles):
             self.states[i].location = self.fmp.departures[i]
-            self.states[i].battery = self.fmp.electric_vehicles[i][-1]
+            self.states[i].battery = self.fmp.electric_vehicles[i].capacity
 
         self.action_space: sumo_gym.spaces.grid.GridSpace = (
             sumo_gym.spaces.grid.GridSpace(
@@ -177,7 +177,7 @@ class FMPEnv(gym.Env):
             if self.states[i].is_charging != -1:
                 self.states[i].battery += self.fmp.charging_stations[
                     self.states[i].is_charging
-                ][2]
+                ].charging_speed
 
             self.rewards[i] += min(self.states[i].battery - prev_battery, 0)
 
