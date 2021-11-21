@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 
 env = gym.make(
     "FMP-v0",
+    sumo_gui_path="/usr/local/Cellar/sumo/1.10.0/bin/sumo-gui",
     net_xml_file_path="assets/data/network.net.xml",
     demand_xml_file_path="assets/data/demand.rou.xml",
 )

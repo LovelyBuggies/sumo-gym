@@ -127,7 +127,7 @@ class FMP(object):
             demand = []
             for d in raw_demand:
                 demand.append(Demand(self.vertex_dict[d[0]], self.vertex_dict[d[1]]))
-            
+
             self.demand = np.asarray(demand)
 
             charging_stations = []
@@ -183,7 +183,7 @@ class FMPState(object):
         self.is_loading = is_loading
         self.is_charging = is_charging
         self.battery = battery
-        self.stopped = False # arrive the assigned vertex
+        self.stopped = False  # arrive the assigned vertex
 
     def __repr__(self):
         return (
@@ -200,8 +200,24 @@ class FMPEnv(gym.Env):
     __isfrozen = False
 
     def __init__(self, **kwargs):
+        if "sumo_gui_path" in kwargs:
+            self.sumo_gui_path = kwargs["sumo_gui_path"]
+            del kwargs["sumo_gui_path"]
+        else:
+            self.sumo_gui_path = None
+        # todo: this part should be move to .render()
+        if self.sumo_gui_path is None:
+            raise EnvironmentError("Need sumo-gui path to render")
+        else:
+            self.sumo = SumoRender(
+                self.sumo_gui_path,
+                self.fmp.vertex_dict,
+                self.fmp.edge_dict,
+                self.fmp.ev_dict,
+                self.fmp.edges,
+            )
+
         self._fmp = FMP(**kwargs)  # todo: make it "final"
-        self.sumo = SumoRender(self.fmp.vertex_dict, self.fmp.edge_dict, self.fmp.ev_dict, self.fmp.edges)
         self.run = -1
         self._reset()
         self._freeze()
@@ -299,7 +315,9 @@ class FMPEnv(gym.Env):
             "",
         )
 
-        self.sumo.render(prev_locations, actions)
+        self.sumo.render(
+            prev_locations, actions
+        )  # todo: shouldn't render when stepping
 
         return observation, reward, done, info
 
@@ -331,7 +349,7 @@ class FMPEnv(gym.Env):
             "location_c": "lightgrey",
         }
         self.plot(**plot_kwargs)
-    
+
     # TODO: need to add default behavior also
     def close(self):
         self.sumo.close()
