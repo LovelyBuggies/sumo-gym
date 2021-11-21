@@ -117,7 +117,7 @@ class FMP(object):
                 self.ev_dict[vehicle[0]] = counter
                 counter += 1
 
-                departures.append(self.edges[self.edge_dict[vehicle[1]]])
+                departures.append(self.edges[self.edge_dict[vehicle[1]]].start)
 
             self.electric_vehicles = np.asarray(electric_vehicles)
             self.departures = np.asarray(departures)
