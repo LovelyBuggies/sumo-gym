@@ -25,7 +25,7 @@ class FMP(object):
         self,
         net_xml_file_path: str = None,
         demand_xml_file_path: str = None,
-        charging_xml_file_path: str = None,
+        # charging_xml_file_path: str = None,
         n_vertex: int = 0,
         n_edge: int = 0,
         n_vehicle: int = 0,
@@ -55,7 +55,7 @@ class FMP(object):
         if (
             net_xml_file_path is None
             or demand_xml_file_path is None
-            or charging_xml_file_path is None
+            # or charging_xml_file_path is None
         ):
             # number
             self.n_vertex = n_vertex
@@ -79,18 +79,16 @@ class FMP(object):
 
         else:
             (
-                raw_vertices,
-                raw_charging_stations,
-                raw_electric_vehicles,
-                raw_edges,
-                raw_departures,
-            ) = sumo_gym.utils.xml_utils.decode_xml_fmp(
-                net_xml_file_path, demand_xml_file_path, charging_xml_file_path
-            )
+                raw_vertices, # id, x, y
+                #raw_charging_stations,
+                #raw_electric_vehicles,
+                raw_edges, # edge_id, id_start, id_dest
+                raw_departures, # vehicle_id, edge_id_from
+                raw_demand, # start_id, dest_id
+            ) = sumo_gym.utils.xml_utils.decode_xml_fmp(net_xml_file_path, demand_xml_file_path)
 
             # todo: better implement vertex_dict using np.idx
             vertices = []
-            # map vertex id (string) to index in self.vertices
             self.vertex_dict = {}
             counter = 0
             for v in raw_vertices:
@@ -100,23 +98,26 @@ class FMP(object):
             self.vertices = np.asarray(vertices)
 
             edges = []
+            self.edge_dict = {}
+            counter = 0
             for e in raw_edges:
-                edges.append(Edge(self.vertex_dict[e[0][0]], self.vertex_dict[e[0][1]]))
+                edges.append(Edge(self.vertex_dict[e[1]], self.vertex_dict[e[2]]))
+                self.edge_dict[e[0]] = counter
+                counter += 1
             self.edges = np.asarray(edges)
 
             electric_vehicles = []
-            # map vehicle id to index in self.electric_vehicles
+            departures = []
             self.ev_dict = {}
             counter = 0
-            for ev in raw_electric_vehicles:
+            for vehicle in raw_departures:
                 electric_vehicles.append(ElectricVehicles(counter, 1, 220, 50))
-                self.ev_dict[ev[0]] = counter
+                self.ev_dict[vehicle[0]] = counter
                 counter += 1
-            self.electric_vehicles = np.asarray(electric_vehicles)
 
-            departures = []
-            for d in raw_departures:
-                departures.append(Demand(self.ev_dict[d[0]], self.vertex_dict[d[1]]))
+                departures.append(self.edges[self.edge_dict[vehicle[1]]])
+
+            self.electric_vehicles = np.asarray(electric_vehicles)
             self.departures = np.asarray(departures)
 
             charging_stations = []
