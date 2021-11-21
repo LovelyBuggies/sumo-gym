@@ -122,6 +122,12 @@ class FMP(object):
             self.electric_vehicles = np.asarray(electric_vehicles)
             self.departures = np.asarray(departures)
 
+            demand = []
+            for d in raw_demand:
+                demand.append(Demand(self.vertex_dict[d[0]], self.vertex_dict[d[1]]))
+            
+            self.demand = np.asarray(demand)
+
             charging_stations = []
             charging_stations.append(ChargingStation(3, 220, 20))
             self.charging_stations = np.asarray(charging_stations)

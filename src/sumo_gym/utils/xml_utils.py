@@ -103,7 +103,7 @@ def get_departures(flow_xml_tree):
         departure_edge = vehicle_trip.get('from')
         departures.append([vehicle_trip.get('id'), departure_edge])  
 
-    return np.asaraay(departures)
+    return np.asarray(departures)
 
 
 
@@ -140,6 +140,7 @@ def get_demand(net_xml_tree: str = None):
                 if (customized_params.get('key') == VERTEX_DEMAND_KEY):
                     demand.append([junction.get('id'), customized_params.get('value')])
 
+    return np.asarray(demand)
 
 
 def decode_xml_fmp(net_xml_file_path: str = None, flow_xml_file_path: str = None,
@@ -162,22 +163,17 @@ def decode_xml_fmp(net_xml_file_path: str = None, flow_xml_file_path: str = None
     # charging_xml_tree = ET.parse(charging_xml_path)
 
     vertices = get_vertices(net_xml_tree)
-    print(vertices)
 
     # charging_stations = get_charging_stations(charging_xml_tree)
 
     # electric_vehicles = get_electric_vehicles(battery_xml_tree, flow_xml_tree, init_iter)
 
     edges = get_edges(net_xml_tree)
-    print(edges)
-
 
     #departures = get_departures(net_xml_tree, flow_xml_tree, init_iter)
-    departures = get_departures(net_xml_tree)
-    print(departures)
+    departures = get_departures(flow_xml_tree)
 
     demand = get_demand(net_xml_tree)
-    print(demand)
 
     #return vertices, charging_stations, electric_vehicles, edges, departures
     return vertices, edges, departures, demand
