@@ -105,12 +105,12 @@ class GridSpace(gym.spaces.Space):
                     + float(max(self.vertices, key=lambda item: item.x).x)
                     - float(min(self.vertices, key=lambda item: item.x).x)
                 )
-                possibility_of_togo_charge = self.states[i].battery / (
+                probability_of_togo_charge = self.states[i].battery / (
                     diagonal_len - self.electric_vehicles[i].capacity
                 ) + self.electric_vehicles[i].capacity / (
                     self.electric_vehicles[i].capacity - diagonal_len
                 )
-                if np.random.random() < possibility_of_togo_charge:
+                if np.random.random() < probability_of_togo_charge:
                     (
                         ncs,
                         _,
