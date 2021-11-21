@@ -2,12 +2,11 @@ from typing import Type, Tuple, Any, List
 import numpy as np
 import numpy.typing as npt
 from gym.spaces import Space
+from sumo_gym.utils.fmp_utils import ElectricVehicles, ChargingStation, Demand
 
 
 VertexType = Tuple[float]
-VerticesType = npt.NDArray[
-    VertexType
-]  # [id (str), x-position (float), y-position (float)]
+VerticesType = npt.NDArray[VertexType]
 DemandType = npt.NDArray[float]
 EdgeType = npt.NDArray[Tuple[int]]
 DeparturesType = npt.NDArray[int]
@@ -20,7 +19,7 @@ ActionsType = npt.NDArray[int]
 RewardsType = npt.NDArray[float]
 
 FMPElectricVehiclesType = npt.NDArray[
-    Tuple[float]
+    ElectricVehicles
 ]  # vehicle index, speed, indicator, capacity
-FMPChargingStationType = npt.NDArray[Tuple[int]]  # vertex index, indicator, speed
-FMPDemandsType = npt.NDArray[Tuple[int]]  # departure, destination
+FMPChargingStationType = npt.NDArray[ChargingStation]  # vertex index, indicator, speed
+FMPDemandsType = npt.NDArray[Demand]  # departure, destination
