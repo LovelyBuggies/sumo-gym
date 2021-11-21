@@ -11,7 +11,7 @@ env = gym.make(
     demand_xml_file_path="assets/data/demand.rou.xml",
 )
 
-env.render()
+# env.render()
 for i_episode in range(1):
     observation = env.reset()
     for t in range(150):

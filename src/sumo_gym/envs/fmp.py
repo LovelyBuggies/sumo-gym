@@ -9,6 +9,7 @@ import gym
 from gym import error, spaces, utils
 from gym.utils import seeding
 import sumo_gym
+from sumo_gym.utils.sumo_utils import SumoRender
 from sumo_gym.utils.svg_uitls import vehicle_marker
 from sumo_gym.utils.fmp_utils import (
     Vertex,
@@ -117,7 +118,8 @@ class FMP(object):
                 self.ev_dict[vehicle[0]] = counter
                 counter += 1
 
-                departures.append(self.edges[self.edge_dict[vehicle[1]]].start)
+                # the first edge that the vehicle is original on cannot be changed in sumo
+                departures.append(self.edges[self.edge_dict[vehicle[1]]].end)
 
             self.electric_vehicles = np.asarray(electric_vehicles)
             self.departures = np.asarray(departures)
@@ -181,6 +183,7 @@ class FMPState(object):
         self.is_loading = is_loading
         self.is_charging = is_charging
         self.battery = battery
+        self.stopped = False # arrive the assigned vertex
 
     def __repr__(self):
         return (
@@ -198,6 +201,7 @@ class FMPEnv(gym.Env):
 
     def __init__(self, **kwargs):
         self._fmp = FMP(**kwargs)  # todo: make it "final"
+        self.sumo = SumoRender(self.fmp.vertex_dict, self.fmp.edge_dict, self.fmp.ev_dict, self.fmp.edges)
         self.run = -1
         self._reset()
         self._freeze()
@@ -237,8 +241,10 @@ class FMPEnv(gym.Env):
         self.rewards: sumo_gym.typing.RewardsType = np.zeros(self.fmp.n_vehicle)
 
     def step(self, actions):
+        prev_locations = []
         for i in range(self.fmp.n_vehicle):
             prev_location = self.states[i].location
+            prev_locations.append(prev_location)
             prev_is_loading = self.states[i].is_loading.current
             prev_battery = self.states[i].battery
             (
@@ -292,6 +298,9 @@ class FMPEnv(gym.Env):
             self.responded == set(range(len(self.fmp.demand))),
             "",
         )
+
+        self.sumo.render(prev_locations, actions)
+
         return observation, reward, done, info
 
     def plot(
@@ -300,9 +309,10 @@ class FMPEnv(gym.Env):
         ax_dict=None,
         **kwargs: Any,
     ) -> Any:
-        import sumo_gym.plot
+        # import sumo_gym.plot
 
-        return sumo_gym.plot.plot_FMPEnv(self, ax_dict=ax_dict, **kwargs)
+        # return sumo_gym.plot.plot_FMPEnv(self, ax_dict=ax_dict, **kwargs)
+        self.sumo.render(self.actions)
 
     def render(self, mode="human"):
         get_colors = lambda n: list(
@@ -321,3 +331,7 @@ class FMPEnv(gym.Env):
             "location_c": "lightgrey",
         }
         self.plot(**plot_kwargs)
+    
+    # TODO: need to add default behavior also
+    def close(self):
+        self.sumo.close()
