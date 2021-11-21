@@ -100,17 +100,17 @@ class GridSpace(gym.spaces.Space):
                     print("----- Charging finished")
             else:  # available
                 diagonal_len = 2 * (
-                    max(self.vertices, key=lambda item: item.y).y
-                    - min(self.vertices, key=lambda item: item.y).y
-                    + max(self.vertices, key=lambda item: item.x).x
-                    - min(self.vertices, key=lambda item: item.x).x
+                    float(max(self.vertices, key=lambda item: item.y).y)
+                    - float(min(self.vertices, key=lambda item: item.y).y)
+                    + float(max(self.vertices, key=lambda item: item.x).x)
+                    - float(min(self.vertices, key=lambda item: item.x).x)
                 )
-                possibility_of_togo_charge = self.states[i].battery / (
+                probability_of_togo_charge = self.states[i].battery / (
                     diagonal_len - self.electric_vehicles[i].capacity
                 ) + self.electric_vehicles[i].capacity / (
                     self.electric_vehicles[i].capacity - diagonal_len
                 )
-                if np.random.random() < possibility_of_togo_charge:
+                if np.random.random() < probability_of_togo_charge:
                     (
                         ncs,
                         _,

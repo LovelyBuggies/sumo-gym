@@ -180,7 +180,7 @@ n_vehicle = 1
 n_electric_vehicles = 1
 n_charging_station = 3
 electric_vehicles = np.asarray(
-    [ElectricVehicles(0, 1, 220, 50) for _ in range(n_electric_vehicles)]
+    [ElectricVehicles(i, 1, 220, 50) for i in range(n_electric_vehicles)]
 )
 charging_stations = np.asarray(
     [

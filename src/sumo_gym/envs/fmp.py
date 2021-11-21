@@ -10,7 +10,14 @@ from gym import error, spaces, utils
 from gym.utils import seeding
 import sumo_gym
 from sumo_gym.utils.svg_uitls import vehicle_marker
-from sumo_gym.utils.fmp_utils import Loading, GridAction
+from sumo_gym.utils.fmp_utils import (
+    Vertex,
+    Edge,
+    Demand,
+    Loading,
+    ChargingStation,
+    ElectricVehicles,
+)
 
 
 class FMP(object):
@@ -18,6 +25,7 @@ class FMP(object):
         self,
         net_xml_file_path: str = None,
         demand_xml_file_path: str = None,
+        # charging_xml_file_path: str = None,
         n_vertex: int = 0,
         n_edge: int = 0,
         n_vehicle: int = 0,
@@ -35,15 +43,20 @@ class FMP(object):
         :param n_charging_station:      the number of charging stations
         :param n_edge:                  the number of edges
         :param n_vehicle:               the number of vehicles
-        :param vertices:                the vertices, [x_position, y_position]
-        :param charging_stations:       the charging stations, [vertex_index, charging_level]
-        :param electric_vehicles:       the vehicles, [vehicle_index, charging_level]
+        :param vertices:                the vertices, [vertex_index, x_position, y_position]
+        :param charging_stations:       the charging stations, [vertex_index, chargeDelay]
+        :param electric_vehicles:       the vehicles, [vehicle_index, charging_level (actualBatteryCapacity/maximumBatteryCapacity)]
         :param demand:                  the demand at vertices, [start_vertex_index, end_vertex_index]
         :param edges:                   the edges, [from_vertex_index, to_vertex_index]
-        :param departures:              the initial settings of vehicles, [starting_vertex_index]
+        :param departures:              the initial settings of vehicles, [vehicle_index, starting_vertex_index]
         Create a Fleet Management Problem setting (assume capacity of all vehicles = 1, all demands at each possible node = 1).
         """
-        if net_xml_file_path is None or demand_xml_file_path is None:
+
+        if (
+            net_xml_file_path is None
+            or demand_xml_file_path is None
+            # or charging_xml_file_path is None
+        ):
             # number
             self.n_vertex = n_vertex
             self.n_edge = n_edge
@@ -65,11 +78,67 @@ class FMP(object):
                 raise ValueError("FMP setting is not valid")
 
         else:
-            pass
-            # read in the sumo xml files and parse them into FMP initial problem settings
-            # self.vertices, self.charging_stations, self.electric_vehicles, self.demand, self.edges, self.departures
-            #      = sumo_gym.utils.decode_xml_fmp(net_xml_file_path, demand_xml_file_path)
-            # other settings...
+            (
+                raw_vertices,  # id, x, y
+                # raw_charging_stations,
+                # raw_electric_vehicles,
+                raw_edges,  # edge_id, id_start, id_dest
+                raw_departures,  # vehicle_id, edge_id_from
+                raw_demand,  # start_id, dest_id
+            ) = sumo_gym.utils.xml_utils.decode_xml_fmp(
+                net_xml_file_path, demand_xml_file_path
+            )
+
+            # todo: better implement vertex_dict using np.idx
+            vertices = []
+            self.vertex_dict = {}
+            counter = 0
+            for v in raw_vertices:
+                vertices.append(Vertex(v[1], v[2]))
+                self.vertex_dict[v[0]] = counter
+                counter += 1
+            self.vertices = np.asarray(vertices)
+
+            edges = []
+            self.edge_dict = {}
+            counter = 0
+            for e in raw_edges:
+                edges.append(Edge(self.vertex_dict[e[1]], self.vertex_dict[e[2]]))
+                self.edge_dict[e[0]] = counter
+                counter += 1
+            self.edges = np.asarray(edges)
+
+            electric_vehicles = []
+            departures = []
+            self.ev_dict = {}
+            counter = 0
+            for vehicle in raw_departures:
+                electric_vehicles.append(ElectricVehicles(counter, 1, 220, 100))
+                self.ev_dict[vehicle[0]] = counter
+                counter += 1
+
+                departures.append(self.edges[self.edge_dict[vehicle[1]]].start)
+
+            self.electric_vehicles = np.asarray(electric_vehicles)
+            self.departures = np.asarray(departures)
+
+            demand = []
+            for d in raw_demand:
+                demand.append(Demand(self.vertex_dict[d[0]], self.vertex_dict[d[1]]))
+            
+            self.demand = np.asarray(demand)
+
+            charging_stations = []
+            charging_stations.append(ChargingStation(3, 220, 20))
+            self.charging_stations = np.asarray(charging_stations)
+
+            self.n_vertex = len(self.vertices)
+            self.n_edge = len(self.edges)
+            self.n_vehicle = self.n_electric_vehicles = len(self.electric_vehicles)
+            self.n_charging_station = len(self.charging_stations)
+
+            if not self._is_valid():
+                raise ValueError("FMP setting is not valid")
 
     def _is_valid(self):
         if (
@@ -85,13 +154,13 @@ class FMP(object):
             or self.departures is None
         ):
             return False
-        if len(set(self.vertices)) != len(self.vertices):
+        if self.vertices.shape[0] != len(self.vertices):
             return False
-        if len(set(self.edges)) != len(self.edges):
+        if self.edges.shape[0] != len(self.edges):
             return False
-        if len(set(self.electric_vehicles)) != len(self.electric_vehicles):
+        if self.electric_vehicles.shape[0] != len(self.electric_vehicles):
             return False
-        if len(set(self.charging_stations)) != len(self.charging_stations):
+        if self.charging_stations.shape[0] != len(self.charging_stations):
             return False
         charging_station_locations = set([cs.location for cs in self.charging_stations])
         for d in self.demand:

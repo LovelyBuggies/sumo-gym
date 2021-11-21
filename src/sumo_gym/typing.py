@@ -1,11 +1,13 @@
-from typing import Type, Tuple, Any
+from typing import Type, Tuple, Any, List
 import numpy as np
 import numpy.typing as npt
-from gym.spaces import Space  # type: ignore
+from gym.spaces import Space
 
 
 VertexType = Tuple[float]
-VerticesType = npt.NDArray[VertexType]
+VerticesType = npt.NDArray[
+    VertexType
+]  # [id (str), x-position (float), y-position (float)]
 DemandType = npt.NDArray[float]
 EdgeType = npt.NDArray[Tuple[int]]
 DeparturesType = npt.NDArray[int]
