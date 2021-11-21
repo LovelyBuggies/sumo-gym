@@ -106,17 +106,17 @@ class FMP(object):
 
             electric_vehicles = []
             # map vehicle id to index in self.electric_vehicles
-            ev_dict = {}
+            self.ev_dict = {}
             counter = 0
             for ev in raw_electric_vehicles:
                 electric_vehicles.append(ElectricVehicles(counter, 1, 220, 50))
-                ev_dict[ev[0]] = counter
+                self.ev_dict[ev[0]] = counter
                 counter += 1
             self.electric_vehicles = np.asarray(electric_vehicles)
 
             departures = []
             for d in raw_departures:
-                departures.append(Demand(ev_dict[d[0]], self.vertex_dict[d[1]]))
+                departures.append(Demand(self.ev_dict[d[0]], self.vertex_dict[d[1]]))
             self.departures = np.asarray(departures)
 
             charging_stations = []
