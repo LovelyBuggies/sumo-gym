@@ -91,17 +91,17 @@ class FMP(object):
             # todo: better implement vertex_dict using np.idx
             vertices = []
             # map vertex id (string) to index in self.vertices
-            vertex_dict = {}
+            self.vertex_dict = {}
             counter = 0
             for v in raw_vertices:
                 vertices.append(Vertex(v[1], v[2]))
-                vertex_dict[v[0]] = counter
+                self.vertex_dict[v[0]] = counter
                 counter += 1
             self.vertices = np.asarray(vertices)
 
             edges = []
             for e in raw_edges:
-                edges.append(Edge(vertex_dict[e[0][0]], vertex_dict[e[0][1]], e[1]))
+                edges.append(Edge(self.vertex_dict[e[0][0]], self.vertex_dict[e[0][1]]))
             self.edges = np.asarray(edges)
 
             electric_vehicles = []
@@ -116,7 +116,7 @@ class FMP(object):
 
             departures = []
             for d in raw_departures:
-                departures.append(Demand(ev_dict[d[0]], vertex_dict[d[1]]))
+                departures.append(Demand(ev_dict[d[0]], self.vertex_dict[d[1]]))
             self.departures = np.asarray(departures)
 
             charging_stations = []
