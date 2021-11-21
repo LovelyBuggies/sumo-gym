@@ -13,6 +13,10 @@ SUMO_COMMAND = [
     "assets/data/sumo_simulation.sumocfg",
 ]
 
+# TODO: fake the data, we need to exclude the turnaround from MDP action space, and make render function parameterless
+# below is a test route 
+TEST_LOCATIONS = [14, 15, 2, 3, 4, 7, 12, 13]
+
 
 class SumoRender:
     def __init__(
@@ -28,6 +32,12 @@ class SumoRender:
         self.ev_dict = ev_dict
         self.edges = edges
         self.initialized = False
+        self.ev_stop = [False]
+        self.count = 2 # 0,1 is the first edge, must go
+        self.routes = [()]
+
+        print(self.edges)
+        print(self.vertex_dict)
 
         if "SUMO_HOME" in os.environ:
             tools = os.path.join(os.environ["SUMO_HOME"], "tools")
@@ -38,51 +48,59 @@ class SumoRender:
         traci.start(SUMO_COMMAND)
 
     def render(self, prev_locations, actions):
-        print("     ", prev_locations, actions)
-        # traci.vehicle.setSpeed("vehicle_0", 23.45)
-
-        # traci.vehicle.setStop(vehID="vehicle_1", edgeID="gneE2", pos=18.80, laneIndex=0, duration=189999999999, flags=0, startPos=0)
-
+        print("     prev: ", prev_locations)
+        
         if not self.initialized:
             self.initialized = True
-            # change 'from', edge accordingly
             for i in range(len(actions)):
 
                 vehicle_id = self._find_key_from_value(self.ev_dict, i)
-                traci.vehicle.setSpeedMode(vehicle_id, 32)  # all checks off
 
-                via_edge = (prev_locations[i], actions[i].location)
+                traci.vehicle.setSpeedMode(vehicle_id, 32) # all checks off
+                traci.vehicle.setSpeed("vehicle_0", 23.45)
+
+                via_edge = (TEST_LOCATIONS[0], TEST_LOCATIONS[1])
+                edge_id = self._find_key_from_value(self.edge_dict, self._find_edge_index(via_edge))
+                self.routes[i] = tuple([edge_id])
+                traci.vehicle.setStop(vehID=vehicle_id, edgeID=edge_id, pos=10.60, laneIndex=0, duration=189999999999, flags=0, startPos=0)
+
+
+        # change 'from', edge accordingly
+        for i in range(len(actions)):
+            vehicle_id = self._find_key_from_value(self.ev_dict, i)
+            if self.ev_stop[i]:
+                vehicle_id = self._find_key_from_value(self.ev_dict, i)
+
+                via_edge = (TEST_LOCATIONS[self.count-1], TEST_LOCATIONS[self.count])
+                self.count += 1
+
                 print("     via_edge: ", via_edge, vehicle_id)
 
                 edge_id = self._find_key_from_value(
                     self.edge_dict, self._find_edge_index(via_edge)
                 )
                 print("     edge id: ", edge_id)
-
-                original_routes = traci.vehicle.getRoute(vehID=vehicle_id)
-                new_routes = (original_routes[0], edge_id)
-                print("     new routes: ", new_routes)
-                traci.vehicle.setRoute(vehID=vehicle_id, edgeList=new_routes)
-                traci.vehicle.setStop(
-                    vehID=vehicle_id,
-                    edgeID=edge_id,
-                    pos=10.60,
-                    laneIndex=0,
-                    duration=189999999999,
-                    flags=0,
-                    startPos=0,
-                )
-                # print("Stop state:", traci.vehicle.getStopState("vehicle_1"))
-
-        for i in range(len(actions)):
-            if prev_locations[i] != actions[i].location:
-                via_edge = (prev_locations[i], actions[i].location)
-                edge_id = self._find_key_from_value(
-                    self.edge_dict, self._find_edge_index(via_edge)
-                )
-                # traci.vehicle.setStop(vehID="vehicle_0", edgeID="gneE48", pos=22.60, laneIndex=0, duration=189999999999, flags=0, startPos=0)
+                                
+                self.routes[i] += tuple([edge_id])
+                print("     new routes: ", self.routes[i])
+                traci.vehicle.setRoute(vehID=vehicle_id, edgeList=self.routes[i])
+                traci.vehicle.setStop(vehID=vehicle_id, edgeID=edge_id, pos=10.60, laneIndex=0, duration=189999999999, flags=0, startPos=0)
+                #print("Stop state:", traci.vehicle.getStopState("vehicle_1"))
+       
 
         # TODO: append next edge to route, and change 'to' attr of trip
+            
+        
+        traci.simulationStep()
+
+        for i in range(len(actions)):
+            vehicle_id = self._find_key_from_value(self.ev_dict, i)
+            print("    stop statue: ", traci.vehicle.getStopState(vehicle_id))
+            if traci.vehicle.getStopState(vehicle_id) == 1: # arrived the assigned vertex, can be assigned to the next
+                self.ev_stop[i] = True
+                traci.vehicle.resume(vehicle_id)
+
+        
 
         traci.simulationStep()
 
