@@ -137,6 +137,9 @@ class FMP(object):
             self.n_vehicle = self.n_electric_vehicles = len(self.electric_vehicles)
             self.n_charging_station = len(self.charging_stations)
 
+            if not self._is_valid():
+                raise ValueError("FMP setting is not valid")
+
     def _is_valid(self):
         if (
             not self.n_vertex

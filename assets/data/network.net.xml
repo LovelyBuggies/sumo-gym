@@ -487,7 +487,7 @@
         <request index="3" response="100011" foes="100011" cont="0"/>
         <request index="4" response="000000" foes="000010" cont="0"/>
         <request index="5" response="000000" foes="001110" cont="0"/>
-        <param key="destination" value="gneJ11"/>
+        <param key="destination" value="gneJ12"/>
     </junction>
     <junction id="gneJ11" type="priority" x="7.16" y="59.31" incLanes="gneE15_0 gneE36_0 gneE37_0 gneE13_0" intLanes=":gneJ11_0_0 :gneJ11_1_0 :gneJ11_12_0 :gneJ11_3_0 :gneJ11_4_0 :gneJ11_5_0 :gneJ11_6_0 :gneJ11_7_0 :gneJ11_13_0 :gneJ11_9_0 :gneJ11_10_0 :gneJ11_11_0" shape="4.84,66.74 11.20,65.97 11.37,63.69 11.84,62.83 12.56,62.15 13.52,61.66 14.74,61.36 13.81,55.09 11.55,54.96 10.69,54.50 10.02,53.78 9.54,52.79 9.24,51.55 2.90,52.51 2.78,54.75 2.34,55.58 1.65,56.20 0.71,56.63 -0.49,56.87 0.07,63.16 2.51,63.38 3.41,63.86 4.10,64.58 4.58,65.54">
         <request index="0"  response="000000000000" foes="000100010000" cont="0"/>
@@ -510,7 +510,7 @@
         <request index="3" response="000011" foes="100011" cont="1"/>
         <request index="4" response="000010" foes="000010" cont="0"/>
         <request index="5" response="001110" foes="001110" cont="0"/>
-        <param key="destination" value="gneJ11"/>
+        <param key="destination" value="gneJ7"/>
         <param key="destination" value="gneJ14"/>
     </junction>
     <junction id="gneJ13" type="priority" x="-29.22" y="43.45" incLanes="gneE39_0 gneE17_0 gneE35_0" intLanes=":gneJ13_0_0 :gneJ13_6_0 :gneJ13_2_0 :gneJ13_3_0 :gneJ13_4_0 :gneJ13_5_0" shape="-31.75,50.93 -25.39,50.36 -25.14,48.11 -24.66,47.29 -23.93,46.67 -22.97,46.26 -21.76,46.05 -22.28,39.67 -24.58,39.41 -25.42,38.92 -26.05,38.20 -26.49,37.23 -26.72,36.02 -33.10,36.64">
@@ -520,7 +520,7 @@
         <request index="3" response="100011" foes="100011" cont="0"/>
         <request index="4" response="000000" foes="000010" cont="0"/>
         <request index="5" response="000000" foes="001110" cont="0"/>
-        <param key="destination" value="gneJ11"/>
+        <param key="destination" value="gneJ8"/>
     </junction>
     <junction id="gneJ14" type="priority" x="-31.12" y="23.62" incLanes="gneE19_0 gneE34_0" intLanes=":gneJ14_0_0 :gneJ14_1_0" shape="-33.97,27.43 -27.60,26.82 -27.60,20.42 -29.73,20.61 -31.44,21.20 -32.71,22.17 -33.56,23.54 -33.98,25.29">
         <request index="0" response="00" foes="00" cont="0"/>
