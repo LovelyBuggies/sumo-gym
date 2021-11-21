@@ -19,8 +19,20 @@ $ python3 -m venv env
 $ source env/bin/activate
 (venv)$ pip install -r requirements.txt
 (venv)$ pip install -e .
+(venv)$ open ~/.zshrc
+(venv)$ export SUMO_HOME="your/path/to/sumo"
+(venv)$ source ~/.zshrc
+(venv)$ echo SUMO_HOME
+(venv)$ python3 tutorials/make-fmpenv-xml.py
+```
+For unit tests,
+```shell
 (venv)$ pytest tests/
-#(venv)$ python -m ipykernel install --user --name sumo_gym
+```
+
+To develop on Jupyter,
+```shell
+(venv)$ python -m ipykernel install --user --name sumo_gym
 ```
 
 ## Features
