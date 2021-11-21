@@ -78,7 +78,6 @@ class FMP(object):
                 raise ValueError("FMP setting is not valid")
 
         else:
-            # read in the sumo xml files and parse them into FMP initial problem settings
             (
                 raw_vertices,
                 raw_charging_stations,
@@ -110,7 +109,7 @@ class FMP(object):
             ev_dict = {}
             counter = 0
             for ev in raw_electric_vehicles:
-                electric_vehicles.append(ElectricVehicles(counter, ev[1]))
+                electric_vehicles.append(ElectricVehicles(counter, 1, 220, 50))
                 ev_dict[ev[0]] = counter
                 counter += 1
             self.electric_vehicles = np.asarray(electric_vehicles)
@@ -121,13 +120,7 @@ class FMP(object):
             self.departures = np.asarray(departures)
 
             charging_stations = []
-            # map charging station id to idx in self.charging_stations
-            charging_stations_dict = {}
-            counter = 0
-            for cs in raw_charging_stations:
-                charging_stations.append(ChargingStation(counter, cs[1]))
-                charging_stations_dict[cs[0]] = counter
-                counter += 1
+            charging_stations.append(ChargingStation(3, 220, 20))
             self.charging_stations = np.asarray(charging_stations)
 
             self.n_vertex = len(self.vertices)
