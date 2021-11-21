@@ -79,13 +79,15 @@ class FMP(object):
 
         else:
             (
-                raw_vertices, # id, x, y
-                #raw_charging_stations,
-                #raw_electric_vehicles,
-                raw_edges, # edge_id, id_start, id_dest
-                raw_departures, # vehicle_id, edge_id_from
-                raw_demand, # start_id, dest_id
-            ) = sumo_gym.utils.xml_utils.decode_xml_fmp(net_xml_file_path, demand_xml_file_path)
+                raw_vertices,  # id, x, y
+                # raw_charging_stations,
+                # raw_electric_vehicles,
+                raw_edges,  # edge_id, id_start, id_dest
+                raw_departures,  # vehicle_id, edge_id_from
+                raw_demand,  # start_id, dest_id
+            ) = sumo_gym.utils.xml_utils.decode_xml_fmp(
+                net_xml_file_path, demand_xml_file_path
+            )
 
             # todo: better implement vertex_dict using np.idx
             vertices = []
@@ -143,13 +145,13 @@ class FMP(object):
             or self.departures is None
         ):
             return False
-        if len(set(self.vertices)) != len(self.vertices):
+        if self.vertices.shape[0] != len(self.vertices):
             return False
-        if len(set(self.edges)) != len(self.edges):
+        if self.edges.shape[0] != len(self.edges):
             return False
-        if len(set(self.electric_vehicles)) != len(self.electric_vehicles):
+        if self.electric_vehicles.shape[0] != len(self.electric_vehicles):
             return False
-        if len(set(self.charging_stations)) != len(self.charging_stations):
+        if self.charging_stations.shape[0] != len(self.charging_stations):
             return False
         charging_station_locations = set([cs.location for cs in self.charging_stations])
         for d in self.demand:
