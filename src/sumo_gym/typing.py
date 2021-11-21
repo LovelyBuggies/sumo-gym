@@ -1,7 +1,7 @@
 from typing import Type, Tuple, Any
 import numpy as np
 import numpy.typing as npt
-from gym.spaces import Space
+from gym.spaces import Space  # type: ignore
 
 
 VertexType = Tuple[float]
@@ -17,6 +17,8 @@ SpaceType = Space
 ActionsType = npt.NDArray[int]
 RewardsType = npt.NDArray[float]
 
-FMPElectricVehiclesType = npt.NDArray[Tuple[float]]     # vehicle index, speed, indicator, capacity
-FMPChargingStationType = npt.NDArray[Tuple[int]]        # vertex index, indicator, speed
-FMPDemandsType = npt.NDArray[Tuple[int]]                # departure, destination
+FMPElectricVehiclesType = npt.NDArray[
+    Tuple[float]
+]  # vehicle index, speed, indicator, capacity
+FMPChargingStationType = npt.NDArray[Tuple[int]]  # vertex index, indicator, speed
+FMPDemandsType = npt.NDArray[Tuple[int]]  # departure, destination

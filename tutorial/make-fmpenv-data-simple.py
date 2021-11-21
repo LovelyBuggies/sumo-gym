@@ -2,30 +2,175 @@ import numpy as np
 import gym
 import sumo_gym
 from sumo_gym.envs.fmp import FMP
+from sumo_gym.utils.fmp_utils import Vertex, Edge, Demand
+from sumo_gym.utils.fmp_utils import ChargingStation, ElectricVehicles
 import random
 
 import matplotlib.pyplot as plt
 
-vertices = np.asarray([(0.0, 0.0), (0.0, 1.0), (0.0, 2.0), (0.0, 3.0), (0.0, 4.0), (0.0, 5.0),
-                       (1.0, 0.0), (1.0, 1.0), (1.0, 2.0), (1.0, 3.0), (1.0, 4.0), (1.0, 5.0),
-                       (2.0, 0.0), (2.0, 1.0), (2.0, 2.0), (2.0, 3.0), (2.0, 4.0), (2.0, 5.0),
-                       (3.0, 0.0), (3.0, 1.0), (3.0, 2.0), (3.0, 3.0), (3.0, 4.0), (3.0, 5.0),
-                       (4.0, 0.0), (4.0, 1.0), (4.0, 2.0), (4.0, 3.0), (4.0, 4.0), (4.0, 5.0),
-                       (5.0, 0.0), (5.0, 1.0), (5.0, 2.0), (5.0, 3.0), (5.0, 4.0), (5.0, 5.0)])
+vertices = np.asarray(
+    [
+        Vertex(0.0, 0.0),
+        Vertex(0.0, 1.0),
+        Vertex(0.0, 2.0),
+        Vertex(0.0, 3.0),
+        Vertex(0.0, 4.0),
+        Vertex(0.0, 5.0),
+        Vertex(1.0, 0.0),
+        Vertex(1.0, 1.0),
+        Vertex(1.0, 2.0),
+        Vertex(1.0, 3.0),
+        Vertex(1.0, 4.0),
+        Vertex(1.0, 5.0),
+        Vertex(2.0, 0.0),
+        Vertex(2.0, 1.0),
+        Vertex(2.0, 2.0),
+        Vertex(2.0, 3.0),
+        Vertex(2.0, 4.0),
+        Vertex(2.0, 5.0),
+        Vertex(3.0, 0.0),
+        Vertex(3.0, 1.0),
+        Vertex(3.0, 2.0),
+        Vertex(3.0, 3.0),
+        Vertex(3.0, 4.0),
+        Vertex(3.0, 5.0),
+        Vertex(4.0, 0.0),
+        Vertex(4.0, 1.0),
+        Vertex(4.0, 2.0),
+        Vertex(4.0, 3.0),
+        Vertex(4.0, 4.0),
+        Vertex(4.0, 5.0),
+        Vertex(5.0, 0.0),
+        Vertex(5.0, 1.0),
+        Vertex(5.0, 2.0),
+        Vertex(5.0, 3.0),
+        Vertex(5.0, 4.0),
+        Vertex(5.0, 5.0),
+    ]
+)
 
 edges = np.asarray(
     [
-        (0, 1),   (1, 0),   (1, 2),   (2, 1),   (2, 3),   (3, 2),   (3, 4),   (4, 3),   (4, 5),   (5, 4),
-        (0, 6),   (6, 0),   (1, 7),   (7, 1),   (2, 8),   (8, 2),   (3, 9),   (9, 3),   (4, 10),  (10, 4),  (5, 11),  (11, 5),
-        (6, 7),   (7, 6),   (7, 8),   (8, 7),   (8, 9),   (9, 8),   (9, 10),  (10, 9),  (10, 11), (11, 10),
-        (6, 12),  (12, 6),  (7, 13),  (13, 7),  (8, 14),  (14, 8),  (9, 15),  (15, 9),  (10, 16), (16, 10), (11, 17), (17, 11),
-        (12, 13), (13, 12), (13, 14), (14, 13), (14, 15), (15, 14), (15, 16), (16, 15), (16, 17), (17, 16),
-        (12, 18), (18, 12), (13, 19), (19, 13), (14, 20), (20, 14), (15, 21), (21, 15), (16, 22), (22, 16), (17, 23), (23, 17),
-        (18, 19), (19, 18), (19, 20), (20, 19), (20, 21), (21, 20), (21, 22), (22, 21), (22, 23), (23, 22), 
-        (18, 24), (24, 18), (19, 25), (25, 19), (20, 26), (26, 20), (21, 27), (27, 21), (22, 28), (28, 22), (23, 29), (29, 23),
-        (24, 25), (25, 24), (25, 26), (26, 25), (26, 27), (27, 26), (27, 28), (28, 27), (28, 29), (29, 28),
-        (24, 30), (30, 24), (25, 31), (31, 25), (26, 32), (32, 26), (27, 33), (33, 27), (28, 34), (34, 28), (29, 35), (35, 29),
-        (30, 31), (31, 30), (31, 32), (32, 31), (32, 33), (33, 32), (33, 34), (34, 33), (34, 35), (35, 34),
+        Edge(0, 1),
+        Edge(1, 0),
+        Edge(1, 2),
+        Edge(2, 1),
+        Edge(2, 3),
+        Edge(3, 2),
+        Edge(3, 4),
+        Edge(4, 3),
+        Edge(4, 5),
+        Edge(5, 4),
+        Edge(0, 6),
+        Edge(6, 0),
+        Edge(1, 7),
+        Edge(7, 1),
+        Edge(2, 8),
+        Edge(8, 2),
+        Edge(3, 9),
+        Edge(9, 3),
+        Edge(4, 10),
+        Edge(10, 4),
+        Edge(5, 11),
+        Edge(11, 5),
+        Edge(6, 7),
+        Edge(7, 6),
+        Edge(7, 8),
+        Edge(8, 7),
+        Edge(8, 9),
+        Edge(9, 8),
+        Edge(9, 10),
+        Edge(10, 9),
+        Edge(10, 11),
+        Edge(11, 10),
+        Edge(6, 12),
+        Edge(12, 6),
+        Edge(7, 13),
+        Edge(13, 7),
+        Edge(8, 14),
+        Edge(14, 8),
+        Edge(9, 15),
+        Edge(15, 9),
+        Edge(10, 16),
+        Edge(16, 10),
+        Edge(11, 17),
+        Edge(17, 11),
+        Edge(12, 13),
+        Edge(13, 12),
+        Edge(13, 14),
+        Edge(14, 13),
+        Edge(14, 15),
+        Edge(15, 14),
+        Edge(15, 16),
+        Edge(16, 15),
+        Edge(16, 17),
+        Edge(17, 16),
+        Edge(12, 18),
+        Edge(18, 12),
+        Edge(13, 19),
+        Edge(19, 13),
+        Edge(14, 20),
+        Edge(20, 14),
+        Edge(15, 21),
+        Edge(21, 15),
+        Edge(16, 22),
+        Edge(22, 16),
+        Edge(17, 23),
+        Edge(23, 17),
+        Edge(18, 19),
+        Edge(19, 18),
+        Edge(19, 20),
+        Edge(20, 19),
+        Edge(20, 21),
+        Edge(21, 20),
+        Edge(21, 22),
+        Edge(22, 21),
+        Edge(22, 23),
+        Edge(23, 22),
+        Edge(18, 24),
+        Edge(24, 18),
+        Edge(19, 25),
+        Edge(25, 19),
+        Edge(20, 26),
+        Edge(26, 20),
+        Edge(21, 27),
+        Edge(27, 21),
+        Edge(22, 28),
+        Edge(28, 22),
+        Edge(23, 29),
+        Edge(29, 23),
+        Edge(24, 25),
+        Edge(25, 24),
+        Edge(25, 26),
+        Edge(26, 25),
+        Edge(26, 27),
+        Edge(27, 26),
+        Edge(27, 28),
+        Edge(28, 27),
+        Edge(28, 29),
+        Edge(29, 28),
+        Edge(24, 30),
+        Edge(30, 24),
+        Edge(25, 31),
+        Edge(31, 25),
+        Edge(26, 32),
+        Edge(32, 26),
+        Edge(27, 33),
+        Edge(33, 27),
+        Edge(28, 34),
+        Edge(34, 28),
+        Edge(29, 35),
+        Edge(35, 29),
+        Edge(30, 31),
+        Edge(31, 30),
+        Edge(31, 32),
+        Edge(32, 31),
+        Edge(32, 33),
+        Edge(33, 32),
+        Edge(33, 34),
+        Edge(34, 33),
+        Edge(34, 35),
+        Edge(35, 34),
     ]
 )
 
@@ -34,13 +179,44 @@ n_edge = len(edges)
 n_vehicle = 1
 n_electric_vehicles = 1
 n_charging_station = 3
-electric_vehicles = np.asarray([(0, 1, 220, 50)])
-charging_stations = np.asarray([(3, 220, 20), (33, 220, 20), (22, 220, 30)])
-available_vertices = np.asarray([v for v in range(35) if v not in (charging_station[0] for charging_station in charging_stations)])
+electric_vehicles = np.asarray(
+    [ElectricVehicles(0, 1, 220, 50) for _ in range(n_electric_vehicles)]
+)
+charging_stations = np.asarray(
+    [
+        ChargingStation(3, 220, 20),
+        ChargingStation(33, 220, 20),
+        ChargingStation(22, 220, 30),
+    ]
+)
+available_vertices = np.asarray(
+    [
+        v
+        for v in range(35)
+        if v
+        not in (charging_station.location for charging_station in charging_stations)
+    ]
+)
 departures = np.asarray([19])
-demand = np.asarray([(6, 4), (5, 16), (13, 20), (28, 11), (12, 30), (27, 5), (1, 28), (13, 24), (19, 18), (11, 32)])
+demand = np.asarray(
+    [
+        Demand(6, 4),
+        Demand(5, 16),
+        Demand(13, 20),
+        Demand(28, 11),
+        Demand(12, 30),
+        Demand(27, 5),
+        Demand(1, 28),
+        Demand(13, 24),
+        Demand(19, 18),
+        Demand(11, 32),
+    ]
+)
 
-print(departures, demand)
+print(departures)
+print(demand)
+print()
+
 env = gym.make(
     "FMP-v0",
     n_vertex=n_vertex,
@@ -53,13 +229,13 @@ env = gym.make(
     edges=edges,
     electric_vehicles=electric_vehicles,
     departures=departures,
-    charging_stations=charging_stations
+    charging_stations=charging_stations,
 )
 env.render()
 # plt.show()
 for i_episode in range(1):
     observation = env.reset()
-    for t in range(100):
+    for t in range(150):
         action = env.action_space.sample()
         observation, reward, done, info = env.step(action)
         if done:

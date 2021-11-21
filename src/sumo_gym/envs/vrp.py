@@ -10,7 +10,6 @@ from gym import error, spaces, utils
 from gym.utils import seeding
 import sumo_gym
 import sumo_gym.utils.network_utils as network_utils
-import sumo_gym.spaces as spaces
 from sumo_gym.utils.svg_uitls import vehicle_marker
 
 
@@ -66,14 +65,20 @@ class VRP(object):
                 raise ValueError("VRP setting is not valid")
 
         else:
-            self.n_depot = 1 # default value
+            self.n_depot = 1  # default value
 
             # read in the sumo xml files and parse them into VRP initial problem settings
-            self.vertices, self.demand, self.edges, self.departures, self.capacity = sumo_gym.utils.decode_xml(net_xml_file_path, demand_xml_file_path)
+            (
+                self.vertices,
+                self.demand,
+                self.edges,
+                self.departures,
+                self.capacity,
+            ) = sumo_gym.utils.decode_xml(net_xml_file_path, demand_xml_file_path)
             self.n_vertex, _ = self.vertices.shape
             self.n_edge, _ = self.edges.shape
             self.n_vehicle = self.departures.shape[0]
-            self.depots = self.vertices[:self.n_depot]
+            self.depots = self.vertices[: self.n_depot]
 
     def __repr__(self):
         return (
@@ -131,12 +136,14 @@ class VRPEnv(gym.Env):
         self.run += 1
         self.locations: sumo_gym.typing.LocationsType = self.vrp.departures.astype(int)
         self.loading: sumo_gym.typing.LoadingType = np.zeros(self.vrp.n_vehicle)
-        self.action_space: spaces.network.NetworkSpace = spaces.network.NetworkSpace(
-            self.locations,
-            self.vrp.get_adj_list(),
-            self.vrp.demand,
-            np.asarray([False] * self.vrp.n_vehicle),
-            self.vrp.depots,
+        self.action_space: sumo_gym.spaces.network.NetworkSpace = (
+            sumo_gym.spaces.network.NetworkSpace(
+                self.locations,
+                self.vrp.get_adj_list(),
+                self.vrp.demand,
+                np.asarray([False] * self.vrp.n_vehicle),
+                self.vrp.depots,
+            )
         )
         self.actions: sumo_gym.typing.ActionsType = None
         self.rewards: sumo_gym.typing.RewardsType = np.zeros(self.vrp.n_vehicle)
@@ -169,12 +176,14 @@ class VRPEnv(gym.Env):
                     prev_location[i], location, self.vrp.vertices
                 )
 
-        self.action_space: spaces.network.NetworkSpace = spaces.network.NetworkSpace(
-            self.locations,
-            self.vrp.get_adj_list(),
-            self.vrp.demand,
-            fully_loaded,
-            self.vrp.depots,
+        self.action_space: sumo_gym.spaces.network.NetworkSpace = (
+            sumo_gym.spaces.network.NetworkSpace(
+                self.locations,
+                self.vrp.get_adj_list(),
+                self.vrp.demand,
+                fully_loaded,
+                self.vrp.depots,
+            )
         )
 
         observation = {

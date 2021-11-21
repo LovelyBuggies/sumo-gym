@@ -1,5 +1,10 @@
 # SUMO-gym
 
+[![Actions Status][actions-badge]][actions-link]
+[![pre-commit.ci status][pre-commit-badge]][pre-commit-link]
+[![Code style: black][black-badge]][black-link]
+[![All Contributors](https://img.shields.io/badge/all_contributors-2-orange.svg?)](#contributors-)
+
 OpenAI-gym like toolkit for developing and comparing reinforcement learning algorithms on SUMO.
 
 ![](./assets/workflow.png)
@@ -12,6 +17,7 @@ This software is under active development, it has not been published on PyPI, an
 ```shell
 $ python3 -m venv env
 $ source env/bin/activate
+(venv)$ pip install -r requirements.txt
 (venv)$ pip install -e .
 (venv)$ pytest tests/
 #(venv)$ python -m ipykernel install --user --name sumo_gym
@@ -47,3 +53,32 @@ env.close()
 3. Deep reinforcement learning models for urban mobility problems (WIP).
 
 P.S. *Will be a wheel later*.
+
+## Contributors ✨
+
+Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
+
+<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+<!-- prettier-ignore-start -->
+<!-- markdownlint-disable -->
+<table>
+  <tr>
+    <td align="center"><a href="https://github.com/LovelyBuggies"><img src="https://avatars.githubusercontent.com/u/29083689?v=4?s=100" width="100px;" alt=""/><br /><sub><b>N!no</b></sub></a><br /><a href="https://github.com/LovelyBuggies/sumo-gym/commits?author=LovelyBuggies" title="Code">💻</a> <a href="https://github.com/LovelyBuggies/sumo-gym/issues?q=author%3ALovelyBuggies" title="Bug reports">🐛</a> <a href="#ideas-LovelyBuggies" title="Ideas, Planning, & Feedback">🤔</a></td>
+    <td align="center"><a href="https://www.linkedin.com/in/yunhao-wang-871364aa/"><img src="https://avatars.githubusercontent.com/u/18152628?v=4?s=100" width="100px;" alt=""/><br /><sub><b>yunhaow</b></sub></a><br /><a href="https://github.com/LovelyBuggies/sumo-gym/commits?author=wyunhao" title="Code">💻</a> <a href="https://github.com/LovelyBuggies/sumo-gym/issues?q=author%3Awyunhao" title="Bug reports">🐛</a></td>
+  </tr>
+</table>
+
+<!-- markdownlint-restore -->
+<!-- prettier-ignore-end -->
+
+<!-- ALL-CONTRIBUTORS-LIST:END -->
+
+This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind welcome!
+
+
+[actions-badge]:            https://github.com/LovelyBuggies/sumo-gym/workflows/CI/badge.svg
+[actions-link]:             https://github.com/LovelyBuggies/sumo-gym/actions
+[black-badge]:              https://img.shields.io/badge/code%20style-black-000000.svg
+[black-link]:               https://github.com/psf/black
+[pre-commit-badge]:         https://results.pre-commit.ci/badge/github/LovelyBuggies/sumo-gym/main.svg
+[pre-commit-link]:          https://results.pre-commit.ci/repo/github/LovelyBuggies/sumo-gym
