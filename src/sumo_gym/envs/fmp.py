@@ -113,7 +113,7 @@ class FMP(object):
             self.ev_dict = {}
             counter = 0
             for vehicle in raw_departures:
-                electric_vehicles.append(ElectricVehicles(counter, 1, 220, 50))
+                electric_vehicles.append(ElectricVehicles(counter, 1, 220, 100))
                 self.ev_dict[vehicle[0]] = counter
                 counter += 1
 
