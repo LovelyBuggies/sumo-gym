@@ -4,6 +4,8 @@ import random
 import numpy.typing as npt
 from typing import Type, Tuple, Dict, Any
 import sumo_gym.typing
+import os
+import sys
 
 import gym
 from gym import error, spaces, utils
@@ -12,6 +14,7 @@ import sumo_gym
 import sumo_gym.utils.network_utils as network_utils
 from sumo_gym.utils.svg_uitls import vehicle_marker
 
+import traci
 
 class VRP(object):
     def __init__(
@@ -40,6 +43,12 @@ class VRP(object):
         :param capacity:        the capacity of vehicles
         Create a vehicle routing problem setting (CVRP if capacity is activated).
         """
+        if 'SUMO_HOME' in os.environ:
+            tools = os.path.join(os.environ['SUMO_HOME'], 'tools')
+            sys.path.append(tools)
+        else:
+            sys.exit("please declare environment variable 'SUMO_HOME'")
+
         if net_xml_file_path is None or demand_xml_file_path is None:
             # number
             self.n_vertex = n_vertex
