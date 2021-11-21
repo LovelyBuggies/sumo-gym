@@ -469,7 +469,7 @@
         <request index="3" response="100011" foes="100011" cont="0"/>
         <request index="4" response="000000" foes="000010" cont="0"/>
         <request index="5" response="000000" foes="001110" cont="0"/>
-        <param key="destination" value="genJ0"/>
+        <param key="destination" value="gneJ1"/>
     </junction>
     <junction id="gneJ1" type="priority" x="75.09" y="76.21" incLanes="gneE30_0 gneE4_0 gneE0_0" intLanes=":gneJ1_0_0 :gneJ1_6_0 :gneJ1_2_0 :gneJ1_3_0 :gneJ1_4_0 :gneJ1_5_0" shape="83.14,77.15 81.37,71.06 79.15,71.24 78.29,70.91 77.60,70.31 77.08,69.42 76.72,68.25 70.46,69.53 70.54,72.10 70.18,73.11 69.55,73.94 68.67,74.58 67.52,75.03 69.17,81.14">
         <request index="0" response="000000" foes="001000" cont="0"/>
