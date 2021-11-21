@@ -32,11 +32,11 @@ class FMP(object):
         n_electric_vehicles: int = 0,
         n_charging_station: int = 1,
         vertices: sumo_gym.typing.VerticesType = None,
-        demand: sumo_gym.typing.FMPDemandsType = None,
+        demand: sumo_gym.utils.fmp_utils.Demand = None,
         edges: sumo_gym.typing.EdgeType = None,
-        electric_vehicles: sumo_gym.typing.FMPElectricVehiclesType = None,
+        electric_vehicles: sumo_gym.utils.fmp_utils.ElectricVehicles = None,
         departures: sumo_gym.typing.DeparturesType = None,
-        charging_stations: sumo_gym.typing.FMPChargingStationType = None,
+        charging_stations: sumo_gym.utils.fmp_utils.ChargingStation = None,
     ):
         """
         :param n_vertex:                the number of vertices
@@ -125,7 +125,7 @@ class FMP(object):
             demand = []
             for d in raw_demand:
                 demand.append(Demand(self.vertex_dict[d[0]], self.vertex_dict[d[1]]))
-            
+
             self.demand = np.asarray(demand)
 
             charging_stations = []
