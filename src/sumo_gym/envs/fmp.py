@@ -205,19 +205,20 @@ class FMPEnv(gym.Env):
             del kwargs["sumo_gui_path"]
         else:
             self.sumo_gui_path = None
-        # todo: this part should be move to .render()
-        if self.sumo_gui_path is None:
-            raise EnvironmentError("Need sumo-gui path to render")
-        else:
-            self.sumo = SumoRender(
-                self.sumo_gui_path,
-                self.fmp.vertex_dict,
-                self.fmp.edge_dict,
-                self.fmp.ev_dict,
-                self.fmp.edges,
-            )
 
         self._fmp = FMP(**kwargs)  # todo: make it "final"
+
+        # todo: this part should be move to .render()
+        # if self.sumo_gui_path is None:
+        #     raise EnvironmentError("Need sumo-gui path to render")
+        # else:
+        #     self.sumo = SumoRender(
+        #         self.sumo_gui_path,
+        #         self.fmp.vertex_dict,
+        #         self.fmp.edge_dict,
+        #         self.fmp.ev_dict,
+        #         self.fmp.edges,
+        #     )
         self.run = -1
         self._reset()
         self._freeze()
@@ -315,9 +316,9 @@ class FMPEnv(gym.Env):
             "",
         )
 
-        self.sumo.render(
-            prev_locations, actions
-        )  # todo: shouldn't render when stepping
+        # self.sumo.render(
+        #     prev_locations, actions
+        # )  # todo: shouldn't render when stepping
 
         return observation, reward, done, info
 
@@ -352,4 +353,5 @@ class FMPEnv(gym.Env):
 
     # TODO: need to add default behavior also
     def close(self):
-        self.sumo.close()
+        # self.sumo.close()
+        pass
