@@ -3,7 +3,7 @@
 [![Actions Status][actions-badge]][actions-link]
 [![pre-commit.ci status][pre-commit-badge]][pre-commit-link]
 [![Code style: black][black-badge]][black-link]
-[![All Contributors](https://img.shields.io/badge/all_contributors-3-orange.svg?)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-4-orange.svg?)](#contributors-)
 
 OpenAI-gym like toolkit for developing and comparing reinforcement learning algorithms on SUMO.
 
@@ -17,10 +17,10 @@ This software is under active development, it has not been published on PyPI, an
 ```shell
 $ python3 -m venv env
 $ source env/bin/activate
-(venv)$ pip install -r requirements.txt
-(venv)$ pip install -e .
-(venv)$ pytest tests/
-#(venv)$ python -m ipykernel install --user --name sumo_gym
+(env)$ pip install -r requirements.txt
+(env)$ pip install -e .
+(env)$ pytest tests/
+#(env)$ python -m ipykernel install --user --name sumo_gym
 ```
 
 ## Features
@@ -35,7 +35,7 @@ SUMO-gym aims to build an interface between SUMO and Reinforcement Learning. Wit
 import gym
 from sumo_gym.envs.vrp import VRP
 
-env = gym.make('VRP-v0', n_vertex, n_depot, n_edge, n_vehicle, vertices, demand, edges, departures, ...)
+env = gym.make("FMP-v0", n_vertex, n_edge, n_vehicle, n_electric_vehicles, n_charging_station, vertices, demand, edges, electric_vehicles, departures, charging_stations)
 for _ in range(n_episode):
     obs = env.reset()
     for t in range(n_timestamp):

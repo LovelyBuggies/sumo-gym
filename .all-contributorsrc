@@ -2,24 +2,25 @@
   "files": [
     "README.md"
   ],
-  "imageSize": 100,
+  "imageSize": 80,
   "commit": false,
   "contributors": [
-    {
-      "login": "wyunhao",
-      "name": "yunhaow",
-      "avatar_url": "https://avatars.githubusercontent.com/u/18152628?v=4",
-      "profile": "https://www.linkedin.com/in/yunhao-wang-871364aa/",
-      "contributions": [
-        "code",
-        "bug"
-      ]
-    },
     {
       "login": "LovelyBuggies",
       "name": "N!no",
       "avatar_url": "https://avatars.githubusercontent.com/u/29083689?v=4",
       "profile": "https://github.com/LovelyBuggies",
+      "contributions": [
+        "code",
+        "bug",
+        "ideas"
+      ]
+    },
+    {
+      "login": "wyunhao",
+      "name": "yunhaow",
+      "avatar_url": "https://avatars.githubusercontent.com/u/18152628?v=4",
+      "profile": "https://www.linkedin.com/in/yunhao-wang-871364aa/",
       "contributions": [
         "code",
         "bug",
@@ -45,7 +46,7 @@
       ]
     }
   ],
-  "contributorsPerLine": 7,
+  "contributorsPerLine": 8,
   "projectName": "sumo-gym",
   "projectOwner": "LovelyBuggies",
   "repoType": "github",
