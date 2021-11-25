@@ -293,6 +293,14 @@ class FMPEnv(gym.Env):
         self.actions: sumo_gym.typing.ActionsType = None
         self.rewards: sumo_gym.typing.RewardsType = np.zeros(self.fmp.n_vehicle)
 
+        observation = {
+            "Locations": [s.location for s in self.states],
+            "Batteries": [s.battery for s in self.states],
+            "Is_loading": [s.is_loading for s in self.states],
+            "Is_charging": [s.is_charging for s in self.states],
+        }
+        return observation
+
     def step(self, actions):
         for i in range(self.fmp.n_vehicle):
             prev_location = self.states[i].location

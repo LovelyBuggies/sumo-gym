@@ -86,7 +86,6 @@ def get_vertices(net_xml_tree):
     Helper function for decode_xml_fmp
 
     Returns vertices
-
     Each vertex is [id (str), x_coord (float), y_coord (float)]
     """
     vtx_lst = []
@@ -118,7 +117,7 @@ def get_edges(net_xml_tree):
 
 
 def get_departures(flow_xml_tree):
-    """ 
+    """
     Helper function for decode_xml_fmp
 
     Returns departures for each vehicle
@@ -126,14 +125,12 @@ def get_departures(flow_xml_tree):
     Each departure is [vehicle_id, starting_edge_id]
     and should be defined for all vehicles
     """
-
     departures = []   # id, start_index tuple
     for vehicle in flow_xml_tree.findall(VEHICLE_XML_TAG):
         route = vehicle.findall("route")[0] # findall should return one
         edges = route.attrib["edges"] # space separated list of edge ids
         start_edge = edges.split()[0]
         departures.append([vehicle.attrib["id"], start_edge])
-
 
     return departures
 
@@ -142,15 +139,14 @@ def get_demand(net_xml_tree):
     """
     Some junctions are customer nodes and this is represented by
     a junction having param destination
-
     Each demand is [junction_id, dest_vertex_id]
     """
     demand = []
     for junction in net_xml_tree.findall(VERTEX_XML_TAG):
-        if (junction.get('type') != VERTEX_XML_INVALID_TYPE):
+        if junction.get("type") != VERTEX_XML_INVALID_TYPE:
             for customized_params in junction.findall(VERTEX_CUSTOMIZED_PARAM):
-                if (customized_params.get('key') == VERTEX_DEMAND_KEY):
-                    demand.append([junction.get('id'), customized_params.get('value')])
+                if customized_params.get("key") == VERTEX_DEMAND_KEY:
+                    demand.append([junction.get("id"), customized_params.get("value")])
 
     return demand
 
@@ -167,33 +163,29 @@ def decode_xml_fmp(net_xml_file_path: str = None,
     net_xml_tree = ET.parse(net_xml_file_path)
     flow_xml_tree = ET.parse(flow_xml_file_path)
     additional_xml_tree = ET.parse(additional_xml_path)
-
     vertices = get_vertices(net_xml_tree)
-
     charging_stations = get_charging_stations(additional_xml_tree, net_xml_tree)
-
     electric_vehicles = get_electric_vehicles(flow_xml_tree)
-
     edges = get_edges(net_xml_tree)
-
     departures = get_departures(flow_xml_tree)
-
     demand = get_demand(net_xml_tree)
-
     return vertices, charging_stations, electric_vehicles, edges, departures, demand
 
 
 def encode_xml(file_path):
     pass
 
-def decode_xml(net_xml_file_path: str = None, flow_xml_file_path: str = None) -> Tuple[npt.NDArray[Any]]:
+
+def decode_xml(
+    net_xml_file_path: str = None, flow_xml_file_path: str = None
+) -> Tuple[npt.NDArray[Any]]:
     """
     Parse the net.xml and rou.xml generated from SUMO and read into VRP initialization environments.
     Return objects: vertices, demand, edges, departures, capacity for VRP class
     """
 
-    net_xml_source = open(net_xml_file_path) 
-    flow_xml_source = open(flow_xml_file_path) 
+    net_xml_source = open(net_xml_file_path)
+    flow_xml_source = open(flow_xml_file_path)
 
     vertices, demand, edge_id_map, edges = _parse_network_xml(net_xml_source)
     departures, capacity = _parse_flow_xml(flow_xml_source, edge_id_map, edges)
@@ -201,7 +193,14 @@ def decode_xml(net_xml_file_path: str = None, flow_xml_file_path: str = None) ->
     net_xml_source.close()
     flow_xml_source.close()
 
-    return np.asarray(vertices), np.asarray(demand), np.asarray(edges), np.asarray(departures), np.asarray(capacity)
+    return (
+        np.asarray(vertices),
+        np.asarray(demand),
+        np.asarray(edges),
+        np.asarray(departures),
+        np.asarray(capacity),
+    )
+
 
 def _parse_flow_xml(flow_file_path: str, edge_id_map: Dict[str, int], edges: Any):
     """
@@ -212,16 +211,17 @@ def _parse_flow_xml(flow_file_path: str, edge_id_map: Dict[str, int], edges: Any
     flow_tree = ET.parse(flow_file_path)
     flow_xml_root = flow_tree.getroot()
 
-    departures = []   # int array
-    capacity = [] # float array
+    departures = []  # int array
+    capacity = []  # float array
     for vehicle_trip in flow_xml_root.findall(VEHICLE_XML_TAG):
-        departure_edge = vehicle_trip.get('from')
-        departures.append(edges[edge_id_map[departure_edge]][0])  
+        departure_edge = vehicle_trip.get("from")
+        departures.append(edges[edge_id_map[departure_edge]][0])
 
         capacity_value = vehicle_trip.get(VEHICLE_CAPACITY_TAG) or 20.0
         capacity.append(float(capacity_value))
 
     return departures, capacity
+
 
 def _parse_network_xml(network_file_path: str):
     """
@@ -230,30 +230,34 @@ def _parse_network_xml(network_file_path: str):
     network_tree = ET.parse(network_file_path)
     network_xml_data = network_tree.getroot()
 
-    vertices_id_map = {} # sample structure: {'genJ1': 0, 'genJ10': 1}
-    vertices = [] # tuple of x,y position of each vertex
-    demand = [] # float array
+    vertices_id_map = {}  # sample structure: {'genJ1': 0, 'genJ10': 1}
+    vertices = []  # tuple of x,y position of each vertex
+    demand = []  # float array
     vertex_count = 0
     for junction in network_xml_data.findall(VERTEX_XML_TAG):
-        if (junction.get('type') != VERTEX_XML_INVALID_TYPE):
-            vertices.append([float(junction.get('x')), float(junction.get('y'))])
-            vertices_id_map[junction.get('id')] = vertex_count
+        if junction.get("type") != VERTEX_XML_INVALID_TYPE:
+            vertices.append([float(junction.get("x")), float(junction.get("y"))])
+            vertices_id_map[junction.get("id")] = vertex_count
 
             demand_value = 0.0
             for customized_params in junction.findall(VERTEX_CUSTOMIZED_PARAM):
-                if (customized_params.get('key') == VERTEX_DEMAND_KEY):
-                    demand_value = float(customized_params.get('value'))
+                if customized_params.get("key") == VERTEX_DEMAND_KEY:
+                    demand_value = float(customized_params.get("value"))
             demand.append(demand_value)
 
             vertex_count += 1
 
-    edge_id_map = {} # sample structure: {'genE0': 0, 'genE1': 1}
-    edges = [] # tuple of [edge_from_vertex, edge_to_vertex], sample structure: [[0,4], [1,3], [7,5]]
+    edge_id_map = {}  # sample structure: {'genE0': 0, 'genE1': 1}
+    edges = (
+        []
+    )  # tuple of [edge_from_vertex, edge_to_vertex], sample structure: [[0,4], [1,3], [7,5]]
     edge_count = 0
     for edge in network_xml_data.findall(EDGE_XML_TAG):
-        if (edge.get('priority') == EDGE_XML_PRIORITY):
-            edges.append([vertices_id_map[edge.get('from')], vertices_id_map[edge.get('to')]])
-            edge_id_map[edge.get('id')] = edge_count
+        if edge.get("priority") == EDGE_XML_PRIORITY:
+            edges.append(
+                [vertices_id_map[edge.get("from")], vertices_id_map[edge.get("to")]]
+            )
+            edge_id_map[edge.get("id")] = edge_count
             edge_count += 1
 
     return vertices, demand, edge_id_map, edges
