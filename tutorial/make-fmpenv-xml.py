@@ -7,8 +7,9 @@ import matplotlib.pyplot as plt
 
 env = gym.make(
     "FMP-v0",
-    net_xml_file_path="assets/data/network.net.xml",
-    demand_xml_file_path="assets/data/demand.rou.xml",
+    net_xml_file_path="assets/data/simple.net.xml",
+    demand_xml_file_path="assets/data/simple.rou.xml",
+    additional_xml_file_path="assets/data/simple_add.xml"
 )
 
 env.render()

@@ -1,0 +1,7 @@
+<additionals>
+    <additional>
+	    <chargingStation power="5" chargeDelay="2" chargeInTransit="0" chrgpower="200000" efficiency="0.95" endPos="25" id="cS_1" lane="-gneE18_0" startPos="20">
+	    	<param key="approx_loc" value="32.36 23.80"/>
+	    </chargingStation>
+	</additional>
+</additionals>
