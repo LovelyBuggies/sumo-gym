@@ -4,17 +4,17 @@ from typing import Dict, Any, List, Tuple
 import numpy.typing as npt
 import sys
 
-VEHICLE_XML_TAG = 'vehicle'
-VEHICLE_CAPACITY_TAG = 'personNumber'
+VEHICLE_XML_TAG = "vehicle"
+VEHICLE_CAPACITY_TAG = "personNumber"
 
-VERTEX_XML_TAG = 'junction'
-VERTEX_XML_INVALID_TYPE = 'internal'
-VERTEX_CUSTOMIZED_PARAM = 'param'
-VERTEX_DEMAND_KEY = 'destination'
+VERTEX_XML_TAG = "junction"
+VERTEX_XML_INVALID_TYPE = "internal"
+VERTEX_CUSTOMIZED_PARAM = "param"
+VERTEX_DEMAND_KEY = "destination"
 
-EDGE_XML_TAG = 'edge'
-EDGE_XML_INVALID_FUNC = 'internal'
-EDGE_XML_PRIORITY = '-1'
+EDGE_XML_TAG = "edge"
+EDGE_XML_INVALID_FUNC = "internal"
+EDGE_XML_PRIORITY = "-1"
 
 
 def encode_xml_fmp(net_xml_file_path: str = None, flow_xml_file_path: str = None):
@@ -31,8 +31,8 @@ def get_electric_vehicles(flow_xml_tree):
     Each EV is [id (str), maximum speed (float), maximumBatteryCapacity (float)]
     """
 
-    # there should only be one vType 
-    # defined in rou.xml 
+    # there should only be one vType
+    # defined in rou.xml
 
     # in this model, all EV's start off fully charged
     vtype = flow_xml_tree.findall("vType")[0]
@@ -45,12 +45,14 @@ def get_electric_vehicles(flow_xml_tree):
     ev_lst = []
     vehicles = flow_xml_tree.findall(VEHICLE_XML_TAG)
     for vehicle in vehicles:
-        ev_lst.append([vehicle.attrib["id"], float(vtype.attrib["maxSpeed"]), maxBatteryCap])
+        ev_lst.append(
+            [vehicle.attrib["id"], float(vtype.attrib["maxSpeed"]), maxBatteryCap]
+        )
     return ev_lst
 
 
 def get_charging_stations(additional_xml_tree, net_xml_tree):
-    """ 
+    """
     Helper function for decode_xml_fmp
 
     Returns charging stations
@@ -61,7 +63,7 @@ def get_charging_stations(additional_xml_tree, net_xml_tree):
     additional = additional_xml_tree.findall("additional")[0]
     stations = additional.findall("chargingStation")
     for station in stations:
-        
+
         # get approximate location
         x_coord, y_coord = station.findall("param")[0].attrib["value"].split()
         # get edge_id
@@ -71,13 +73,22 @@ def get_charging_stations(additional_xml_tree, net_xml_tree):
         edges = net_xml_tree.findall("edge")
         for edge in edges:
             lanes = edge.findall("lane")
-            lanes = [lane.attrib["id"] for lane in lanes if lane.attrib["id"] == lane_id]
+            lanes = [
+                lane.attrib["id"] for lane in lanes if lane.attrib["id"] == lane_id
+            ]
             if len(lanes) == 1:
                 edge_id = edge.attrib["id"]
                 break
 
-        cs_lst.append((station.attrib["id"], (float(x_coord), float(y_coord)), edge_id, float(station.attrib["power"])))
-    
+        cs_lst.append(
+            (
+                station.attrib["id"],
+                (float(x_coord), float(y_coord)),
+                edge_id,
+                float(station.attrib["power"]),
+            )
+        )
+
     return cs_lst
 
 
@@ -94,7 +105,13 @@ def get_vertices(net_xml_tree):
     for junction in junctions:
         if junction.attrib["type"] == VERTEX_XML_INVALID_TYPE:
             continue
-        vtx_lst.append([junction.attrib["id"], float(junction.attrib["x"]), float(junction.attrib["y"])])
+        vtx_lst.append(
+            [
+                junction.attrib["id"],
+                float(junction.attrib["x"]),
+                float(junction.attrib["y"]),
+            ]
+        )
 
     return vtx_lst
 
@@ -125,10 +142,10 @@ def get_departures(flow_xml_tree):
     Each departure is [vehicle_id, starting_edge_id]
     and should be defined for all vehicles
     """
-    departures = []   # id, start_index tuple
+    departures = []  # id, start_index tuple
     for vehicle in flow_xml_tree.findall(VEHICLE_XML_TAG):
-        route = vehicle.findall("route")[0] # findall should return one
-        edges = route.attrib["edges"] # space separated list of edge ids
+        route = vehicle.findall("route")[0]  # findall should return one
+        edges = route.attrib["edges"]  # space separated list of edge ids
         start_edge = edges.split()[0]
         departures.append([vehicle.attrib["id"], start_edge])
 
@@ -151,11 +168,13 @@ def get_demand(net_xml_tree):
     return demand
 
 
-def decode_xml_fmp(net_xml_file_path: str = None, 
-                   flow_xml_file_path: str = None,
-                   additional_xml_path: str = None):
+def decode_xml_fmp(
+    net_xml_file_path: str = None,
+    flow_xml_file_path: str = None,
+    additional_xml_path: str = None,
+):
     """
-    Parse files generated from SUMO and return a FMP instance 
+    Parse files generated from SUMO and return a FMP instance
 
     Returns vertices, charging_stations, electric_vehicles,
     edges, departures, and demands
@@ -261,4 +280,3 @@ def _parse_network_xml(network_file_path: str):
             edge_count += 1
 
     return vertices, demand, edge_id_map, edges
-

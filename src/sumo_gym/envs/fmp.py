@@ -80,18 +80,17 @@ class FMP(object):
         else:
             (
                 raw_vertices,  # [id (str), x_coord (float), y_coord (float)]
-                raw_charging_stations, # [id, (x_coord, y_coord), edge_id, charging speed]
-                raw_electric_vehicles, # [id (str), maximum speed (float), maximumBatteryCapacity (float)]
+                raw_charging_stations,  # [id, (x_coord, y_coord), edge_id, charging speed]
+                raw_electric_vehicles,  # [id (str), maximum speed (float), maximumBatteryCapacity (float)]
                 raw_edges,  # [id (str), from_vertex_id (str), to_vertex_id (str)]
                 raw_departures,  # [vehicle_id, starting_edge_id]
                 raw_demand,  # [junction_id, dest_vertex_id]
             ) = sumo_gym.utils.xml_utils.decode_xml_fmp(
-                net_xml_file_path, demand_xml_file_path,
-                additional_xml_file_path
+                net_xml_file_path, demand_xml_file_path, additional_xml_file_path
             )
 
             self.vertices = []
-            self.vertex_dict = {} # vertex id to idx in self.vertices
+            self.vertex_dict = {}  # vertex id to idx in self.vertices
             counter = 0
             for v in raw_vertices:
                 self.vertices.append(Vertex(v[1], v[2]))
@@ -99,8 +98,8 @@ class FMP(object):
                 counter += 1
 
             self.edges = []
-            self.edge_dict = {} # sumo edge_id to idx in self.edges
-            self.revert_edge_dict = {} # Edge instance to sumo edge_id
+            self.edge_dict = {}  # sumo edge_id to idx in self.edges
+            self.revert_edge_dict = {}  # Edge instance to sumo edge_id
             counter = 0
             for e in raw_edges:
                 new_edge = Edge(self.vertex_dict[e[1]], self.vertex_dict[e[2]])
@@ -109,22 +108,24 @@ class FMP(object):
                 self.edge_dict[e[0]] = counter
                 counter += 1
 
-            self.charging_dict = {} # CS id to idx in self.charging_stations
-            self.station_to_sumo_edge_id = {} # charging_station idx to original sumo edge_id
+            self.charging_dict = {}  # CS id to idx in self.charging_stations
+            self.station_to_sumo_edge_id = (
+                {}
+            )  # charging_station idx to original sumo edge_id
             edge_idx_delete = []
             self.charging_stations = []
             counter = 0
             vtx_counter = len(self.vertices)
             for charging_station in raw_charging_stations:
-                
+
                 self.charging_dict[charging_station[0]] = counter
                 self.station_to_sumo_edge_id[counter] = charging_station[0]
-                
+
                 # create new vertex with charging station's location
                 x_coord, y_coord = charging_station[1]
                 new_vtx = Vertex(x_coord, y_coord)
                 self.vertices.append(new_vtx)
-                
+
                 # keep a list of edge indices to delete later
                 edge_id = charging_station[2]
                 edge_idx_delete.append(self.edge_dict[edge_id])
@@ -140,8 +141,10 @@ class FMP(object):
                 self.edges.append(new_edge2)
 
                 # instantiate new ChargingStation with location set to vtx_counter
-                self.charging_stations.append(ChargingStation(vtx_counter, 220, charging_station[3]))
-                
+                self.charging_stations.append(
+                    ChargingStation(vtx_counter, 220, charging_station[3])
+                )
+
                 vtx_counter += 1
                 counter += 1
 
@@ -158,7 +161,7 @@ class FMP(object):
             self.edges = np.array(self.edges)
 
             # now, we need to repopulate self.edge_dict since the indices have changed
-            self.edge_dict = {} # sumo edge_id to idx in self.edges
+            self.edge_dict = {}  # sumo edge_id to idx in self.edges
             counter = 0
             for edge in self.edges:
                 if edge in self.revert_edge_dict:
@@ -167,10 +170,12 @@ class FMP(object):
                 counter += 1
 
             self.electric_vehicles = []
-            self.ev_dict = {} # ev id to idx in self.electric_vehicles
+            self.ev_dict = {}  # ev id to idx in self.electric_vehicles
             counter = 0
             for vehicle in raw_electric_vehicles:
-                self.electric_vehicles.append(ElectricVehicles(counter, vehicle[1], 220, vehicle[2]))
+                self.electric_vehicles.append(
+                    ElectricVehicles(counter, vehicle[1], 220, vehicle[2])
+                )
                 self.ev_dict[vehicle[0]] = counter
                 counter += 1
             self.electric_vehicles = np.array(self.electric_vehicles)
@@ -179,15 +184,18 @@ class FMP(object):
             # self.departures[i] should be the edge idx in self.edges of self.electric_vehicles[i]
             self.departures = np.zeros(len(self.electric_vehicles))
             for dpt in raw_departures:
-                self.departures[self.ev_dict[dpt[0]]] = self.edges[self.edge_dict[dpt[1]]].start
+                self.departures[self.ev_dict[dpt[0]]] = self.edges[
+                    self.edge_dict[dpt[1]]
+                ].start
             self.departures = np.array(self.departures)
             self.departures = [int(num) for num in self.departures]
-            
+
             self.demand = []
             for d in raw_demand:
-                self.demand.append(Demand(self.vertex_dict[d[0]], self.vertex_dict[d[1]]))
+                self.demand.append(
+                    Demand(self.vertex_dict[d[0]], self.vertex_dict[d[1]])
+                )
             self.demand = np.array(self.demand)
-
 
             self.n_vertex = len(self.vertices)
             self.n_edge = len(self.edges)
