@@ -1,0 +1,16 @@
+<configuration>
+	<input>
+		<net-file value="simple.net.xml"/>
+		<route-files value="simple.rou.xml"/>
+		<additional-files value="simple_charging_station_additional.xml" />
+	</input>
+	<output>
+        <battery-output value="battery.out.xml"/>
+        <battery-output.precision value="4"/>
+        <device.battery.probability value="1"/>
+        <summary-output value="simple_summary.xml"/>
+    </output>
+	<processing>
+		<time-to-teleport value="-1"/>
+	</processing>
+</configuration>
