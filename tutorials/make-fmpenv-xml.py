@@ -7,12 +7,12 @@ import matplotlib.pyplot as plt
 
 env = gym.make(
     "FMP-v0",
-    sumo_gui_path="/usr/local/Cellar/sumo/1.10.0/bin/sumo-gui",
+    sumo_gui_path="/opt/homebrew/opt/sumo/share/sumo/bin/sumo-gui",
     net_xml_file_path="assets/data/network.net.xml",
     demand_xml_file_path="assets/data/demand.rou.xml",
 )
 
-# env.render()
+
 for i_episode in range(1):
     observation = env.reset()
     for t in range(150):
@@ -22,4 +22,5 @@ for i_episode in range(1):
             print("Episode finished after {} timesteps.\n".format(t + 1))
             break
 
+env.render()
 env.close()

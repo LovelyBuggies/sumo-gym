@@ -208,17 +208,6 @@ class FMPEnv(gym.Env):
 
         self._fmp = FMP(**kwargs)  # todo: make it "final"
 
-        # todo: this part should be move to .render()
-        # if self.sumo_gui_path is None:
-        #     raise EnvironmentError("Need sumo-gui path to render")
-        # else:
-        #     self.sumo = SumoRender(
-        #         self.sumo_gui_path,
-        #         self.fmp.vertex_dict,
-        #         self.fmp.edge_dict,
-        #         self.fmp.ev_dict,
-        #         self.fmp.edges,
-        #     )
         self.run = -1
         self._reset()
         self._freeze()
@@ -349,7 +338,20 @@ class FMPEnv(gym.Env):
             "location_s": 2000,
             "location_c": "lightgrey",
         }
-        self.plot(**plot_kwargs)
+        # self.plot(**plot_kwargs)        # todo: this part should be move to .render()
+        if self.sumo_gui_path is None:
+            raise EnvironmentError("Need sumo-gui path to render")
+        else:
+            sumo = SumoRender(
+                self.sumo_gui_path,
+                self.fmp.vertex_dict,
+                self.fmp.edge_dict,
+                self.fmp.ev_dict,
+                self.fmp.edges
+            )
+
+            sumo.render()
+
 
     # TODO: need to add default behavior also
     def close(self):
