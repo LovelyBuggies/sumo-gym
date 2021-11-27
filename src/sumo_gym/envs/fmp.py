@@ -317,12 +317,6 @@ class FMPEnv(gym.Env):
         ax_dict=None,
         **kwargs: Any,
     ) -> Any:
-        # import sumo_gym.plot
-
-        # return sumo_gym.plot.plot_FMPEnv(self, ax_dict=ax_dict, **kwargs)
-        self.sumo.render(self.actions)
-
-    def render(self, mode="human"):
         get_colors = lambda n: list(
             map(lambda i: "#" + "%06x" % random.randint(0x000000, 0x666666), range(n))
         )
@@ -338,7 +332,10 @@ class FMPEnv(gym.Env):
             "location_s": 2000,
             "location_c": "lightgrey",
         }
-        # self.plot(**plot_kwargs)        # todo: this part should be move to .render()
+        self.plot(**plot_kwargs)
+
+    def render(self, mode="human"):
+        # todo: this part should be move to .render()
         if self.sumo_gui_path is None:
             raise EnvironmentError("Need sumo-gui path to render")
         else:
@@ -347,11 +344,10 @@ class FMPEnv(gym.Env):
                 self.fmp.vertex_dict,
                 self.fmp.edge_dict,
                 self.fmp.ev_dict,
-                self.fmp.edges
+                self.fmp.edges,
             )
 
             sumo.render()
-
 
     # TODO: need to add default behavior also
     def close(self):

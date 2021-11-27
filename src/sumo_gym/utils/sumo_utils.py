@@ -54,7 +54,7 @@ class SumoRender:
             if not self.initialized:
                 print("Initialize the first starting edge for vehicle...")
                 self.initialized = True
-                
+
                 # TODO: change 1 to vehicle count
                 for i in range(1):
 
@@ -82,40 +82,50 @@ class SumoRender:
 
             # change 'from', edge accordingly
             for i in range(1):
-                vehicle_id = self._find_key_from_value(self.ev_dict, i)
                 if self.ev_stop[i]:
                     self.ev_stop[i] = False
                     vehicle_id = self._find_key_from_value(self.ev_dict, i)
-                    via_edge = (TEST_LOCATIONS[self.count - 1], TEST_LOCATIONS[self.count])
-                    
+                    via_edge = (
+                        TEST_LOCATIONS[self.count - 1],
+                        TEST_LOCATIONS[self.count],
+                    )
+
                     edge_id = self._find_key_from_value(
                         self.edge_dict, self._find_edge_index(via_edge)
                     )
                     self.routes[i] += tuple([edge_id])
-                    
-                    print("Vehicle ", vehicle_id," has arrived stopped location, reassign new routes: ", self.routes[i])
-                    
-                    traci.vehicle.setRoute(vehID=vehicle_id, edgeList=self.routes[i][-2:])
+
+                    print(
+                        "Vehicle ",
+                        vehicle_id,
+                        " has arrived stopped location, reassign new routes: ",
+                        self.routes[i],
+                    )
+
+                    traci.vehicle.setRoute(
+                        vehID=vehicle_id, edgeList=self.routes[i][-2:]
+                    )
                     traci.vehicle.setStop(
                         vehID=vehicle_id,
                         edgeID=edge_id,
-                        pos=LANE_LENGTH[self.count-1],
+                        pos=LANE_LENGTH[self.count - 1],
                         laneIndex=0,
                         duration=189999999999,
                         flags=0,
                         startPos=0,
                     )
                     self.count += 1
-            
+
             traci.simulationStep()
 
             for i in range(1):
                 vehicle_id = self._find_key_from_value(self.ev_dict, i)
-                if traci.vehicle.getStopState(vehicle_id) == 1:  # arrived the assigned vertex, can be assigned to the next
+                if (
+                    traci.vehicle.getStopState(vehicle_id) == 1
+                ):  # arrived the assigned vertex, can be assigned to the next
                     self.terminated = self.count == len(TEST_LOCATIONS)
                     self.ev_stop[i] = True
                     traci.vehicle.resume(vehicle_id)
-
 
     def close(self):
         traci.close()
