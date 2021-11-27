@@ -33,7 +33,7 @@ MUJOCO_LOG.txt
 
 rllab_mujoco
 
-tutorial/*.html
+tutorials/*.html
 
 # IDE files
 .eggs
