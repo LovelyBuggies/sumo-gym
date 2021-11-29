@@ -136,12 +136,12 @@ def convert_raw_vertices(raw_vertices):
 
 def convert_raw_edges(raw_edges, vertex_dict):
     """
-    Each raw edge is 
+    Each raw edge is
     [id (str), from_vertex_id (str), to_vertex_id (str), edge_length (float)]
     """
     edges = []
     edge_dict = {}  # sumo edge_id to idx in edges
-    edge_attr = [] # list of tuples (sumo_edge_id, length)
+    edge_attr = []  # list of tuples (sumo_edge_id, length)
     for counter, e in enumerate(raw_edges):
         new_edge = Edge(vertex_dict[e[1]], vertex_dict[e[2]])
         edges.append(new_edge)
@@ -149,14 +149,14 @@ def convert_raw_edges(raw_edges, vertex_dict):
         edge_attr.append((e[0], e[3]))
     return edges, edge_dict, edge_attr
 
-def convert_raw_charging_stations(raw_charging_stations, vertices, 
-                                  edges, edge_dict):
+
+def convert_raw_charging_stations(raw_charging_stations, vertices, edges, edge_dict):
     """
-    Each raw charging station is 
+    Each raw charging station is
     [id, (x_coord, y_coord), edge_id, charging speed]
     """
 
-    charging_station_dict = {} # idx in charging_stations to sumo id
+    charging_station_dict = {}  # idx in charging_stations to sumo id
     charging_stations = []
 
     vtx_counter = len(vertices)
@@ -182,9 +182,7 @@ def convert_raw_charging_stations(raw_charging_stations, vertices,
         edges.append(new_edge2)
 
         # instantiate new ChargingStation with location set to idx in `vertices`
-        charging_stations.append(
-            ChargingStation(vtx_counter, 220, charging_station[3])
-        )
+        charging_stations.append(ChargingStation(vtx_counter, 220, charging_station[3]))
 
         vtx_counter += 1
 
@@ -200,9 +198,7 @@ def convert_raw_electric_vehicles(raw_electric_vehicles):
     electric_vehicles = []
     ev_dict = {}  # ev sumo id to idx in electric_vehicles
     for counter, vehicle in enumerate(raw_electric_vehicles):
-        electric_vehicles.append(
-            ElectricVehicles(counter, vehicle[1], 220, vehicle[2])
-        )
+        electric_vehicles.append(ElectricVehicles(counter, vehicle[1], 220, vehicle[2]))
         ev_dict[vehicle[0]] = counter
 
     return electric_vehicles, ev_dict
@@ -219,16 +215,14 @@ def convert_raw_departures(raw_departures, ev_dict, edges, edge_dict, num_vehicl
         departures[ev_dict[dpt[0]]] = edges[edge_dict[dpt[1]]].end
     return departures, actual_departures
 
-    
+
 def convert_raw_demand(raw_demand, vertex_dict):
     """
     Each raw demand is [junction_id, dest_vertex_id]
     """
     demand = []
     for d in raw_demand:
-        demand.append(
-                Demand(vertex_dict[d[0]], vertex_dict[d[1]])
-        )
+        demand.append(Demand(vertex_dict[d[0]], vertex_dict[d[1]]))
     return demand
 
 

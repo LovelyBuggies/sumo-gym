@@ -83,37 +83,47 @@ class FMP(object):
             )
 
             # `vertices` is a list of Vertex instances
-            # `self.vertex_dict` is a mapping from 
+            # `self.vertex_dict` is a mapping from
             #   vertex id in SUMO to idx in vertices
             vertices, self.vertex_dict = convert_raw_vertices(raw_vertices)
-            
+
             # `edges` is a list of Edge instances
             # `edge_dict` is a mapping from SUMO edge id
             #   to idx in `edges`
             # `self.edge_attr` is a list of tuples (sumo_edge_id [str], length [float])
             #   corresponding to instances in `edges`
-            edges, edge_dict, self.edge_attr = convert_raw_edges(raw_edges, self.vertex_dict)
+            edges, edge_dict, self.edge_attr = convert_raw_edges(
+                raw_edges, self.vertex_dict
+            )
 
             # `charging_stations` is a list of ChargingStation instances
             # `self.charging_stations_dict` is a mapping from idx in `charging_stations`
             #    to SUMO station id
-            charging_stations, self.charging_stations_dict = convert_raw_charging_stations(raw_charging_stations, vertices, edges, edge_dict)
+            (
+                charging_stations,
+                self.charging_stations_dict,
+            ) = convert_raw_charging_stations(
+                raw_charging_stations, vertices, edges, edge_dict
+            )
 
             # `electric_vehicles` is a list of ElectricVehicles instances
             # `self.ev_dict` is a mapping from ev sumo id to idx in `electric_vehicles`
-            electric_vehicles, self.ev_dict = convert_raw_electric_vehicles(raw_electric_vehicles)
+            electric_vehicles, self.ev_dict = convert_raw_electric_vehicles(
+                raw_electric_vehicles
+            )
 
             # departure should be defined for all vehicles
             # `self.departures` and `self.actual_departures` are
             # 	lists of indices in `vertices`
             # self.departures[i] is the starting point of electric_vehicles[i] (the endpoint of the passed in edge)
             # self.actual_depatures[i] is the actual start vertex of electric_vehicles[i] (the starting point of the passed in edge)
-            departures, actual_departures = convert_raw_departures(raw_departures, self.ev_dict, edges,
-            	                                                   edge_dict, len(electric_vehicles))
-           
+            departures, actual_departures = convert_raw_departures(
+                raw_departures, self.ev_dict, edges, edge_dict, len(electric_vehicles)
+            )
+
             # `demand` is a list of Demand instances
             demand = convert_raw_demand(raw_demand, self.vertex_dict)
-            
+
             # set the FMP variables
             self.vertices = np.asarray(vertices)
             self.edges = np.asarray(edges)
