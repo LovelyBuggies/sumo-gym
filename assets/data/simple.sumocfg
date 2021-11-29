@@ -2,7 +2,7 @@
 	<input>
 		<net-file value="simple.net.xml"/>
 		<route-files value="simple.rou.xml"/>
-		<additional-files value="simple_add.xml" />
+		<additional-files value="simple_charging_station_additional.xml" />
 	</input>
 	<output>
         <battery-output value="battery.out.xml"/>

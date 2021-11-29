@@ -122,14 +122,21 @@ def get_edges(net_xml_tree):
 
     Returns edges
 
-    Each edge is [id (str), from_vertex_id (str), to_vertex_id (str)]
+    Each edge is [id (str), from_vertex_id (str), 
+                  to_vertex_id (str), 
+                  edge_length (float)]
     """
     edge_lst = []
     edges = net_xml_tree.findall(EDGE_XML_TAG)
     for e in edges:
         if "function" in e.attrib and e.attrib["function"] == EDGE_XML_INVALID_FUNC:
             continue
-        edge_lst.append([e.attrib["id"], e.attrib["from"], e.attrib["to"]])
+        # Edge lengths are given by lane lengths. Each edge has at 
+        # least one lane and all lanes of an edge have
+        # the same length
+        lane = e.findall("lane")[0]
+        edge_lst.append([e.attrib["id"], e.attrib["from"], 
+                         e.attrib["to"], lane.attrib["length"]])
     return edge_lst
 
 

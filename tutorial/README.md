@@ -22,18 +22,20 @@ Each node/vertex is encoded as a `junction`. In order to define a demand node, a
 
 Charging stations are not defined in the net.xml or rou.xml files, and are instead specified in an additional one. The FMP environment requires knowledge of each charging station's exact x-y coordinate location, but charging stations in SUMO define the location by the lane ID and a range within the lane w.r.t. the length. Therefore, to ease the process of parsing, when creating charging stations, an approximation of the location needs to be provided in a generic parameter with the `key` attribute set to "approx_loc" and the `value` attribute set to a space separated string with two floats. You can hover over the station in the GUI to get these estimates. 
 
-For example, after loading `simple.sumocfg` in `SUMO GUI` with delay set to 80 ms, I determined that (32.36, 23.80) was a good estimate. Here is the content of `simple_add.xml`:
+For example, after loading `simple.sumocfg` in `SUMO GUI` with delay set to 80 ms, I determined that (32.36, 23.80) was a good estimate. Here is the content of `simple_charging_station_additional.xml`:
 
 ```
 <additionals>
     <additional>
-        <chargingStation power="5" chargeDelay="2" chargeInTransit="0" chrgpower="200000" efficiency="0.95" endPos="25" id="cS_1" lane="-gneE18_0" startPos="20">
+        <chargingStation power="10000" chargeInTransit="0" chrgpower="200000" efficiency="1" endPos="25" id="cS_1" lane="-gneE18_0" startPos="20">
             <param key="approx_loc" value="32.36 23.80"/>
         </chargingStation>
     </additional>
 </additionals>
 ```
-**NOTE: The decoder currently assumes that there will be at most one charging station per lane.**
+Also, as shown above, charging speeds can be specified through the `power` attribute (W/h). Always set `efficiency` to 1. 
+
+**NOTE: The decoder currently assumes that there will be at most one charging station per lane. **
 ***
 #### Electric Vehicles
 

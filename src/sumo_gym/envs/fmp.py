@@ -10,14 +10,7 @@ from gym import error, spaces, utils
 from gym.utils import seeding
 import sumo_gym
 from sumo_gym.utils.svg_uitls import vehicle_marker
-from sumo_gym.utils.fmp_utils import (
-    Vertex,
-    Edge,
-    Demand,
-    Loading,
-    ChargingStation,
-    ElectricVehicles,
-)
+from sumo_gym.utils.fmp_utils import *
 
 
 class FMP(object):
@@ -89,113 +82,47 @@ class FMP(object):
                 net_xml_file_path, demand_xml_file_path, additional_xml_file_path
             )
 
-            self.vertices = []
-            self.vertex_dict = {}  # vertex id to idx in self.vertices
-            counter = 0
-            for v in raw_vertices:
-                self.vertices.append(Vertex(v[1], v[2]))
-                self.vertex_dict[v[0]] = counter
-                counter += 1
+            # `vertices` is a list of Vertex instances
+            # `self.vertex_dict` is a mapping from 
+            #   vertex id in SUMO to idx in vertices
+            vertices, self.vertex_dict = convert_raw_vertices(raw_vertices)
+            
+            # `edges` is a list of Edge instances
+            # `edge_dict` is a mapping from SUMO edge id
+            #   to idx in `edges`
+            # `self.edge_attr` is a list of tuples (sumo_edge_id [str], length [float])
+            #   corresponding to instances in `edges`
+            edges, edge_dict, self.edge_attr = convert_raw_edges(raw_edges, self.vertex_dict)
 
-            self.edges = []
-            self.edge_dict = {}  # sumo edge_id to idx in self.edges
-            self.revert_edge_dict = {}  # Edge instance to sumo edge_id
-            counter = 0
-            for e in raw_edges:
-                new_edge = Edge(self.vertex_dict[e[1]], self.vertex_dict[e[2]])
-                self.edges.append(new_edge)
-                self.revert_edge_dict[new_edge] = e[0]
-                self.edge_dict[e[0]] = counter
-                counter += 1
+            # `charging_stations` is a list of ChargingStation instances
+            # `self.charging_stations_dict` is a mapping from idx in `charging_stations`
+            #    to SUMO station id
+            charging_stations, self.charging_stations_dict = convert_raw_charging_stations(raw_charging_stations, vertices, edges, edge_dict)
 
-            self.charging_dict = {}  # CS id to idx in self.charging_stations
-            self.station_to_sumo_edge_id = (
-                {}
-            )  # charging_station idx to original sumo edge_id
-            edge_idx_delete = []
-            self.charging_stations = []
-            counter = 0
-            vtx_counter = len(self.vertices)
-            for charging_station in raw_charging_stations:
+            # `electric_vehicles` is a list of ElectricVehicles instances
+            # `self.ev_dict` is a mapping from ev sumo id to idx in `electric_vehicles`
+            electric_vehicles, self.ev_dict = convert_raw_electric_vehicles(raw_electric_vehicles)
 
-                self.charging_dict[charging_station[0]] = counter
-                self.station_to_sumo_edge_id[counter] = charging_station[0]
-
-                # create new vertex with charging station's location
-                x_coord, y_coord = charging_station[1]
-                new_vtx = Vertex(x_coord, y_coord)
-                self.vertices.append(new_vtx)
-
-                # keep a list of edge indices to delete later
-                edge_id = charging_station[2]
-                edge_idx_delete.append(self.edge_dict[edge_id])
-
-                # create two new edges
-                # first get the start and end vertices of the old edge
-                old_edge_start_idx = self.edges[self.edge_dict[edge_id]].start
-                old_edge_end_idx = self.edges[self.edge_dict[edge_id]].end
-
-                new_edge1 = Edge(old_edge_start_idx, vtx_counter)
-                new_edge2 = Edge(vtx_counter, old_edge_end_idx)
-                self.edges.append(new_edge1)
-                self.edges.append(new_edge2)
-
-                # instantiate new ChargingStation with location set to vtx_counter
-                self.charging_stations.append(
-                    ChargingStation(vtx_counter, 220, charging_station[3])
-                )
-
-                vtx_counter += 1
-                counter += 1
-
-            self.charging_stations = np.array(self.charging_stations)
-            self.vertices = np.array(self.vertices)
-
-            # remove indices from self.edges and fix self.edge_dict
-            # sort the indices in reverse order and pop the indices
-            # since the only elements in the list with different indices
-            # after a pop are those that reside on indices after the popped index
-            edge_idx_delete = sorted(list(set(edge_idx_delete)), reverse=True)
-            for idx in edge_idx_delete:
-                self.edges.pop(idx)
-            self.edges = np.array(self.edges)
-
-            # now, we need to repopulate self.edge_dict since the indices have changed
-            self.edge_dict = {}  # sumo edge_id to idx in self.edges
-            counter = 0
-            for edge in self.edges:
-                if edge in self.revert_edge_dict:
-                    sumo_edge_id = self.revert_edge_dict[edge]
-                    self.edge_dict[sumo_edge_id] = counter
-                counter += 1
-
-            self.electric_vehicles = []
-            self.ev_dict = {}  # ev id to idx in self.electric_vehicles
-            counter = 0
-            for vehicle in raw_electric_vehicles:
-                self.electric_vehicles.append(
-                    ElectricVehicles(counter, vehicle[1], 220, vehicle[2])
-                )
-                self.ev_dict[vehicle[0]] = counter
-                counter += 1
-            self.electric_vehicles = np.array(self.electric_vehicles)
-
-            # departure should be defined for all vehicles, so
-            # self.departures[i] should be the edge idx in self.edges of self.electric_vehicles[i]
-            self.departures = np.zeros(len(self.electric_vehicles))
-            for dpt in raw_departures:
-                self.departures[self.ev_dict[dpt[0]]] = self.edges[
-                    self.edge_dict[dpt[1]]
-                ].start
-            self.departures = np.array(self.departures)
-            self.departures = [int(num) for num in self.departures]
-
-            self.demand = []
-            for d in raw_demand:
-                self.demand.append(
-                    Demand(self.vertex_dict[d[0]], self.vertex_dict[d[1]])
-                )
-            self.demand = np.array(self.demand)
+            # departure should be defined for all vehicles
+            # `self.departures` and `self.actual_departures` are
+            # 	lists of indices in `vertices`
+            # self.departures[i] is the starting point of electric_vehicles[i] (the endpoint of the passed in edge)
+            # self.actual_depatures[i] is the actual start vertex of electric_vehicles[i] (the starting point of the passed in edge)
+            departures, actual_departures = convert_raw_departures(raw_departures, self.ev_dict, edges,
+            	                                                   edge_dict, len(electric_vehicles))
+           
+            # `demand` is a list of Demand instances
+            demand = convert_raw_demand(raw_demand, self.vertex_dict)
+            
+            # set the FMP variables
+            self.vertices = np.asarray(vertices)
+            self.edges = np.asarray(edges)
+            self.charging_stations = np.asarray(charging_stations)
+            self.electric_vehicles = np.asarray(electric_vehicles)
+            self.departures = np.asarray(departures)
+            self.departures = [int(x) for x in self.departures]
+            self.actual_departures = np.asarray(actual_departures)
+            self.demand = np.asarray(demand)
 
             self.n_vertex = len(self.vertices)
             self.n_edge = len(self.edges)
