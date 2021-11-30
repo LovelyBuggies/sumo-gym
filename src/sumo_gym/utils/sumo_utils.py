@@ -49,8 +49,7 @@ class SumoRender:
 
     def render(self):
 
-        while not self.terminated:
-
+       # while not self.terminated:
             if not self.initialized:
                 print("Initialize the first starting edge for vehicle...")
                 self.initialized = True

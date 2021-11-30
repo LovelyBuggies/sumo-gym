@@ -200,6 +200,7 @@ class FMPEnv(gym.Env):
     __isfrozen = False
 
     def __init__(self, **kwargs):
+
         if "sumo_gui_path" in kwargs:
             self.sumo_gui_path = kwargs["sumo_gui_path"]
             del kwargs["sumo_gui_path"]
@@ -207,6 +208,14 @@ class FMPEnv(gym.Env):
             self.sumo_gui_path = None
 
         self._fmp = FMP(**kwargs)  # todo: make it "final"
+
+        self.sumo = SumoRender(
+            self.sumo_gui_path,
+            self.fmp.vertex_dict,
+            self.fmp.edge_dict,
+            self.fmp.ev_dict,
+            self.fmp.edges,
+        )
 
         self.run = -1
         self._reset()
@@ -339,15 +348,7 @@ class FMPEnv(gym.Env):
         if self.sumo_gui_path is None:
             raise EnvironmentError("Need sumo-gui path to render")
         else:
-            sumo = SumoRender(
-                self.sumo_gui_path,
-                self.fmp.vertex_dict,
-                self.fmp.edge_dict,
-                self.fmp.ev_dict,
-                self.fmp.edges,
-            )
-
-            sumo.render()
+            self.sumo.render()
 
     # TODO: need to add default behavior also
     def close(self):
