@@ -102,10 +102,12 @@ class FMP(object):
 
             edges = []
             self.edge_dict = {}
+            self.edge_length_dict = {}
             counter = 0
             for e in raw_edges:
                 edges.append(Edge(self.vertex_dict[e[1]], self.vertex_dict[e[2]]))
                 self.edge_dict[e[0]] = counter
+                self.edge_length_dict[e[0]] = e[3]
                 counter += 1
             self.edges = np.asarray(edges)
 
@@ -213,8 +215,10 @@ class FMPEnv(gym.Env):
             self.sumo_gui_path,
             self.fmp.vertex_dict,
             self.fmp.edge_dict,
+            self.fmp.edge_length_dict,
             self.fmp.ev_dict,
             self.fmp.edges,
+            self.fmp.n_electric_vehicles,
         )
 
         self.run = -1
@@ -250,6 +254,7 @@ class FMPEnv(gym.Env):
                 self.fmp.electric_vehicles,
                 self.fmp.charging_stations,
                 self.states,
+                self.sumo,
             )
         )
         self.actions: sumo_gym.typing.ActionsType = None
@@ -257,6 +262,7 @@ class FMPEnv(gym.Env):
 
     def step(self, actions):
         prev_locations = []
+        travel_info = []
         for i in range(self.fmp.n_vehicle):
             prev_location = self.states[i].location
             prev_locations.append(prev_location)
@@ -277,6 +283,8 @@ class FMPEnv(gym.Env):
                 self.states[i].location,
                 prev_location,
             )
+            travel_info.append((prev_location, self.states[i].location))
+
             assert self.states[i].battery >= 0
             if self.states[i].is_charging != -1:
                 self.states[i].battery += self.fmp.charging_stations[
@@ -314,9 +322,7 @@ class FMPEnv(gym.Env):
             "",
         )
 
-        # self.sumo.render(
-        #     prev_locations, actions
-        # )  # todo: shouldn't render when stepping
+        self.sumo.update_travel_vertex_info_for_vehicle(travel_info)
 
         return observation, reward, done, info
 

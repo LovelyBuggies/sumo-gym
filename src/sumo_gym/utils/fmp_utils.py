@@ -107,10 +107,11 @@ class Loading(object):
 
 
 class GridAction(object):
-    def __init__(self, is_loading=Loading(-1, -1), is_charging=-1, location=0):
-        self.is_loading = is_loading
-        self.is_charging = is_charging
-        self.location = location
+    def __init__(self, state=None):
+        self.is_loading = state.is_loading
+        self.is_charging = state.is_charging
+        self.location = state.location
+
 
     def __repr__(self):
         return f"({self.is_loading}, goto charge {self.is_charging}, location {self.location})"

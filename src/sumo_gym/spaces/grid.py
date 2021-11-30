@@ -13,6 +13,8 @@ from sumo_gym.typing import (
 import numpy as np
 import numpy.typing as npt
 
+from sumo_gym.utils.sumo_utils import SumoRender
+
 
 class GridSpace(gym.spaces.Space):
     def __init__(
@@ -23,10 +25,11 @@ class GridSpace(gym.spaces.Space):
         edges: sumo_gym.typing.EdgeType = None,
         electric_vehicles: FMPElectricVehiclesType = None,
         charging_stations: sumo_gym.typing.FMPChargingStationType = None,
-        states=None,
-        shape=None,
-        dtype=None,
-        seed=None,
+        states = None,
+        sumo: SumoRender = None,
+        shape = None,
+        dtype = None,
+        seed = None,
     ):
         super(GridSpace, self).__init__()
         self.vertices = vertices
@@ -36,12 +39,16 @@ class GridSpace(gym.spaces.Space):
         self.electric_vehicles = electric_vehicles
         self.charging_stations = charging_stations
         self.states = states
+        self.sumo = sumo
+        print("     DEMAND: ", demand)
 
     def sample(
         self,
     ) -> Any:
         n_vehicle = len(self.states)
-        samples = [GridAction() for _ in range(n_vehicle)]
+        samples = [GridAction(state) for state in self.states]
+
+        # extract all demands being responded
         responding = set()
         for i in range(n_vehicle):
             if self.states[i].is_loading.current != NO_LOADING:
@@ -49,7 +56,13 @@ class GridSpace(gym.spaces.Space):
             elif self.states[i].is_loading.target != NO_LOADING:
                 responding.add(self.states[i].is_loading.target)  # todo
 
+
+        stop_statuses = self.sumo.get_stop_status()
         for i in range(n_vehicle):
+            if not stop_statuses[i]:
+                print("----- Traveling along the edge...")
+                continue
+
             if self.states[i].is_loading.current != NO_LOADING:  # is on the way
                 print("----- In the way of demand:", self.states[i].is_loading.current)
                 loc = sumo_gym.utils.fmp_utils.one_step_to_destination(
@@ -138,7 +151,7 @@ class GridSpace(gym.spaces.Space):
                     ]
                     if len(available_dmd):
                         dmd_idx = random.choices(available_dmd)[0]
-                        print("----- Choose dmd_idx:", dmd_idx)
+                        print("----- Choose dmd_idx:", dmd_idx, self.states[i].location)
                         responding.add(dmd_idx)
                         loc = sumo_gym.utils.fmp_utils.one_step_to_destination(
                             self.vertices,
@@ -146,6 +159,7 @@ class GridSpace(gym.spaces.Space):
                             self.states[i].location,
                             self.demand[dmd_idx].departure,
                         )
+                        print("     selected: ", loc)
                         samples[i].location = loc
                         if loc == self.demand[dmd_idx].departure:
                             samples[i].is_loading = Loading(dmd_idx, dmd_idx)
