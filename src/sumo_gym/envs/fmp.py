@@ -283,7 +283,7 @@ class FMPEnv(gym.Env):
                 self.states[i].location,
                 prev_location,
             )
-            travel_info.append((prev_location, self.states[i].location))
+            travel_info.append((prev_location, actions[i].location))
 
             assert self.states[i].battery >= 0
             if self.states[i].is_charging != -1:

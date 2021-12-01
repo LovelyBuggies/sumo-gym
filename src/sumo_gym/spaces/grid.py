@@ -71,7 +71,7 @@ class GridSpace(gym.spaces.Space):
                     self.states[i].location,
                     self.demand[self.states[i].is_loading.current].destination,
                 )
-                self.states[i].location = loc
+
                 if loc == self.demand[self.states[i].is_loading.current].destination:
                     samples[i].is_loading = Loading(NO_LOADING, NO_LOADING)
                 else:
@@ -79,7 +79,7 @@ class GridSpace(gym.spaces.Space):
                         self.states[i].is_loading.current,
                         self.states[i].is_loading.target,
                     )
-                    samples[i].location = loc
+                samples[i].location = loc
             elif self.states[i].is_loading.target != NO_LOADING:  # is to the way
                 print("----- In the way to respond:", self.states[i].is_loading.target)
                 loc = sumo_gym.utils.fmp_utils.one_step_to_destination(
@@ -151,7 +151,7 @@ class GridSpace(gym.spaces.Space):
                     ]
                     if len(available_dmd):
                         dmd_idx = random.choices(available_dmd)[0]
-                        print("----- Choose dmd_idx:", dmd_idx, self.states[i].location)
+                        print("----- Choose dmd_idx:", dmd_idx)
                         responding.add(dmd_idx)
                         loc = sumo_gym.utils.fmp_utils.one_step_to_destination(
                             self.vertices,

@@ -15,7 +15,7 @@ env = gym.make(
 
 for i_episode in range(1):
     observation = env.reset()
-    for t in range(150):
+    for t in range(1500):
         action = env.action_space.sample()
         observation, reward, done, info = env.step(action)
         env.render()
