@@ -118,13 +118,20 @@ class SumoRender:
         and set the next stop to that 'to' vertex.
         Skip the vehicles that are still traveling along the edge, i.e., ev_stop = False.
         """
-        print("    travel_info: ", self.travel_info)
         for i in range(self.n_vehicle):
             if self.stop_statuses[i]:
+
+                # handle the case when the destination of last demand is the start of current demand
+                # i.e., the vehicle need to perform drop and pickup at the same location for two different demands correspondingly
+                # so the location won't change, stop remains the same, no re-routing needed.
+                if self.travel_info[i][0] == self.travel_info[i][1]:
+                    continue
+
                 self.stop_statuses[i] = False
                 vehicle_id = self._find_key_from_value(self.ev_dict, i)
-                via_edge = self.travel_info[i]
+                traci.vehicle.resume(vehicle_id)
 
+                via_edge = self.travel_info[i]
                 edge_id = self._find_key_from_value(
                     self.edge_dict, self._find_edge_index(via_edge)
                 )
@@ -158,7 +165,6 @@ class SumoRender:
                 traci.vehicle.getStopState(vehicle_id) == STOPPED_STATUS
             ):  # arrived the assigned vertex, can be assigned to the next
                 self.stop_statuses[i] = True
-                traci.vehicle.resume(vehicle_id)
 
 
     def _find_key_from_value(self, dict, value):

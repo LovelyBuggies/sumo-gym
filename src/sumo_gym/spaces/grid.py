@@ -159,7 +159,6 @@ class GridSpace(gym.spaces.Space):
                             self.states[i].location,
                             self.demand[dmd_idx].departure,
                         )
-                        print("     selected: ", loc)
                         samples[i].location = loc
                         if loc == self.demand[dmd_idx].departure:
                             samples[i].is_loading = Loading(dmd_idx, dmd_idx)
@@ -169,5 +168,5 @@ class GridSpace(gym.spaces.Space):
                         print("----- IDLE...")
                         samples[i].location = self.states[i].location
 
-        print("Samples: ", samples, self.responded)
+        print("Samples: ", samples)
         return samples
