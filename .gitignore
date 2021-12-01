@@ -33,7 +33,7 @@ MUJOCO_LOG.txt
 
 rllab_mujoco
 
-tutorial/*.html
+tutorials/*.html
 
 # IDE files
 .eggs
@@ -42,4 +42,4 @@ tutorial/*.html
 # PyCharm project files
 .idea
 vizdoom.ini
-/tutorial/img/
+/tutorials/img/

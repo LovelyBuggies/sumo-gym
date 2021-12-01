@@ -98,7 +98,11 @@ def get_edges(net_xml_tree):
     for e in edges:
         if "function" in e.attrib and e.attrib["function"] == VERTEX_XML_INVALID_TYPE:
             continue
-        edge_lst.append([e.attrib["id"], e.attrib["from"], e.attrib["to"]])
+
+        lane = e.findall("lane")[0]
+        edge_lst.append(
+            [e.attrib["id"], e.attrib["from"], e.attrib["to"], lane.attrib["length"]]
+        )
     return np.asarray(edge_lst)
 
 

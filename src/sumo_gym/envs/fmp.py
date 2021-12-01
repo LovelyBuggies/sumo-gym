@@ -9,6 +9,7 @@ import gym
 from gym import error, spaces, utils
 from gym.utils import seeding
 import sumo_gym
+from sumo_gym.utils.sumo_utils import SumoRender
 from sumo_gym.utils.svg_uitls import vehicle_marker
 from sumo_gym.utils.fmp_utils import (
     Vertex,
@@ -101,10 +102,12 @@ class FMP(object):
 
             edges = []
             self.edge_dict = {}
+            self.edge_length_dict = {}
             counter = 0
             for e in raw_edges:
                 edges.append(Edge(self.vertex_dict[e[1]], self.vertex_dict[e[2]]))
                 self.edge_dict[e[0]] = counter
+                self.edge_length_dict[e[0]] = e[3]
                 counter += 1
             self.edges = np.asarray(edges)
 
@@ -117,7 +120,8 @@ class FMP(object):
                 self.ev_dict[vehicle[0]] = counter
                 counter += 1
 
-                departures.append(self.edges[self.edge_dict[vehicle[1]]].start)
+                # the first edge that the vehicle is original on cannot be changed in sumo
+                departures.append(self.edges[self.edge_dict[vehicle[1]]].end)
 
             self.electric_vehicles = np.asarray(electric_vehicles)
             self.departures = np.asarray(departures)
@@ -181,6 +185,7 @@ class FMPState(object):
         self.is_loading = is_loading
         self.is_charging = is_charging
         self.battery = battery
+        self.stopped = False  # arrive the assigned vertex
 
     def __repr__(self):
         return (
@@ -197,7 +202,24 @@ class FMPEnv(gym.Env):
     __isfrozen = False
 
     def __init__(self, **kwargs):
+
+        if "sumo_gui_path" in kwargs:
+            self.sumo_gui_path = kwargs["sumo_gui_path"]
+            del kwargs["sumo_gui_path"]
+        else:
+            self.sumo_gui_path = None
+
         self._fmp = FMP(**kwargs)  # todo: make it "final"
+
+        self.sumo = SumoRender(
+            self.sumo_gui_path,
+            self.fmp.edge_dict,
+            self.fmp.edge_length_dict,
+            self.fmp.ev_dict,
+            self.fmp.edges,
+            self.fmp.n_electric_vehicles,
+        )
+
         self.run = -1
         self._reset()
         self._freeze()
@@ -231,6 +253,7 @@ class FMPEnv(gym.Env):
                 self.fmp.electric_vehicles,
                 self.fmp.charging_stations,
                 self.states,
+                self.sumo,
             )
         )
         self.actions: sumo_gym.typing.ActionsType = None
@@ -245,8 +268,11 @@ class FMPEnv(gym.Env):
         return observation
 
     def step(self, actions):
+        prev_locations = []
+        travel_info = []
         for i in range(self.fmp.n_vehicle):
             prev_location = self.states[i].location
+            prev_locations.append(prev_location)
             prev_is_loading = self.states[i].is_loading.current
             prev_battery = self.states[i].battery
             (
@@ -264,6 +290,8 @@ class FMPEnv(gym.Env):
                 self.states[i].location,
                 prev_location,
             )
+            travel_info.append((prev_location, actions[i].location))
+
             assert self.states[i].battery >= 0
             if self.states[i].is_charging != -1:
                 self.states[i].battery += self.fmp.charging_stations[
@@ -300,6 +328,9 @@ class FMPEnv(gym.Env):
             self.responded == set(range(len(self.fmp.demand))),
             "",
         )
+
+        self.sumo.update_travel_vertex_info_for_vehicle(travel_info)
+
         return observation, reward, done, info
 
     def plot(
@@ -308,11 +339,6 @@ class FMPEnv(gym.Env):
         ax_dict=None,
         **kwargs: Any,
     ) -> Any:
-        import sumo_gym.plot
-
-        return sumo_gym.plot.plot_FMPEnv(self, ax_dict=ax_dict, **kwargs)
-
-    def render(self, mode="human"):
         get_colors = lambda n: list(
             map(lambda i: "#" + "%06x" % random.randint(0x000000, 0x666666), range(n))
         )
@@ -329,3 +355,15 @@ class FMPEnv(gym.Env):
             "location_c": "lightgrey",
         }
         self.plot(**plot_kwargs)
+
+    def render(self, mode="human"):
+        # todo: this part should be move to .render()
+        if self.sumo_gui_path is None:
+            raise EnvironmentError("Need sumo-gui path to render")
+        else:
+            self.sumo.render()
+
+    # TODO: need to add default behavior also
+    def close(self):
+        self.sumo.close()
+        pass
