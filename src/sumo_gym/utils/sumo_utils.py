@@ -40,7 +40,6 @@ class SumoRender:
         self.initialized = False
         self.terminated = False
         self.stop_statuses = [False] * n_vehicle
-        self.count = 2  # 0,1 is the first edge, must go
         self.n_vehicle = n_vehicle
         self.routes = []
 
@@ -75,6 +74,17 @@ class SumoRender:
 
 
     def close(self):
+        while not self.terminated:
+            traci.simulationStep()
+
+            self.terminated = True
+            for i in range(self.n_vehicle):
+                vehicle_id = self._find_key_from_value(self.ev_dict, i)
+                if (
+                    traci.vehicle.getStopState(vehicle_id) != STOPPED_STATUS
+                ):  # as long as one vehicle not arrive its assigned last vertex, continue simulation
+                    self.terminated = False
+
         traci.close()
 
 
@@ -139,7 +149,6 @@ class SumoRender:
                     flags=0,
                     startPos=0,
                 )
-                self.count += 1
 
 
     def _update_stop_status(self):
@@ -148,7 +157,6 @@ class SumoRender:
             if (
                 traci.vehicle.getStopState(vehicle_id) == STOPPED_STATUS
             ):  # arrived the assigned vertex, can be assigned to the next
-                #self.terminated = self.count == len(TEST_LOCATIONS)
                 self.stop_statuses[i] = True
                 traci.vehicle.resume(vehicle_id)
 

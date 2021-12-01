@@ -169,5 +169,5 @@ class GridSpace(gym.spaces.Space):
                         print("----- IDLE...")
                         samples[i].location = self.states[i].location
 
-        print("Samples: ", samples)
+        print("Samples: ", samples, self.responded)
         return samples

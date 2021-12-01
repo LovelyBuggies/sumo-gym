@@ -358,5 +358,5 @@ class FMPEnv(gym.Env):
 
     # TODO: need to add default behavior also
     def close(self):
-        # self.sumo.close()
+        self.sumo.close()
         pass
