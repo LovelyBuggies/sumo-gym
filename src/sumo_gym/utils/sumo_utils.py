@@ -37,27 +37,23 @@ class SumoRender:
 
         traci.start([self.sumo_gui_path, "-c", "assets/data/sumo_simulation.sumocfg"])
 
-
     def get_stop_status(self):
         return self.stop_statuses
-
 
     def update_travel_vertex_info_for_vehicle(self, vehicle_travel_info_list):
         self.travel_info = vehicle_travel_info_list
 
-
     def render(self):
 
-       # while not self.terminated:
-            if not self.initialized:
-                print("Initialize the first starting edge for vehicle...")
-                self.initialized = True
-                self._initialize_route()
+        # while not self.terminated:
+        if not self.initialized:
+            print("Initialize the first starting edge for vehicle...")
+            self.initialized = True
+            self._initialize_route()
 
-            self._update_route_with_stop()
-            traci.simulationStep()
-            self._update_stop_status()
-
+        self._update_route_with_stop()
+        traci.simulationStep()
+        self._update_stop_status()
 
     def close(self):
         while not self.terminated:
@@ -72,7 +68,6 @@ class SumoRender:
                     self.terminated = False
 
         traci.close()
-
 
     def _initialize_route(self):
         for i in range(self.n_vehicle):
@@ -96,7 +91,6 @@ class SumoRender:
                 flags=0,
                 startPos=0,
             )
-
 
     def _update_route_with_stop(self):
         """
@@ -130,9 +124,7 @@ class SumoRender:
                     self.routes[i],
                 )
 
-                traci.vehicle.setRoute(
-                    vehID=vehicle_id, edgeList=self.routes[i][-2:]
-                )
+                traci.vehicle.setRoute(vehID=vehicle_id, edgeList=self.routes[i][-2:])
                 traci.vehicle.setStop(
                     vehID=vehicle_id,
                     edgeID=edge_id,
@@ -143,7 +135,6 @@ class SumoRender:
                     startPos=0,
                 )
 
-
     def _update_stop_status(self):
         for i in range(self.n_vehicle):
             vehicle_id = self._find_key_from_value(self.ev_dict, i)
@@ -152,10 +143,8 @@ class SumoRender:
             ):  # arrived the assigned vertex, can be assigned to the next
                 self.stop_statuses[i] = True
 
-
     def _find_key_from_value(self, dict, value):
         return list(dict.keys())[list(dict.values()).index(value)]
-
 
     def _find_edge_index(self, via_edge):
         for i in range(len(self.edges)):

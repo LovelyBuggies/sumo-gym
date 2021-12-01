@@ -112,7 +112,6 @@ class GridAction(object):
         self.is_charging = state.is_charging
         self.location = state.location
 
-
     def __repr__(self):
         return f"({self.is_loading}, goto charge {self.is_charging}, location {self.location})"
 

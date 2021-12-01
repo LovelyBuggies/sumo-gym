@@ -51,7 +51,6 @@ class GridSpace(gym.spaces.Space):
             elif self.states[i].is_loading.target != NO_LOADING:
                 responding.add(self.states[i].is_loading.target)  # todo
 
-
         stop_statuses = self.sumo.get_stop_status()
         for i in range(n_vehicle):
             if not stop_statuses[i]:
