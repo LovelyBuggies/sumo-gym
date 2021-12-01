@@ -12,3 +12,4 @@ black ==21.5b0
 mypy >=0.910
 pytest >=6.2.5
 jupyterlab >=1.2
+traci >=1.10.0
