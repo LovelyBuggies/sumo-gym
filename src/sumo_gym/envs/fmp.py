@@ -213,7 +213,6 @@ class FMPEnv(gym.Env):
 
         self.sumo = SumoRender(
             self.sumo_gui_path,
-            self.fmp.vertex_dict,
             self.fmp.edge_dict,
             self.fmp.edge_length_dict,
             self.fmp.ev_dict,

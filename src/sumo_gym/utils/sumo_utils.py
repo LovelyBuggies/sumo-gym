@@ -1,21 +1,9 @@
 import os
 import sys
 import traci
-import traci.constants as tc
 
 import sumo_gym.typing
 
-
-# SUMO_COMMAND = ["/opt/homebrew/opt/sumo/share/sumo/bin/sumo-gui", "-c", "assets/data/sumo_simulation.sumocfg"]
-# SUMO_COMMAND = [
-#     "/usr/local/Cellar/sumo/1.10.0/bin/sumo-gui",
-#     "-c",
-#     "assets/data/sumo_simulation.sumocfg",
-# ]
-
-# TODO: fake the data, we need to exclude the turnaround from MDP action space, and make render function parameterless
-# below is a test route
-#TEST_LOCATIONS = [14, 15, 2, 3, 4, 7, 12, 13]
 
 STOPPED_STATUS = 1
 
@@ -24,7 +12,6 @@ class SumoRender:
     def __init__(
         self,
         sumo_gui_path: str = None,
-        vertex_dict: dict = None,
         edge_dict: dict = None,
         edge_length_dict: dict = None,
         ev_dict: dict = None,
@@ -32,7 +19,6 @@ class SumoRender:
         n_vehicle: int = 1,
     ):
         self.sumo_gui_path = sumo_gui_path
-        self.vertex_dict = vertex_dict
         self.edge_dict = edge_dict
         self.edge_length_dict = edge_length_dict
         self.ev_dict = ev_dict
