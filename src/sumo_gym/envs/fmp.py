@@ -33,11 +33,11 @@ class FMP(object):
         n_electric_vehicles: int = 0,
         n_charging_station: int = 1,
         vertices: sumo_gym.typing.VerticesType = None,
-        demand: sumo_gym.typing.FMPDemandsType = None,
+        demand: sumo_gym.utils.fmp_utils.Demand = None,
         edges: sumo_gym.typing.EdgeType = None,
-        electric_vehicles: sumo_gym.typing.FMPElectricVehiclesType = None,
+        electric_vehicles: sumo_gym.utils.fmp_utils.ElectricVehicles = None,
         departures: sumo_gym.typing.DeparturesType = None,
-        charging_stations: sumo_gym.typing.FMPChargingStationType = None,
+        charging_stations: sumo_gym.utils.fmp_utils.ChargingStation = None,
     ):
         """
         :param n_vertex:                the number of vertices
@@ -258,6 +258,14 @@ class FMPEnv(gym.Env):
         )
         self.actions: sumo_gym.typing.ActionsType = None
         self.rewards: sumo_gym.typing.RewardsType = np.zeros(self.fmp.n_vehicle)
+
+        observation = {
+            "Locations": [s.location for s in self.states],
+            "Batteries": [s.battery for s in self.states],
+            "Is_loading": [s.is_loading for s in self.states],
+            "Is_charging": [s.is_charging for s in self.states],
+        }
+        return observation
 
     def step(self, actions):
         prev_locations = []

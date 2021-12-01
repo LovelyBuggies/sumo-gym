@@ -3,7 +3,7 @@
 [![Actions Status][actions-badge]][actions-link]
 [![pre-commit.ci status][pre-commit-badge]][pre-commit-link]
 [![Code style: black][black-badge]][black-link]
-[![All Contributors](https://img.shields.io/badge/all_contributors-3-orange.svg?)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-4-orange.svg?)](#contributors-)
 
 OpenAI-gym like toolkit for developing and comparing reinforcement learning algorithms on SUMO.
 
@@ -17,22 +17,10 @@ This software is under active development, it has not been published on PyPI, an
 ```shell
 $ python3 -m venv env
 $ source env/bin/activate
-(venv)$ pip install -r requirements.txt
-(venv)$ pip install -e .
-(venv)$ open ~/.zshrc
-(venv)$ export SUMO_HOME="your/path/to/sumo"
-(venv)$ source ~/.zshrc
-(venv)$ echo SUMO_HOME
-(venv)$ python3 tutorials/make-fmpenv-xml.py
-```
-For unit tests,
-```shell
-(venv)$ pytest tests/
-```
-
-To develop on Jupyter,
-```shell
-(venv)$ python -m ipykernel install --user --name sumo_gym
+(env)$ pip install -r requirements.txt
+(env)$ pip install -e .
+(env)$ pytest tests/
+#(env)$ python -m ipykernel install --user --name sumo_gym
 ```
 
 ## Features
@@ -45,9 +33,12 @@ SUMO-gym aims to build an interface between SUMO and Reinforcement Learning. Wit
 
 ```python
 import gym
-from sumo_gym.envs.vrp import VRP
+from sumo_gym.envs.fmp import FMP
 
-env = gym.make('VRP-v0', n_vertex, n_depot, n_edge, n_vehicle, vertices, demand, edges, departures, ...)
+env = gym.make("FMP-v0", \
+n_vertex, n_edge, n_vehicle, n_electric_vehicles, n_charging_station, \
+vertices, demand, edges, \
+electric_vehicles, departures, charging_stations)
 for _ in range(n_episode):
     obs = env.reset()
     for t in range(n_timestamp):
@@ -68,25 +59,14 @@ P.S. *Will be a wheel later*.
 
 ## Contributors ✨
 
-Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
-
-<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
-<!-- prettier-ignore-start -->
-<!-- markdownlint-disable -->
 <table>
   <tr>
     <td align="center"><a href="https://github.com/LovelyBuggies"><img src="https://avatars.githubusercontent.com/u/29083689?v=4?s=100" width="100px;" alt=""/><br /><sub><b>N!no</b></sub></a><br /><a href="https://github.com/LovelyBuggies/sumo-gym/commits?author=LovelyBuggies" title="Code">💻</a> <a href="https://github.com/LovelyBuggies/sumo-gym/issues?q=author%3ALovelyBuggies" title="Bug reports">🐛</a> <a href="#ideas-LovelyBuggies" title="Ideas, Planning, & Feedback">🤔</a></td>
-    <td align="center"><a href="https://www.linkedin.com/in/yunhao-wang-871364aa/"><img src="https://avatars.githubusercontent.com/u/18152628?v=4?s=100" width="100px;" alt=""/><br /><sub><b>yunhaow</b></sub></a><br /><a href="https://github.com/LovelyBuggies/sumo-gym/commits?author=wyunhao" title="Code">💻</a> <a href="https://github.com/LovelyBuggies/sumo-gym/issues?q=author%3Awyunhao" title="Bug reports">🐛</a></td>
+    <td align="center"><a href="https://www.linkedin.com/in/yunhao-wang-871364aa/"><img src="https://avatars.githubusercontent.com/u/18152628?v=4?s=100" width="100px;" alt=""/><br /><sub><b>yunhaow</b></sub></a><br /><a href="https://github.com/LovelyBuggies/sumo-gym/commits?author=wyunhao" title="Code">💻</a> <a href="https://github.com/LovelyBuggies/sumo-gym/issues?q=author%3Awyunhao" title="Bug reports">🐛</a> <a href="#ideas-wyunhao" title="Ideas, Planning, & Feedback">🤔</a></td>
     <td align="center"><a href="https://github.com/qqqube"><img src="https://avatars.githubusercontent.com/u/24397793?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Lauren Hong</b></sub></a><br /><a href="https://github.com/LovelyBuggies/sumo-gym/commits?author=qqqube" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/AlwaysSearching"><img src="https://avatars.githubusercontent.com/u/53829883?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Sam Fieldman</b></sub></a><br /><a href="https://github.com/LovelyBuggies/sumo-gym/issues?q=author%3AAlwaysSearching" title="Bug reports">🐛</a></td>
   </tr>
 </table>
-
-<!-- markdownlint-restore -->
-<!-- prettier-ignore-end -->
-
-<!-- ALL-CONTRIBUTORS-LIST:END -->
-
-This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind welcome!
 
 
 [actions-badge]:            https://github.com/LovelyBuggies/sumo-gym/workflows/CI/badge.svg

@@ -4,11 +4,6 @@ import random
 import sumo_gym
 from sumo_gym.utils.fmp_utils import Loading, GridAction, NO_LOADING, NO_CHARGING
 import gym
-from sumo_gym.typing import (
-    FMPElectricVehiclesType,
-    FMPDemandsType,
-    FMPChargingStationType,
-)
 
 import numpy as np
 import numpy.typing as npt
@@ -20,16 +15,15 @@ class GridSpace(gym.spaces.Space):
     def __init__(
         self,
         vertices: sumo_gym.typing.VerticesType = None,
-        demand: sumo_gym.typing.FMPDemandsType = None,
+        demand: sumo_gym.utils.fmp_utils.Demand = None,
         responded: set = None,
         edges: sumo_gym.typing.EdgeType = None,
-        electric_vehicles: FMPElectricVehiclesType = None,
-        charging_stations: sumo_gym.typing.FMPChargingStationType = None,
-        states = None,
-        sumo: SumoRender = None,
-        shape = None,
-        dtype = None,
-        seed = None,
+        electric_vehicles: sumo_gym.utils.fmp_utils.ElectricVehicles = None,
+        charging_stations: sumo_gym.utils.fmp_utils.ChargingStation = None,
+        states=None,
+        shape=None,
+        dtype=None,
+        seed=None,
     ):
         super(GridSpace, self).__init__()
         self.vertices = vertices
