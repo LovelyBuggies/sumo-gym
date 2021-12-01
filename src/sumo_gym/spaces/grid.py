@@ -21,6 +21,7 @@ class GridSpace(gym.spaces.Space):
         electric_vehicles: sumo_gym.utils.fmp_utils.ElectricVehicles = None,
         charging_stations: sumo_gym.utils.fmp_utils.ChargingStation = None,
         states=None,
+        sumo: SumoRender = None,
         shape=None,
         dtype=None,
         seed=None,
