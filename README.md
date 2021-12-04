@@ -7,7 +7,7 @@
 
 OpenAI-gym like toolkit for developing and comparing reinforcement learning algorithms on SUMO.
 
-<img src="./assets/workflow.png" width="400"/>
+<img src="./assets/workflow.png" width="200"/>
 
 
 ## Installation
