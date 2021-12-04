@@ -12,15 +12,18 @@ OpenAI-gym like toolkit for developing and comparing reinforcement learning algo
 
 ## Installation
 
-This software is under active development, it has not been published on PyPI, and some functions are still unstable. If you want to test and contribute to it, you can try this:
-
 ```shell
 $ python3 -m venv env
 $ source env/bin/activate
 (env)$ pip install -r requirements.txt
 (env)$ pip install -e .
-(env)$ pytest tests/
+#(env)$ pytest tests/
 #(env)$ python -m ipykernel install --user --name sumo_gym
+(env)$ touch ~/.bashrc; open ~/.bashrc
+(env)$ export SUMO_HOME=/your/path/to/sumo
+(env)$ echo $SUMO_HOME
+(env)$ brew install --cask sumo-gui
+(env)$ python3 tutorials/make-fmpenv-xml.py --sumo-gui-path /your/path/to/sumo-gui
 ```
 
 ## Features
@@ -29,16 +32,18 @@ SUMO-gym aims to build an interface between SUMO and Reinforcement Learning. Wit
 
 **Remarkable features include:**
 
-1. Interface between SUMO simulator and OpenAI-gym liked RL training environment;
+1. OpenAI-gym RL training environment based on SUMO.
 
 ```python
 import gym
 from sumo_gym.envs.fmp import FMP
 
-env = gym.make("FMP-v0", \
-n_vertex, n_edge, n_vehicle, n_electric_vehicles, n_charging_station, \
-vertices, demand, edges, \
-electric_vehicles, departures, charging_stations)
+env = gym.make(
+    "FMP-v0", n_vertex, n_edge, n_vehicle, 
+    n_electric_vehicles, n_charging_station, 
+    vertices, demand, edges, 
+    electric_vehicles, departures, charging_stations,
+)
 for _ in range(n_episode):
     obs = env.reset()
     for t in range(n_timestamp):
@@ -49,13 +54,13 @@ for _ in range(n_episode):
 env.close()
 ```
 
-2. Visualization rendering tools based on matplotlib for urban mobility problems.
+2. Rendering tools based on matplotlib for urban mobility problems.
+
+![](./assets/sumo-demo.gif)
+
+3. Visualization tools that plot the statistics for each observation. 
 
 ![](./assets/obs.png)
-
-3. Deep reinforcement learning models for urban mobility problems (WIP).
-
-P.S. *Will be a wheel later*.
 
 ## Contributors ✨
 
