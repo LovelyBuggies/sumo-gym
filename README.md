@@ -56,6 +56,8 @@ env.close()
 
 2. Rendering tools based on matplotlib for urban mobility problems.
 
+<img src="./assets/sumo-demo.gif" width="400"/>
+
 ![](./assets/sumo-demo.gif)
 
 3. Visualization tools that plot the statistics for each observation. 
