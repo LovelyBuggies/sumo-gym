@@ -7,7 +7,7 @@
 
 OpenAI-gym like toolkit for developing and comparing reinforcement learning algorithms on SUMO.
 
-![](./assets/workflow.png)
+<img src="./assets/workflow.png" width="400"/>
 
 
 ## Installation
@@ -58,11 +58,9 @@ env.close()
 
 <img src="./assets/sumo-demo.gif" width="400"/>
 
-![](./assets/sumo-demo.gif)
-
 3. Visualization tools that plot the statistics for each observation. 
 
-![](./assets/obs.png)
+<img src="./assets/obs.png" width="400"/>
 
 ## Contributors ✨
 
