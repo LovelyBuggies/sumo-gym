@@ -7,7 +7,7 @@
 
 OpenAI-gym like toolkit for developing and comparing reinforcement learning algorithms on SUMO.
 
-![](./assets/workflow.png)
+<img src="./assets/workflow.png" width="300"/>
 
 
 ## Installation
@@ -56,11 +56,11 @@ env.close()
 
 2. Rendering tools based on matplotlib for urban mobility problems.
 
-![](./assets/sumo-demo.gif)
+<img src="./assets/sumo-demo.gif" width="400"/>
 
 3. Visualization tools that plot the statistics for each observation. 
 
-![](./assets/obs.png)
+<img src="./assets/obs.png" width="400"/>
 
 ## Contributors ✨
 
