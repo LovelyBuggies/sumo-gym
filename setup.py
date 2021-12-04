@@ -30,7 +30,7 @@ extras_require["all"] = sorted(set(sum(extras_require.values(), [])))
 
 setuptools.setup(
     name="sumo_gym",
-    version="0.1.1",
+    version="0.1.0",
     author="Shuo Liu",
     author_email="ninomyemail@gmail.com",
     description="OpenAI-gym like toolkit for developing and comparing reinforcement learning algorithms on SUMO",
