@@ -17,10 +17,14 @@ Install SUMO, SUMO GUI and XQuartz according to [official guide](https://sumo.dl
 ```shell
 $ python3 -m venv env
 $ source env/bin/activate
-(env)$ pip install --upgrade pip
 (env)$ pip install -r requirements.txt
 (env)$ pip install sumo-gym
 (env)$ export SUMO_HOME=<your_path_to>/sumo SUMO_GUI_PATH=<your_path_to>/sumo-gui # and copy the paths to ~/.bashrc
+```
+
+The installation is successful so far, then you can try the examples in the tutorials, for example:
+
+```shell
 (env)$ python3 tutorials/make-fmpenv-xml.py --sumo-gui-path $SUMO_GUI_PATH
 ```
 
