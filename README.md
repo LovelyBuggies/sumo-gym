@@ -21,6 +21,11 @@ $ source env/bin/activate
 (env)$ pip install -r requirements.txt
 (env)$ pip install sumo-gym
 (env)$ export SUMO_HOME=<your_path_to>/sumo SUMO_GUI_PATH=<your_path_to>/sumo-gui # and copy the paths to ~/.bashrc
+```
+
+The installation is successful so far, you can try some examples in the tutorials!
+
+```shell
 (env)$ python3 tutorials/make-fmpenv-xml.py --sumo-gui-path $SUMO_GUI_PATH
 ```
 
