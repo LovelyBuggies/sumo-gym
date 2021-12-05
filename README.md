@@ -3,7 +3,7 @@
 [![Actions Status][actions-badge]][actions-link]
 [![pre-commit.ci status][pre-commit-badge]][pre-commit-link]
 [![Code style: black][black-badge]][black-link]
-[![All Contributors](https://img.shields.io/badge/all_contributors-4-orange.svg?)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-5-orange.svg?)](#contributors-)
 
 OpenAI-gym like toolkit for developing and comparing reinforcement learning algorithms on SUMO.
 
@@ -62,16 +62,28 @@ env.close()
 
 <img src="https://github.com/LovelyBuggies/sumo-gym/blob/main/assets/obs.png?raw=true" width="400"/>
 
-## Contributors ✨
+## Contributors
 
+We would like to acknowledge the contributors that made this project possible ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
+<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+<!-- prettier-ignore-start -->
+<!-- markdownlint-disable -->
 <table>
   <tr>
-    <td align="center"><a href="https://github.com/LovelyBuggies"><img src="https://avatars.githubusercontent.com/u/29083689?v=4?s=100" width="100px;" alt=""/><br /><sub><b>N!no</b></sub></a><br /><a href="https://github.com/LovelyBuggies/sumo-gym/commits?author=LovelyBuggies" title="Code">💻</a> <a href="https://github.com/LovelyBuggies/sumo-gym/issues?q=author%3ALovelyBuggies" title="Bug reports">🐛</a> <a href="#ideas-LovelyBuggies" title="Ideas, Planning, & Feedback">🤔</a></td>
-    <td align="center"><a href="https://www.linkedin.com/in/yunhao-wang-871364aa/"><img src="https://avatars.githubusercontent.com/u/18152628?v=4?s=100" width="100px;" alt=""/><br /><sub><b>yunhaow</b></sub></a><br /><a href="https://github.com/LovelyBuggies/sumo-gym/commits?author=wyunhao" title="Code">💻</a> <a href="https://github.com/LovelyBuggies/sumo-gym/issues?q=author%3Awyunhao" title="Bug reports">🐛</a> <a href="#ideas-wyunhao" title="Ideas, Planning, & Feedback">🤔</a></td>
-    <td align="center"><a href="https://github.com/qqqube"><img src="https://avatars.githubusercontent.com/u/24397793?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Lauren Hong</b></sub></a><br /><a href="https://github.com/LovelyBuggies/sumo-gym/commits?author=qqqube" title="Code">💻</a></td>
-    <td align="center"><a href="https://github.com/AlwaysSearching"><img src="https://avatars.githubusercontent.com/u/53829883?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Sam Fieldman</b></sub></a><br /><a href="https://github.com/LovelyBuggies/sumo-gym/issues?q=author%3AAlwaysSearching" title="Bug reports">🐛</a></td>
+    <td align="center"><a href="https://github.com/LovelyBuggies"><img src="https://avatars.githubusercontent.com/u/29083689?v=4?s=80" width="80px;" alt=""/><br /><sub><b>N!no</b></sub></a><br /><a href="https://github.com/LovelyBuggies/sumo-gym/commits?author=LovelyBuggies" title="Code">💻</a> <a href="https://github.com/LovelyBuggies/sumo-gym/issues?q=author%3ALovelyBuggies" title="Bug reports">🐛</a> <a href="#ideas-LovelyBuggies" title="Ideas, Planning, & Feedback">🤔</a></td>
+    <td align="center"><a href="https://www.linkedin.com/in/yunhao-wang-871364aa/"><img src="https://avatars.githubusercontent.com/u/18152628?v=4?s=80" width="80px;" alt=""/><br /><sub><b>yunhaow</b></sub></a><br /><a href="https://github.com/LovelyBuggies/sumo-gym/commits?author=wyunhao" title="Code">💻</a> <a href="https://github.com/LovelyBuggies/sumo-gym/issues?q=author%3Awyunhao" title="Bug reports">🐛</a> <a href="#ideas-wyunhao" title="Ideas, Planning, & Feedback">🤔</a></td>
+    <td align="center"><a href="https://github.com/qqqube"><img src="https://avatars.githubusercontent.com/u/24397793?v=4?s=80" width="80px;" alt=""/><br /><sub><b>Lauren Hong</b></sub></a><br /><a href="https://github.com/LovelyBuggies/sumo-gym/commits?author=qqqube" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/AlwaysSearching"><img src="https://avatars.githubusercontent.com/u/53829883?v=4?s=80" width="80px;" alt=""/><br /><sub><b>Sam Fieldman</b></sub></a><br /><a href="https://github.com/LovelyBuggies/sumo-gym/issues?q=author%3AAlwaysSearching" title="Bug reports">🐛</a></td>
+    <td align="center"><a href="https://github.com/nmauskar"><img src="https://avatars.githubusercontent.com/u/6404257?v=4?s=80" width="80px;" alt=""/><br /><sub><b>nmauskar</b></sub></a><br /><a href="#ideas-nmauskar" title="Ideas, Planning, & Feedback">🤔</a> <a href="https://github.com/LovelyBuggies/sumo-gym/commits?author=nmauskar" title="Code">💻</a></td>
   </tr>
 </table>
+
+<!-- markdownlint-restore -->
+<!-- prettier-ignore-end -->
+
+<!-- ALL-CONTRIBUTORS-LIST:END -->
+
+This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification.
 
 
 [actions-badge]:            https://github.com/LovelyBuggies/sumo-gym/workflows/CI/badge.svg
