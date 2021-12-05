@@ -3,7 +3,7 @@
 [![Actions Status][actions-badge]][actions-link]
 [![pre-commit.ci status][pre-commit-badge]][pre-commit-link]
 [![Code style: black][black-badge]][black-link]
-[![All Contributors](https://img.shields.io/badge/all_contributors-4-orange.svg?)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-5-orange.svg?)](#contributors-)
 
 OpenAI-gym like toolkit for developing and comparing reinforcement learning algorithms on SUMO.
 
