@@ -1,5 +1,4 @@
 numpy >=1.18.0
-flake8 >=3.9.1
 matplotlib >=3.4.1
 pandas >=1.2.4
 gym >=0.21.0
@@ -9,7 +8,6 @@ svgwrite >=1.4.1
 svgpath2mpl >=1.0.0
 pre-commit >=2.15.0
 black ==21.5b0
-mypy >=0.910
 pytest >=6.2.5
 jupyterlab >=1.2
 traci >=1.10.0
