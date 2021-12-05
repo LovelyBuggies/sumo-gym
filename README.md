@@ -62,7 +62,12 @@ env.close()
 
 <img src="https://github.com/LovelyBuggies/sumo-gym/blob/main/assets/obs.png?raw=true" width="400"/>
 
-## Contributors ✨
+## Contributors
+
+We would like to acknowledge the contributors that made this project possible ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
+<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+<!-- prettier-ignore-start -->
+<!-- markdownlint-disable -->
 
 <table>
   <tr>
@@ -72,6 +77,13 @@ env.close()
     <td align="center"><a href="https://github.com/AlwaysSearching"><img src="https://avatars.githubusercontent.com/u/53829883?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Sam Fieldman</b></sub></a><br /><a href="https://github.com/LovelyBuggies/sumo-gym/issues?q=author%3AAlwaysSearching" title="Bug reports">🐛</a></td>
   </tr>
 </table>
+
+<!-- markdownlint-restore -->
+<!-- prettier-ignore-end -->
+
+<!-- ALL-CONTRIBUTORS-LIST:END -->
+
+This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification.
 
 
 [actions-badge]:            https://github.com/LovelyBuggies/sumo-gym/workflows/CI/badge.svg
