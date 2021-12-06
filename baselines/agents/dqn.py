@@ -92,7 +92,7 @@ class DuelingNetwork(nn.Module):
 class DQN(object):
     def __init__(self, state_dim, act_dim, gamma, n_hid=64, lr=1e-4, epsilon=0.9, tau=1, device=None,
                  clip_grad_val=None):
-        '''
+        """
         Baseline implementatioin of Q-Function:
 
         - Collect sample transitions from the environment (store in a replay memory)
