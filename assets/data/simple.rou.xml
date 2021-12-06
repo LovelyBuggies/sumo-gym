@@ -3,7 +3,7 @@
 
 	<vType id="EV" accel="3.0" decel="6.0" length="5.0" minGap="2.5" maxSpeed="50.0" sigma="0.5" vClass="evehicle" emissionClass="Energy" guiShape="evehicle">
 		<param key="has.battery.device" value="true"/>
-        <param key="maximumBatteryCapacity" value="20"/>
+        <param key="maximumBatteryCapacity" value="2000"/>
         <param key="maximumPower" value="1000"/>
         <param key="vehicleMass" value="10000"/>
         <param key="frontSurfaceArea" value="5"/>
@@ -18,12 +18,12 @@
 	</vType>
 
 	<vehicle id="0" type="EV" depart="0" color="1,0,0">
-		<param key="actualBatteryCapacity" value="20"/>
+		<param key="actualBatteryCapacity" value="2000"/>
       	<route edges="-gneE15"/>
     </vehicle>
 
     <vehicle id="1" type="EV" depart="0" color="1,0,0">
-    	<param key="actualBatteryCapacity" value="20"/>
+    	<param key="actualBatteryCapacity" value="2000"/>
      	<route edges="-gneE19 -gneE18">
      		<stop chargingStation="cS_1" until="50"/>
      	</route>

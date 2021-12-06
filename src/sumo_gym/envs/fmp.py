@@ -102,8 +102,9 @@ class FMP(object):
             (
                 charging_stations,
                 self.charging_stations_dict,
+                self.edge_attr
             ) = convert_raw_charging_stations(
-                raw_charging_stations, vertices, edges, edge_dict
+                raw_charging_stations, vertices, edges, edge_dict, self.edge_attr
             )
 
             # `electric_vehicles` is a list of ElectricVehicles instances
@@ -141,6 +142,7 @@ class FMP(object):
 
             if not self._is_valid():
                 raise ValueError("FMP setting is not valid")
+
 
     def _is_valid(self):
         if (
