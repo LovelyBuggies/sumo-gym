@@ -1,3 +1,6 @@
+import numpy as np
+import sys
+
 try:
     import torch
     import torch.nn as nn
@@ -8,8 +11,6 @@ except ModuleNotFoundError:
         file=sys.stderr,
     )
     raise
-
-import numpy as np
 
 
 class NoisyLinear(nn.Module):
