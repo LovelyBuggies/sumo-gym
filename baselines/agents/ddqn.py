@@ -14,22 +14,32 @@ from .dqn import DuelingNetwork, DQN
 
 
 class DDQN(DQN):
-    '''
-        Double Deep Q-Networks:
-        Based on the extension to DQN from the paper:
-            Deep Reinforcement Learning with Double Q-learning, 2015
-            Hado van Hasselt and Arthur Guez and David Silver
-            https://arxiv.org/pdf/1509.06461.pdf
+    """
+    Double Deep Q-Networks:
+    Based on the extension to DQN from the paper:
+        Deep Reinforcement Learning with Double Q-learning, 2015
+        Hado van Hasselt and Arthur Guez and David Silver
+        https://arxiv.org/pdf/1509.06461.pdf
 
-        When calculating the training target for our Q-Network, we utilize a second network (the target network) to
-        evaluate the actions selected by the 'online' network which is used to select actions.
+    When calculating the training target for our Q-Network, we utilize a second network (the target network) to
+    evaluate the actions selected by the 'online' network which is used to select actions.
 
-        The new 'target' value calculation:
-                y_t = r_t + gamma * Q_target(s_{t+1}, argmax_a Q_online(s_{t+1}, a))
-    '''
+    The new 'target' value calculation:
+            y_t = r_t + gamma * Q_target(s_{t+1}, argmax_a Q_online(s_{t+1}, a))
+    """
 
-    def __init__(self, state_dim, action_dim, gamma, n_hid=64, lr=1e-4, device=None, noisy_networks=True,
-                 target_update_freq=100, clip_grad_val=None):
+    def __init__(
+        self,
+        state_dim,
+        action_dim,
+        gamma,
+        n_hid=64,
+        lr=1e-4,
+        device=None,
+        noisy_networks=True,
+        target_update_freq=100,
+        clip_grad_val=None,
+    ):
 
         self.target_update_freq = target_update_freq
         self.noisy_network = noisy_networks
