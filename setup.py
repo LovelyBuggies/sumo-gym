@@ -18,7 +18,12 @@ extras_require = {
     ],
 }
 
-extras_require["dev"] = [*extras_require["test"], *extras_require["plot"], *extras_require["torch"], "ipykernel"]
+extras_require["dev"] = [
+    *extras_require["test"],
+    *extras_require["plot"],
+    *extras_require["torch"],
+    "ipykernel",
+]
 
 extras_require["docs"] = [
     *extras_require["plot"],
