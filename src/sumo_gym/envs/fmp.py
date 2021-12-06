@@ -93,7 +93,7 @@ class FMP(object):
             #   to idx in `edges`
             # `self.edge_attr` is a list of tuples (sumo_edge_id [str], length [float])
             #   corresponding to instances in `edges`
-            edges, edge_dict, self.edge_attr = convert_raw_edges(
+            edges, self.edge_dict, self.edge_attr = convert_raw_edges(
                 raw_edges, self.vertex_dict
             )
 
@@ -105,7 +105,7 @@ class FMP(object):
                 self.charging_stations_dict,
                 self.edge_attr
             ) = convert_raw_charging_stations(
-                raw_charging_stations, vertices, edges, edge_dict, self.edge_attr
+                raw_charging_stations, vertices, edges, self.edge_dict, self.edge_attr
             )
 
             # `electric_vehicles` is a list of ElectricVehicles instances
@@ -120,7 +120,7 @@ class FMP(object):
             # self.departures[i] is the starting point of electric_vehicles[i] (the endpoint of the passed in edge)
             # self.actual_depatures[i] is the actual start vertex of electric_vehicles[i] (the starting point of the passed in edge)
             departures, actual_departures = convert_raw_departures(
-                raw_departures, self.ev_dict, edges, edge_dict, len(electric_vehicles)
+                raw_departures, self.ev_dict, edges, self.edge_dict, len(electric_vehicles)
             )
 
             # `demand` is a list of Demand instances
