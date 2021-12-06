@@ -142,7 +142,7 @@ def convert_raw_edges(raw_edges, vertex_dict):
     edges = []
     edge_dict = {}  # sumo edge_id to idx in edges
     edge_attr = []  # list of tuples (sumo_edge_id, length)
-    edge_length_dict = {} # sumo edge_id to length
+    edge_length_dict = {}  # sumo edge_id to length
     for counter, e in enumerate(raw_edges):
         new_edge = Edge(vertex_dict[e[1]], vertex_dict[e[2]])
         edges.append(new_edge)
@@ -160,9 +160,9 @@ def euclidean_distance(start_x, start_y, end_x, end_y):
     return (((start_x - end_x) ** 2) + ((start_y - end_y) ** 2)) ** 0.5
 
 
-def convert_raw_charging_stations(raw_charging_stations, vertices, 
-                                  edges, edge_dict, edge_attr,
-                                  edge_length_dict):
+def convert_raw_charging_stations(
+    raw_charging_stations, vertices, edges, edge_dict, edge_attr, edge_length_dict
+):
     """
     Each raw charging station is
     [id, (x_coord, y_coord), edge_id, charging speed]
@@ -197,12 +197,12 @@ def convert_raw_charging_stations(raw_charging_stations, vertices,
         old_edge_start_vtx = vertices[old_edge_start_idx]
         old_edge_end_vtx = vertices[old_edge_end_idx]
 
-        edge1_length = euclidean_distance(old_edge_start_vtx.x,
-                                          old_edge_start_vtx.y,
-                                          x_coord, y_coord)
-        edge2_length = euclidean_distance(x_coord, y_coord,
-                                          old_edge_end_vtx.x,
-                                          old_edge_end_vtx.y)
+        edge1_length = euclidean_distance(
+            old_edge_start_vtx.x, old_edge_start_vtx.y, x_coord, y_coord
+        )
+        edge2_length = euclidean_distance(
+            x_coord, y_coord, old_edge_end_vtx.x, old_edge_end_vtx.y
+        )
 
         edge_attr.append(("split1_%s" % edge_id, edge1_length))
 
