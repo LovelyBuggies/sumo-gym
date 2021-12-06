@@ -155,11 +155,12 @@ def euclidean_distance(start_x, start_y, end_x, end_y):
     Compute euclidean distance between (start_x, start_y)
     and (end_x, end_y)
     """
-    return (((start_x - end_x)**2) + ((start_y - end_y)**2)) ** 0.5
+    return (((start_x - end_x) ** 2) + ((start_y - end_y) ** 2)) ** 0.5
 
 
-def convert_raw_charging_stations(raw_charging_stations, vertices, 
-                                  edges, edge_dict, edge_attr):
+def convert_raw_charging_stations(
+    raw_charging_stations, vertices, edges, edge_dict, edge_attr
+):
     """
     Each raw charging station is
     [id, (x_coord, y_coord), edge_id, charging speed]
@@ -194,17 +195,23 @@ def convert_raw_charging_stations(raw_charging_stations, vertices,
         old_edge_start_vtx = vertices[old_edge_start_idx]
         old_edge_end_vtx = vertices[old_edge_end_idx]
 
-        edge_attr.append(("", euclidean_distance(old_edge_start_vtx.x,
-                                                 old_edge_start_vtx.y,
-                                                 x_coord, y_coord)
-                            )
-                        )
+        edge_attr.append(
+            (
+                "",
+                euclidean_distance(
+                    old_edge_start_vtx.x, old_edge_start_vtx.y, x_coord, y_coord
+                ),
+            )
+        )
 
-        edge_attr.append(("", euclidean_distance(x_coord, y_coord,
-                                                 old_edge_end_vtx.x,
-                                                 old_edge_end_vtx.y)
-                            )
-                        )
+        edge_attr.append(
+            (
+                "",
+                euclidean_distance(
+                    x_coord, y_coord, old_edge_end_vtx.x, old_edge_end_vtx.y
+                ),
+            )
+        )
 
         # instantiate new ChargingStation with location set to idx in `vertices`
         charging_stations.append(ChargingStation(vtx_counter, 220, charging_station[3]))
