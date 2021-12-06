@@ -13,9 +13,9 @@ import numpy as np
 
 
 class NoisyLinear(nn.Module):
-    '''
+    """
     Noisy Linear Layer for exploration. Factorized version used for parameter efficiency.
-    '''
+    """
 
     def __init__(self, in_features, out_features, std_init=0.5):
         super(NoisyLinear, self).__init__()
@@ -30,8 +30,8 @@ class NoisyLinear(nn.Module):
         self.bias_mu = nn.Parameter(torch.empty(out_features))
         self.bias_sigma = nn.Parameter(torch.empty(out_features))
 
-        self.register_buffer('weight_epsilon', torch.empty(out_features, in_features))
-        self.register_buffer('bias_epsilon', torch.empty(out_features))
+        self.register_buffer("weight_epsilon", torch.empty(out_features, in_features))
+        self.register_buffer("bias_epsilon", torch.empty(out_features))
 
         self.reset_parameters()
         self.reset_noise()
@@ -61,7 +61,7 @@ class NoisyLinear(nn.Module):
             return F.linear(
                 input,
                 self.weight_mu + self.weight_sigma * self.weight_epsilon,
-                self.bias_mu + self.bias_sigma * self.bias_epsilon
+                self.bias_mu + self.bias_sigma * self.bias_epsilon,
             )
         else:
             return F.linear(input, self.weight_mu, self.bias_mu)
