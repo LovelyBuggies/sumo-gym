@@ -10,7 +10,7 @@ except ModuleNotFoundError:
     )
     raise
 
-from .dqn import NoisyLinear, DQN
+from .dqn import DuelingNetwork, DQN
 
 
 class DDQN(DQN):
@@ -30,21 +30,42 @@ class DDQN(DQN):
 
     def __init__(self, state_dim, action_dim, gamma, n_hid=64, lr=1e-4, device=None, noisy_networks=True,
                  target_update_freq=100, clip_grad_val=None):
+
         self.target_update_freq = target_update_freq
         self.noisy_network = noisy_networks
 
-        super().__init__(state_dim, action_dim, gamma, device=device, n_hid=n_hid, lr=lr, clip_grad_val=clip_grad_val)
+        super().__init__(
+            state_dim,
+            action_dim,
+            gamma,
+            device=device,
+            n_hid=n_hid,
+            lr=lr,
+            clip_grad_val=clip_grad_val,
+        )
 
     def init_network(self):
-        '''
+        """
         Initialize the neural network related objects used to learn the policy function
-        '''
+        """
 
-        self.model = DuelingNetwork(self.state_dim, self.act_dim, self.n_hid, noisy=self.noisy_network,
-                                    clip_grad_val=self.clip_grad_val).to(self.device)
-        self.target = DuelingNetwork(self.state_dim, self.act_dim, self.n_hid, noisy=self.noisy_network,
-                                     clip_grad_val=self.clip_grad_val).to(self.device)
-        self.target.polyak_update(source_network=self.model, source_ratio=1.0)  # copy parameters from model to target
+        self.model = DuelingNetwork(
+            self.state_dim,
+            self.act_dim,
+            self.n_hid,
+            noisy=self.noisy_network,
+            clip_grad_val=self.clip_grad_val,
+        ).to(self.device)
+        self.target = DuelingNetwork(
+            self.state_dim,
+            self.act_dim,
+            self.n_hid,
+            noisy=self.noisy_network,
+            clip_grad_val=self.clip_grad_val,
+        ).to(self.device)
+        self.target.polyak_update(
+            source_network=self.model, source_ratio=1.0
+        )  # copy parameters from model to target
 
         # We do not need to compute the gradients of the target network. It will be periodically
         # updated using the parameters in the online network.
@@ -62,17 +83,24 @@ class DDQN(DQN):
 
     def compute_targets(self, experience):
         with torch.no_grad():
-            online_q_preds = self.online_network(experience["next_states"])  # online network selects actions
+            online_q_preds = self.online_network(
+                experience["next_states"]
+            )  # online network selects actions
 
             # Resample parameter noise if using noisy networks.
             if self.noisy_network:
                 self.eval_network.reset_noise()
 
-            eval_q_preds = self.eval_network(experience["next_states"])  # Target network evaluates actions
+            eval_q_preds = self.eval_network(
+                experience["next_states"]
+            )  # Target network evaluates actions
 
         online_actions = online_q_preds.argmax(dim=-1, keepdim=True)
         next_q_preds = eval_q_preds.gather(-1, online_actions).squeeze(-1)
-        q_targets = experience['rewards'] + self.gamma * (1 - experience['dones']) * next_q_preds
+        q_targets = (
+            experience["rewards"]
+            + self.gamma * (1 - experience["dones"]) * next_q_preds
+        )
         return q_targets
 
     def update_target_network(self, train_step, ratio=0.5):
