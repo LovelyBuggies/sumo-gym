@@ -8,6 +8,8 @@ import gym
 import numpy as np
 import numpy.typing as npt
 
+from sumo_gym.utils.sumo_utils import SumoRender
+
 
 class GridSpace(gym.spaces.Space):
     def __init__(
@@ -19,6 +21,7 @@ class GridSpace(gym.spaces.Space):
         electric_vehicles: sumo_gym.utils.fmp_utils.ElectricVehicles = None,
         charging_stations: sumo_gym.utils.fmp_utils.ChargingStation = None,
         states=None,
+        sumo: SumoRender = None,
         shape=None,
         dtype=None,
         seed=None,
@@ -31,12 +34,16 @@ class GridSpace(gym.spaces.Space):
         self.electric_vehicles = electric_vehicles
         self.charging_stations = charging_stations
         self.states = states
+        self.sumo = sumo
+        print("     DEMAND: ", demand)
 
     def sample(
         self,
     ) -> Any:
         n_vehicle = len(self.states)
-        samples = [GridAction() for _ in range(n_vehicle)]
+        samples = [GridAction(state) for state in self.states]
+
+        # extract all demands being responded
         responding = set()
         for i in range(n_vehicle):
             if self.states[i].is_loading.current != NO_LOADING:
@@ -44,7 +51,12 @@ class GridSpace(gym.spaces.Space):
             elif self.states[i].is_loading.target != NO_LOADING:
                 responding.add(self.states[i].is_loading.target)  # todo
 
+        stop_statuses = self.sumo.get_stop_status()
         for i in range(n_vehicle):
+            if not stop_statuses[i]:
+                print("----- Traveling along the edge...")
+                continue
+
             if self.states[i].is_loading.current != NO_LOADING:  # is on the way
                 print("----- In the way of demand:", self.states[i].is_loading.current)
                 loc = sumo_gym.utils.fmp_utils.one_step_to_destination(
@@ -53,7 +65,7 @@ class GridSpace(gym.spaces.Space):
                     self.states[i].location,
                     self.demand[self.states[i].is_loading.current].destination,
                 )
-                self.states[i].location = loc
+
                 if loc == self.demand[self.states[i].is_loading.current].destination:
                     samples[i].is_loading = Loading(NO_LOADING, NO_LOADING)
                 else:
@@ -61,7 +73,7 @@ class GridSpace(gym.spaces.Space):
                         self.states[i].is_loading.current,
                         self.states[i].is_loading.target,
                     )
-                    samples[i].location = loc
+                samples[i].location = loc
             elif self.states[i].is_loading.target != NO_LOADING:  # is to the way
                 print("----- In the way to respond:", self.states[i].is_loading.target)
                 loc = sumo_gym.utils.fmp_utils.one_step_to_destination(

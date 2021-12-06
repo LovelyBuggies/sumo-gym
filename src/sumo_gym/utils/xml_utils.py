@@ -293,3 +293,4 @@ def _parse_network_xml(network_file_path: str):
             edge_count += 1
 
     return vertices, demand, edge_id_map, edges
+

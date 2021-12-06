@@ -6,9 +6,6 @@ with open("README.md", "r", encoding="utf-8") as fh:
 extras_require = {
     "plot": [
         "matplotlib >=3.0",
-        "scipy >=1.4",
-        "iminuit >=2",
-        "mplhep >=0.2.16",
     ],
     "test": [
         "pytest >=6",
@@ -27,19 +24,16 @@ extras_require["docs"] = [
     "sphinx_book_theme >=0.0.38",
     "ipython",
     "ipykernel",
-    "pillow",
-    "uncertainties>=3",
-    "myst_parser>=0.14",
 ]
 
 extras_require["all"] = sorted(set(sum(extras_require.values(), [])))
 
 setuptools.setup(
     name="sumo_gym",
-    version="0.0.1",
+    version="0.1.0",
     author="Shuo Liu",
     author_email="ninomyemail@gmail.com",
-    description="OpenAI-gym like toolkit for developing and comparing reinforcement learning algorithms on SUMO.",
+    description="OpenAI-gym like toolkit for developing and comparing reinforcement learning algorithms on SUMO",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/lovelybuggies/sumo-gym",
