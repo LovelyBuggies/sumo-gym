@@ -157,7 +157,7 @@ def euclidean_distance(start_x, start_y, end_x, end_y):
     Compute euclidean distance between (start_x, start_y)
     and (end_x, end_y)
     """
-    return (((start_x - end_x)**2) + ((start_y - end_y)**2)) ** 0.5
+    return (((start_x - end_x) ** 2) + ((start_y - end_y) ** 2)) ** 0.5
 
 
 def convert_raw_charging_stations(raw_charging_stations, vertices, 

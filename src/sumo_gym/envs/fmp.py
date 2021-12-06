@@ -123,7 +123,11 @@ class FMP(object):
             # self.departures[i] is the starting point of electric_vehicles[i] (the endpoint of the passed in edge)
             # self.actual_depatures[i] is the actual start vertex of electric_vehicles[i] (the starting point of the passed in edge)
             departures, actual_departures = convert_raw_departures(
-                raw_departures, self.ev_dict, edges, self.edge_dict, len(electric_vehicles)
+                raw_departures,
+                self.ev_dict,
+                edges,
+                self.edge_dict,
+                len(electric_vehicles),
             )
 
             # `demand` is a list of Demand instances
