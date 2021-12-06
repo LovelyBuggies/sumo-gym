@@ -26,12 +26,20 @@ class DuelingNetwork(nn.Module):
         self.input_layer = nn.Linear(state_dim, n_hid)
         self.hidden_layer_1 = nn.Linear(n_hid, n_hid)
         self.hidden_layer_2 = nn.Linear(n_hid, n_hid)
-        self.hidden_layer_3 = NoisyLinear(n_hid, n_hid) if noisy else nn.Linear(n_hid, 1)
+        self.hidden_layer_3 = (
+            NoisyLinear(n_hid, n_hid) if noisy else nn.Linear(n_hid, 1)
+        )
 
         self.state_value_layer = NoisyLinear(n_hid, 1) if noisy else nn.Linear(n_hid, 1)
-        self.action_value_layer = NoisyLinear(n_hid, act_dim) if noisy else nn.Linear(n_hid, act_dim)
+        self.action_value_layer = (
+            NoisyLinear(n_hid, act_dim) if noisy else nn.Linear(n_hid, act_dim)
+        )
 
-        self.noisy_layers = ['state_value_layer', 'action_value_layer', 'hidden_layer_3']
+        self.noisy_layers = [
+            "state_value_layer",
+            "action_value_layer",
+            "hidden_layer_3",
+        ]
 
         self.ReLU = nn.ReLU()
         self.clip_grad_val = clip_grad_val
@@ -47,7 +55,9 @@ class DuelingNetwork(nn.Module):
         action_value = self.action_value_layer(x)
 
         # Q(s, a) = V(s) + A(s, a) - sum_{a \in A}{A(s, a)} / |A|
-        return state_value + action_value - torch.mean(action_value, dim=-1, keepdims=True)
+        return (
+            state_value + action_value - torch.mean(action_value, dim=-1, keepdims=True)
+        )
 
     def train_step(self, loss, optim, lr_scheduler=None):
         optim.zero_grad()
@@ -68,19 +78,31 @@ class DuelingNetwork(nn.Module):
                 module.reset_noise()
 
     def polyak_update(self, source_network, source_ratio=0.5):
-        '''
+        """
         Update the parameters of the network with the parameters of the source network.
         source_ratio = 1.0 simply performs a copy, rather than a polyak update.
-        '''
+        """
 
         for src_param, param in zip(source_network.parameters(), self.parameters()):
-            param.data.copy_(source_ratio * src_param.data + (1.0 - source_ratio) * param.data)
+            param.data.copy_(
+                source_ratio * src_param.data + (1.0 - source_ratio) * param.data
+            )
 
 
 class DQN(object):
-    def __init__(self, state_dim, act_dim, gamma, n_hid=64, lr=1e-4, epsilon=0.9, tau=1, device=None,
-                 clip_grad_val=None):
-        '''
+    def __init__(
+        self,
+        state_dim,
+        act_dim,
+        gamma,
+        n_hid=64,
+        lr=1e-4,
+        epsilon=0.9,
+        tau=1,
+        device=None,
+        clip_grad_val=None,
+    ):
+        """
         Baseline implimentation of Q-Function:
 
         - Collect sample transitions from the environment (store in a replay memory)
@@ -91,7 +113,7 @@ class DQN(object):
                 y_hat_t = Q(s_t, a_t)
         - Calculate the loss, L(y_hat_t, y_t) - m.s.e (td-error)
         - Compute the gradient of L with respect to the network parameters, and take a gradient descent step.
-        '''
+        """
 
         self.act_dim = act_dim
         self.state_dim = state_dim
@@ -108,21 +130,26 @@ class DQN(object):
 
         self.n_hid = n_hid
         self.lr = lr
-        self.huber_loss = nn.HuberLoss(reduction='none', delta=1.0)
-        self.mse_loss = nn.MSELoss(reduction='none')
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu") if device is None else device
+        self.huber_loss = nn.HuberLoss(reduction="none", delta=1.0)
+        self.mse_loss = nn.MSELoss(reduction="none")
+        self.device = (
+            torch.device("cuda" if torch.cuda.is_available() else "cpu")
+            if device is None
+            else device
+        )
 
         self.clip_grad_val = clip_grad_val
         self.init_network()
 
     def init_network(self, network=None):
-        self.model = DuelingNetwork(self.state_dim, self.act_dim, self.n_hid, clip_grad_val=self.clip_grad_val).to(
-            self.device)
+        self.model = DuelingNetwork(
+            self.state_dim, self.act_dim, self.n_hid, clip_grad_val=self.clip_grad_val
+        ).to(self.device)
         self.optim = optim.Adam(self.model.parameters(), lr=self.lr)
         self.lr_scheduler = optim.lr_scheduler.ExponentialLR(self.optim, gamma=1)
 
     def get_loss(self, experience, IS_weights=None):
-        states, actions = experience['states'], experience['actions']
+        states, actions = experience["states"], experience["actions"]
         q_preds = self.model(states).gather(dim=-1, index=actions.long()).squeeze(-1)
         q_targets = self.compute_targets(experience)
 
@@ -139,10 +166,12 @@ class DQN(object):
 
     def compute_targets(self, experience):
         with torch.no_grad():
-            q_preds_next = self.model(experience['next_states'])
+            q_preds_next = self.model(experience["next_states"])
 
         max_q_preds, _ = q_preds_next.max(dim=-1, keepdim=False)
-        q_targets = experience['rewards'] + self.gamma * max_q_preds * (1 - experience['dones'])
+        q_targets = experience["rewards"] + self.gamma * max_q_preds * (
+            1 - experience["dones"]
+        )
         return q_targets
 
     def train_network(self, experience, IS_weights=None):
@@ -181,14 +210,14 @@ class DQN(object):
         action = action_values.argmax()
         return action.cpu().squeeze().numpy()
 
-    def act(self, state, policy='boltzmann'):
+    def act(self, state, policy="boltzmann"):
         if not torch.is_tensor(state):
             state = torch.Tensor(state).unsqueeze(0).to(self.device)
 
         with torch.no_grad():
-            if policy == 'boltzmann':
+            if policy == "boltzmann":
                 action = self.act_boltzmann(state)
-            elif policy == 'epsilon_greedy':
+            elif policy == "epsilon_greedy":
                 action = self.act_epsilon_greedy(state)
             else:
                 action = self.act_greedy(state)
@@ -200,12 +229,15 @@ class DQN(object):
         self.tau = max(self.tau * self.tau_decay_rate, self.min_tau)
 
     def save(self, path):
-        torch.save({
-            'model_state_dict': self.model.state_dict(),
-            'optimizer_state_dict': self.optim.state_dict()
-        }, path)
+        torch.save(
+            {
+                "model_state_dict": self.model.state_dict(),
+                "optimizer_state_dict": self.optim.state_dict(),
+            },
+            path,
+        )
 
     def load(self, path):
         checkpoint = torch.load(path)
-        self.model.load_state_dict(checkpoint['model_state_dict'])
-        self.optim.load_state_dict(checkpoint['optimizer_state_dict'])
+        self.model.load_state_dict(checkpoint["model_state_dict"])
+        self.optim.load_state_dict(checkpoint["optimizer_state_dict"])
