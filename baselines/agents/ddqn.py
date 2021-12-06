@@ -1,4 +1,3 @@
-from .dqn import DQN
 import sys
 
 try:
@@ -11,10 +10,13 @@ except ModuleNotFoundError:
     )
     raise
 
+from .dqn import NoisyLinear, DQN
+
+
 class DDQN(DQN):
     '''
         Double Deep Q-Networks:
-        Based on the extenstion to DQN from the paper:
+        Based on the extension to DQN from the paper:
             Deep Reinforcement Learning with Double Q-learning, 2015
             Hado van Hasselt and Arthur Guez and David Silver
             https://arxiv.org/pdf/1509.06461.pdf
