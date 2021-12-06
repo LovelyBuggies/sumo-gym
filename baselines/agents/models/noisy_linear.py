@@ -1,6 +1,13 @@
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
+try:
+    import torch
+    import torch.nn as nn
+    import torch.nn.functional as F
+except ModuleNotFoundError:
+    print(
+        "sumo_gym requires torch to train the agent, either install sumo_gym[torch] or torch",
+        file=sys.stderr,
+    )
+    raise
 
 import numpy as np
 

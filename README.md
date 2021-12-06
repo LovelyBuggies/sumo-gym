@@ -15,11 +15,11 @@ OpenAI-gym like toolkit for developing and comparing reinforcement learning algo
 Install SUMO, SUMO GUI and XQuartz according to [official guide](https://sumo.dlr.de/docs/Installing/index.html#macos).
 
 ```shell
-$ python3 -m venv env
-$ source env/bin/activate
-(env)$ pip install -r requirements.txt
-(env)$ pip install sumo-gym
-(env)$ export SUMO_HOME=<your_path_to>/sumo SUMO_GUI_PATH=<your_path_to>/sumo-gui # and copy the paths to ~/.bashrc
+$ python3 -m venv .env
+$ source .env/bin/activate
+(.env)$ pip install -r requirements.txt
+(.env)$ pip install sumo-gym
+(.env)$ export SUMO_HOME=<your_path_to>/sumo SUMO_GUI_PATH=<your_path_to>/sumo-gui # and copy the paths to ~/.bashrc
 ```
 
 The installation is successful so far, then you can try the examples in the tutorials, for example:
