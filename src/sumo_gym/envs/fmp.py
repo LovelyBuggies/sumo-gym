@@ -89,11 +89,13 @@ class FMP(object):
             vertices, self.vertex_dict = convert_raw_vertices(raw_vertices)
 
             # `edges` is a list of Edge instances
-            # `edge_dict` is a mapping from SUMO edge id
+            # `self.edge_dict` is a mapping from SUMO edge id
             #   to idx in `edges`
             # `self.edge_attr` is a list of tuples (sumo_edge_id [str], length [float])
             #   corresponding to instances in `edges`
-            edges, self.edge_dict, self.edge_attr = convert_raw_edges(
+            # `self.edge_length_dict` is a dictionary 
+            #    mapping from SUMO edge id to edge length
+            edges, self.edge_dict, self.edge_attr, self.edge_length_dict = convert_raw_edges(
                 raw_edges, self.vertex_dict
             )
 
@@ -103,9 +105,10 @@ class FMP(object):
             (
                 charging_stations,
                 self.charging_stations_dict,
-                self.edge_attr
+                self.edge_attr,
+                self.edge_length_dict
             ) = convert_raw_charging_stations(
-                raw_charging_stations, vertices, edges, self.edge_dict, self.edge_attr
+                raw_charging_stations, vertices, edges, self.edge_dict, self.edge_attr, self.edge_length_dict
             )
 
             # `electric_vehicles` is a list of ElectricVehicles instances
