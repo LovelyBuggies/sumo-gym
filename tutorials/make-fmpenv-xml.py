@@ -1,8 +1,5 @@
-import numpy as np
 import sys
 import gym
-import sumo_gym
-from sumo_gym.envs.vrp import VRP
 
 if __name__ == "__main__":
     env = gym.make(
