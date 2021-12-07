@@ -47,6 +47,6 @@ vizdoom.ini
 /tutorials/img/
 
 
-assets/data/battery.out.xml
-assets/data/*summary.xml
+*assets/data/battery.out.xml
+*assets/data/*summary.xml
 

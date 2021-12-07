@@ -2,7 +2,7 @@
 	<input>
 		<net-file value="jumbo.net.xml"/>
 		<route-files value="jumbo.rou.xml"/>
-		<additional-files value="jumbo_charging_station_additional.xml" />
+		<additional-files value="jumbo.cs.add.xml" />
 	</input>
 	<output>
         <battery-output value="battery.out.xml"/>
