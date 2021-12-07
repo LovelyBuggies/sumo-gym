@@ -11,14 +11,7 @@ from gym.utils import seeding
 import sumo_gym
 from sumo_gym.utils.sumo_utils import SumoRender
 from sumo_gym.utils.svg_uitls import vehicle_marker
-from sumo_gym.utils.fmp_utils import (
-    Vertex,
-    Edge,
-    Demand,
-    Loading,
-    ChargingStation,
-    ElectricVehicles,
-)
+from sumo_gym.utils.fmp_utils import *
 
 
 class FMP(object):
@@ -26,7 +19,7 @@ class FMP(object):
         self,
         net_xml_file_path: str = None,
         demand_xml_file_path: str = None,
-        # charging_xml_file_path: str = None,
+        additional_xml_file_path: str = None,
         n_vertex: int = 0,
         n_edge: int = 0,
         n_vehicle: int = 0,
@@ -46,7 +39,7 @@ class FMP(object):
         :param n_vehicle:               the number of vehicles
         :param vertices:                the vertices, [vertex_index, x_position, y_position]
         :param charging_stations:       the charging stations, [vertex_index, chargeDelay]
-        :param electric_vehicles:       the vehicles, [vehicle_index, charging_level (actualBatteryCapacity/maximumBatteryCapacity)]
+        :param electric_vehicles:       the vehicles, [vehicle_index, speed, actualBatteryCapacity, maximumBatteryCapacity)]
         :param demand:                  the demand at vertices, [start_vertex_index, end_vertex_index]
         :param edges:                   the edges, [from_vertex_index, to_vertex_index]
         :param departures:              the initial settings of vehicles, [vehicle_index, starting_vertex_index]
@@ -56,7 +49,7 @@ class FMP(object):
         if (
             net_xml_file_path is None
             or demand_xml_file_path is None
-            # or charging_xml_file_path is None
+            or additional_xml_file_path is None
         ):
             # number
             self.n_vertex = n_vertex
@@ -80,61 +73,78 @@ class FMP(object):
 
         else:
             (
-                raw_vertices,  # id, x, y
-                # raw_charging_stations,
-                # raw_electric_vehicles,
-                raw_edges,  # edge_id, id_start, id_dest
-                raw_departures,  # vehicle_id, edge_id_from
-                raw_demand,  # start_id, dest_id
+                raw_vertices,  # [id (str), x_coord (float), y_coord (float)]
+                raw_charging_stations,  # [id, (x_coord, y_coord), edge_id, charging speed]
+                raw_electric_vehicles,  # [id (str), maximum speed (float), maximumBatteryCapacity (float)]
+                raw_edges,  # [id (str), from_vertex_id (str), to_vertex_id (str)]
+                raw_departures,  # [vehicle_id, starting_edge_id]
+                raw_demand,  # [junction_id, dest_vertex_id]
             ) = sumo_gym.utils.xml_utils.decode_xml_fmp(
-                net_xml_file_path, demand_xml_file_path
+                net_xml_file_path, demand_xml_file_path, additional_xml_file_path
             )
 
-            # todo: better implement vertex_dict using np.idx
-            vertices = []
-            self.vertex_dict = {}
-            counter = 0
-            for v in raw_vertices:
-                vertices.append(Vertex(v[1], v[2]))
-                self.vertex_dict[v[0]] = counter
-                counter += 1
+            # `vertices` is a list of Vertex instances
+            # `self.vertex_dict` is a mapping from
+            #   vertex id in SUMO to idx in vertices
+            vertices, self.vertex_dict = convert_raw_vertices(raw_vertices)
+
+            # `edges` is a list of Edge instances
+            # `self.edge_dict` is a mapping from SUMO edge id
+            #   to idx in `edges`
+            # `self.edge_length_dict` is a dictionary
+            #    mapping from SUMO edge id to edge length
+            (
+                edges,
+                self.edge_dict,
+                self.edge_length_dict,
+            ) = convert_raw_edges(raw_edges, self.vertex_dict)
+
+            # `charging_stations` is a list of ChargingStation instances
+            # `self.charging_stations_dict` is a mapping from idx in `charging_stations`
+            #    to SUMO station id
+            (
+                charging_stations,
+                self.charging_stations_dict,
+                self.edge_length_dict,
+            ) = convert_raw_charging_stations(
+                raw_charging_stations,
+                vertices,
+                edges,
+                self.edge_dict,
+                self.edge_length_dict,
+            )
+
+            # `electric_vehicles` is a list of ElectricVehicles instances
+            # `self.ev_dict` is a mapping from ev sumo id to idx in `electric_vehicles`
+            electric_vehicles, self.ev_dict = convert_raw_electric_vehicles(
+                raw_electric_vehicles
+            )
+
+            # departure should be defined for all vehicles
+            # `self.departures` and `self.actual_departures` are
+            #   lists of indices in `vertices`
+            # self.departures[i] is the starting point of electric_vehicles[i] (the endpoint of the passed in edge)
+            # self.actual_depatures[i] is the actual start vertex of electric_vehicles[i] (the starting point of the passed in edge)
+            departures, actual_departures = convert_raw_departures(
+                raw_departures,
+                self.ev_dict,
+                edges,
+                self.edge_dict,
+                len(electric_vehicles),
+            )
+
+            # `demand` is a list of Demand instances
+            demand = convert_raw_demand(raw_demand, self.vertex_dict)
+
+            # set the FMP variables
             self.vertices = np.asarray(vertices)
-
-            edges = []
-            self.edge_dict = {}
-            self.edge_length_dict = {}
-            counter = 0
-            for e in raw_edges:
-                edges.append(Edge(self.vertex_dict[e[1]], self.vertex_dict[e[2]]))
-                self.edge_dict[e[0]] = counter
-                self.edge_length_dict[e[0]] = e[3]
-                counter += 1
             self.edges = np.asarray(edges)
-
-            electric_vehicles = []
-            departures = []
-            self.ev_dict = {}
-            counter = 0
-            for vehicle in raw_departures:
-                electric_vehicles.append(ElectricVehicles(counter, 1, 220, 100))
-                self.ev_dict[vehicle[0]] = counter
-                counter += 1
-
-                # the first edge that the vehicle is original on cannot be changed in sumo
-                departures.append(self.edges[self.edge_dict[vehicle[1]]].end)
-
+            self.charging_stations = np.asarray(charging_stations)
             self.electric_vehicles = np.asarray(electric_vehicles)
             self.departures = np.asarray(departures)
-
-            demand = []
-            for d in raw_demand:
-                demand.append(Demand(self.vertex_dict[d[0]], self.vertex_dict[d[1]]))
-
+            self.departures = [int(x) for x in self.departures]
+            self.actual_departures = np.asarray(actual_departures)
             self.demand = np.asarray(demand)
-
-            charging_stations = []
-            charging_stations.append(ChargingStation(3, 220, 20))
-            self.charging_stations = np.asarray(charging_stations)
 
             self.n_vertex = len(self.vertices)
             self.n_edge = len(self.edges)
@@ -209,10 +219,17 @@ class FMPEnv(gym.Env):
         else:
             self.sumo_gui_path = None
 
+        if "sumo_configuration_path" in kwargs:
+            self.sumo_configuration_path = kwargs["sumo_configuration_path"]
+            del kwargs["sumo_configuration_path"]
+        else:
+            self.sumo_configuration_path = None
+
         self._fmp = FMP(**kwargs)  # todo: make it "final"
 
         self.sumo = SumoRender(
             self.sumo_gui_path,
+            self.sumo_configuration_path,
             self.fmp.edge_dict,
             self.fmp.edge_length_dict,
             self.fmp.ev_dict,
@@ -274,14 +291,13 @@ class FMPEnv(gym.Env):
             prev_location = self.states[i].location
             prev_locations.append(prev_location)
             prev_is_loading = self.states[i].is_loading.current
-            prev_battery = self.states[i].battery
             (
                 self.states[i].is_loading,
                 self.states[i].is_charging,
                 self.states[i].location,
             ) = (
                 Loading(actions[i].is_loading.current, actions[i].is_loading.target),
-                actions[i].is_charging,
+                actions[i].is_charging.charging_station,
                 actions[i].location,
             )
             self.states[i].battery -= sumo_gym.utils.fmp_utils.dist_between(
@@ -293,12 +309,8 @@ class FMPEnv(gym.Env):
             travel_info.append((prev_location, actions[i].location))
 
             assert self.states[i].battery >= 0
-            if self.states[i].is_charging != -1:
-                self.states[i].battery += self.fmp.charging_stations[
-                    self.states[i].is_charging
-                ].charging_speed
-
-            self.rewards[i] += min(self.states[i].battery - prev_battery, 0)
+            self.states[i].battery += actions[i].is_charging.battery_charged
+            self.rewards[i] += actions[i].is_charging.battery_charged
 
             if prev_is_loading != -1 and self.states[i].is_loading.current == -1:
                 self.responded.add(prev_is_loading)

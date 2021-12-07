@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<routes>
+
+	<vType id="EV" accel="3.0" decel="6.0" length="5.0" minGap="2.5" maxSpeed="50.0" sigma="0.5" vClass="evehicle" emissionClass="Energy" guiShape="evehicle">
+		<param key="has.battery.device" value="true"/>
+        <param key="maximumBatteryCapacity" value="1200"/>
+        <param key="maximumPower" value="1000"/>
+        <param key="vehicleMass" value="10000"/>
+        <param key="frontSurfaceArea" value="5"/>
+        <param key="airDragCoefficient" value="0.6"/>
+        <param key="internalMomentOfInertia" value="0.01"/>
+        <param key="radialDragCoefficient" value="0.5"/>
+        <param key="rollDragCoefficient" value="0.01"/>
+        <param key="constantPowerIntake" value="100"/>
+        <param key="propulsionEfficiency" value="0.9"/>
+        <param key="recuperationEfficiency" value="0.9"/>
+        <param key="stoppingTreshold" value="0.1"/>
+	</vType>
+
+	<vehicle id="0" type="EV" depart="0" color="1,0,0">
+		<param key="actualBatteryCapacity" value="1200"/>
+      	<route edges="-gneE15"/>
+    </vehicle>
+
+    <vehicle id="1" type="EV" depart="0" color="0,1,0">
+    	<param key="actualBatteryCapacity" value="1200"/>
+     	<route edges="-gneE19 -gneE18"/>
+    </vehicle>
+
+
+</routes>

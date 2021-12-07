@@ -12,6 +12,7 @@ class SumoRender:
     def __init__(
         self,
         sumo_gui_path: str = None,
+        sumo_configuration_path: str = None,
         edge_dict: dict = None,
         edge_length_dict: dict = None,
         ev_dict: dict = None,
@@ -35,7 +36,7 @@ class SumoRender:
         else:
             sys.exit("please declare environment variable 'SUMO_HOME'")
 
-        traci.start([self.sumo_gui_path, "-c", "assets/data/sumo_simulation.sumocfg"])
+        traci.start([self.sumo_gui_path, "-c", sumo_configuration_path])
 
     def get_stop_status(self):
         return self.stop_statuses
@@ -115,19 +116,32 @@ class SumoRender:
                 edge_id = self._find_key_from_value(
                     self.edge_dict, self._find_edge_index(via_edge)
                 )
-                self.routes[i] += tuple([edge_id])
+
+                if "split" not in edge_id:
+                    actual_edge_id = edge_id
+                else:
+                    actual_edge_id = edge_id[7:]
+
+                self.routes[i] += tuple([actual_edge_id])
 
                 print(
                     "Vehicle ",
                     vehicle_id,
                     " has arrived stopped location, reassign new routes: ",
-                    self.routes[i],
+                    self.routes[i][-2],
+                    self.routes[i][-1],
                 )
-
-                traci.vehicle.setRoute(vehID=vehicle_id, edgeList=self.routes[i][-2:])
+                if (
+                    self.routes[i][-1] != self.routes[i][-2]
+                ): # handle the case for stopping at CS and then resume
+                    traci.vehicle.setRoute(
+                        vehID=vehicle_id, edgeList=self.routes[i][-2:]
+                    )
+                else:
+                    edge_id = actual_edge_id
                 traci.vehicle.setStop(
                     vehID=vehicle_id,
-                    edgeID=edge_id,
+                    edgeID=actual_edge_id,
                     pos=self.edge_length_dict[edge_id],
                     laneIndex=0,
                     duration=189999999999,
