@@ -111,15 +111,22 @@ class Loading(object):
     def __repr__(self):
         return f"(responding {self.current}, goto respond {self.target})"
 
+class Charging(object):
+    def __init__(self, charging_station=-1, battery_charged=0):
+        self.charging_station = charging_station
+        self.battery_charged = battery_charged
+
+    def __repr__(self):
+        return f"(goto charge {self.charging_station}, battery added {self.battery_charged})"
 
 class GridAction(object):
     def __init__(self, state=None):
         self.is_loading = state.is_loading
-        self.is_charging = state.is_charging
+        self.is_charging = Charging(state.is_charging, 0)
         self.location = state.location
 
     def __repr__(self):
-        return f"({self.is_loading}, goto charge {self.is_charging}, location {self.location})"
+        return f"({self.is_loading}, {self.is_charging}, location {self.location})"
 
 
 def convert_raw_vertices(raw_vertices):
