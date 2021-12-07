@@ -26,7 +26,7 @@ $ source .env/bin/activate
 #(.env)$ python -m ipykernel install --user --name sumo_gym
 (.env)$ touch ~/.bashrc; open ~/.bashrc
 (.env)$ export SUMO_HOME=<your_path_to>/sumo SUMO_GUI_PATH=<your_path_to>/sumo-gui # and copy the paths to ~/.bashrc
-(.env)$ python3 tutorials/make-fmpenv-xml.py --sumo-gui-path $SUMO_GUI_PATH
+(.env)$ python3 tutorials/fmp-jumbo.py --sumo-gui-path $SUMO_GUI_PATH
 ```
 
 You can also use Anaconda virtual environment to develop:

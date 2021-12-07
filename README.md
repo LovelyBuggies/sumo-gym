@@ -25,7 +25,7 @@ $ source .env/bin/activate
 The installation is successful so far, then you can try the examples in the tutorials, for example:
 
 ```shell
-(env)$ python3 tutorials/make-fmpenv-xml.py --sumo-gui-path $SUMO_GUI_PATH
+(env)$ python3 tutorials/fmp-jumbo.py --sumo-gui-path $SUMO_GUI_PATH
 ```
 
 ## Features
