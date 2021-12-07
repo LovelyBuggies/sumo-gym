@@ -1,6 +1,8 @@
 import operator
-import numpy as np
 import random
+import sys
+import os
+import numpy as np
 import numpy.typing as npt
 from typing import Type, Tuple, Dict, Any
 import sumo_gym.typing
@@ -213,11 +215,10 @@ class FMPEnv(gym.Env):
 
     def __init__(self, **kwargs):
 
-        if "sumo_gui_path" in kwargs:
-            self.sumo_gui_path = kwargs["sumo_gui_path"]
-            del kwargs["sumo_gui_path"]
+        if "SUMO_GUI_PATH" in os.environ:
+            self.sumo_gui_path = os.environ["SUMO_GUI_PATH"]
         else:
-            self.sumo_gui_path = None
+            sys.exit("please declare environment variable 'SUMO_GUI_PATH'")
 
         if "sumo_configuration_path" in kwargs:
             self.sumo_configuration_path = kwargs["sumo_configuration_path"]
