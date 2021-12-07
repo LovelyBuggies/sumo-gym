@@ -15,11 +15,11 @@ OpenAI-gym like toolkit for developing and comparing reinforcement learning algo
 Install SUMO, SUMO GUI and XQuartz according to [official guide](https://sumo.dlr.de/docs/Installing/index.html#macos).
 
 ```shell
-$ python3 -m venv env
-$ source env/bin/activate
-(env)$ pip install -r requirements.txt
-(env)$ pip install sumo-gym
-(env)$ export SUMO_HOME=<your_path_to>/sumo SUMO_GUI_PATH=<your_path_to>/sumo-gui # and copy the paths to ~/.bashrc
+$ python3 -m venv .env
+$ source .env/bin/activate
+(.env)$ pip install -r requirements.txt
+(.env)$ pip install sumo-gym
+(.env)$ export SUMO_HOME=<your_path_to>/sumo SUMO_GUI_PATH=<your_path_to>/sumo-gui # and copy the paths to ~/.bashrc
 ```
 
 The installation is successful so far, then you can try the examples in the tutorials, for example:
@@ -74,9 +74,9 @@ We would like to acknowledge the contributors that made this project possible ([
   <tr>
     <td align="center"><a href="https://github.com/LovelyBuggies"><img src="https://avatars.githubusercontent.com/u/29083689?v=4?s=80" width="80px;" alt=""/><br /><sub><b>N!no</b></sub></a><br /><a href="https://github.com/LovelyBuggies/sumo-gym/commits?author=LovelyBuggies" title="Code">💻</a> <a href="https://github.com/LovelyBuggies/sumo-gym/issues?q=author%3ALovelyBuggies" title="Bug reports">🐛</a> <a href="#ideas-LovelyBuggies" title="Ideas, Planning, & Feedback">🤔</a></td>
     <td align="center"><a href="https://www.linkedin.com/in/yunhao-wang-871364aa/"><img src="https://avatars.githubusercontent.com/u/18152628?v=4?s=80" width="80px;" alt=""/><br /><sub><b>yunhaow</b></sub></a><br /><a href="https://github.com/LovelyBuggies/sumo-gym/commits?author=wyunhao" title="Code">💻</a> <a href="https://github.com/LovelyBuggies/sumo-gym/issues?q=author%3Awyunhao" title="Bug reports">🐛</a> <a href="#ideas-wyunhao" title="Ideas, Planning, & Feedback">🤔</a></td>
+    <td align="center"><a href="https://github.com/AlwaysSearching"><img src="https://avatars.githubusercontent.com/u/53829883?v=4?s=80" width="80px;" alt=""/><br /><sub><b>Sam Fieldman</b></sub></a><br /><a href="https://github.com/LovelyBuggies/sumo-gym/issues?q=author%3AAlwaysSearching" title="Bug reports">🐛</a> <a href="#ideas-AlwaysSearching" title="Ideas, Planning, & Feedback">🤔</a></td>
     <td align="center"><a href="https://github.com/qqqube"><img src="https://avatars.githubusercontent.com/u/24397793?v=4?s=80" width="80px;" alt=""/><br /><sub><b>Lauren Hong</b></sub></a><br /><a href="https://github.com/LovelyBuggies/sumo-gym/commits?author=qqqube" title="Code">💻</a></td>
-    <td align="center"><a href="https://github.com/AlwaysSearching"><img src="https://avatars.githubusercontent.com/u/53829883?v=4?s=80" width="80px;" alt=""/><br /><sub><b>Sam Fieldman</b></sub></a><br /><a href="https://github.com/LovelyBuggies/sumo-gym/issues?q=author%3AAlwaysSearching" title="Bug reports">🐛</a></td>
-    <td align="center"><a href="https://github.com/nmauskar"><img src="https://avatars.githubusercontent.com/u/6404257?v=4?s=80" width="80px;" alt=""/><br /><sub><b>nmauskar</b></sub></a><br /><a href="#ideas-nmauskar" title="Ideas, Planning, & Feedback">🤔</a> <a href="https://github.com/LovelyBuggies/sumo-gym/commits?author=nmauskar" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/nmauskar"><img src="https://avatars.githubusercontent.com/u/6404257?v=4?s=80" width="80px;" alt=""/><br /><sub><b>nmauskar</b></sub></a><br /> <a href="https://github.com/LovelyBuggies/sumo-gym/commits?author=nmauskar" title="Code">💻</a></td>
   </tr>
 </table>
 

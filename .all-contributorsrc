@@ -28,6 +28,16 @@
       ]
     },
     {
+      "login": "AlwaysSearching",
+      "name": "Sam Fieldman",
+      "avatar_url": "https://avatars.githubusercontent.com/u/53829883?v=4",
+      "profile": "https://github.com/AlwaysSearching",
+      "contributions": [
+        "bug",
+        "ideas"
+      ]
+    },
+    {
       "login": "qqqube",
       "name": "Lauren Hong",
       "avatar_url": "https://avatars.githubusercontent.com/u/24397793?v=4",
@@ -37,22 +47,12 @@
       ]
     },
     {
-      "login": "AlwaysSearching",
-      "name": "Sam Fieldman",
-      "avatar_url": "https://avatars.githubusercontent.com/u/53829883?v=4",
-      "profile": "https://github.com/AlwaysSearching",
-      "contributions": [
-        "bug"
-      ]
-    },
-    {
       "login": "nmauskar",
       "name": "nmauskar",
       "avatar_url": "https://avatars.githubusercontent.com/u/6404257?v=4",
       "profile": "https://github.com/nmauskar",
       "contributions": [
-        "ideas",
-        "code"
+        "ideas"
       ]
     }
   ],

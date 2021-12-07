@@ -11,9 +11,19 @@ extras_require = {
         "pytest >=6",
         "pytest-mpl >=0.12",
     ],
+    "torch": [
+        "torch >=1.10.0",
+        "torchvision >=0.11.1",
+        "torchaudio >=0.10.0",
+    ],
 }
 
-extras_require["dev"] = [*extras_require["test"], *extras_require["plot"], "ipykernel"]
+extras_require["dev"] = [
+    *extras_require["test"],
+    *extras_require["plot"],
+    *extras_require["torch"],
+    "ipykernel",
+]
 
 extras_require["docs"] = [
     *extras_require["plot"],
