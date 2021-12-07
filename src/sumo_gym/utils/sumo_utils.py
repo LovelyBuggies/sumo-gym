@@ -71,8 +71,6 @@ class SumoRender:
         traci.close()
 
     def _initialize_route(self):
-        print("*****", self.edge_dict, self.edges)
-        print("         ", self.edge_length_dict)
         for i in range(self.n_vehicle):
 
             vehicle_id = self._find_key_from_value(self.ev_dict, i)
@@ -118,7 +116,13 @@ class SumoRender:
                 edge_id = self._find_key_from_value(
                     self.edge_dict, self._find_edge_index(via_edge)
                 )
-                self.routes[i] += tuple([edge_id])
+
+                if "split" not in edge_id:
+                    actual_edge_id = edge_id
+                else:
+                    actual_edge_id = edge_id[7:]
+
+                self.routes[i] += tuple([actual_edge_id])
 
                 print(
                     "Vehicle ",
@@ -130,7 +134,7 @@ class SumoRender:
                 traci.vehicle.setRoute(vehID=vehicle_id, edgeList=self.routes[i][-2:])
                 traci.vehicle.setStop(
                     vehID=vehicle_id,
-                    edgeID=edge_id,
+                    edgeID=actual_edge_id,
                     pos=self.edge_length_dict[edge_id],
                     laneIndex=0,
                     duration=189999999999,
@@ -150,7 +154,6 @@ class SumoRender:
         return list(dict.keys())[list(dict.values()).index(value)]
 
     def _find_edge_index(self, via_edge):
-        print("                ", via_edge)
         for i in range(len(self.edges)):
             if via_edge[0] == self.edges[i].start and via_edge[1] == self.edges[i].end:
                 return i
