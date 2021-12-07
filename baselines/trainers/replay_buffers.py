@@ -21,7 +21,7 @@ class ReplayBuffer(Memory):
      - action: action taken
      - next state: representation of next state (should be same as state)
     The memory has a size of N. When capacity is reached, the oldest experience
-    is deleted to make space for the lastest experience.
+    is deleted to make space for the latest experience.
      - This is implemented as a circular buffer so that inserting experiences are O(1)
      - Each element of an experience is stored as a separate array of size N * element dim
     When a batch of experiences is requested, K experiences are sampled according to a random uniform distribution.
@@ -269,7 +269,7 @@ class SumTree:
         # Add 1 to data_pointer
         self.data_pointer += 1
 
-        # If we reach capacity loop to begining of the leaf nodes.
+        # If we reach capacity loop to beginning of the leaf nodes.
         if self.data_pointer >= self.capacity:
             self.data_pointer = 0
 
@@ -321,7 +321,7 @@ class SumTree:
 
 class PrioritizedExperienceReplay(Memory):
     """
-    Impliment a Replay buffer which utilizes the prioritized replay mechanism from
+    Implement a Replay buffer which utilizes the prioritized replay mechanism from
         PRIORITIZED EXPERIENCE REPLAY, 2016
         Tom Schaul, John Quan, Ioannis Antonoglou and David Silver
         https://arxiv.org/pdf/1511.05952.pdf
