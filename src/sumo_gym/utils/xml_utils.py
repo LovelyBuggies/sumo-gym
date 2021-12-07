@@ -16,12 +16,6 @@ EDGE_XML_TAG = "edge"
 EDGE_XML_INVALID_FUNC = "internal"
 EDGE_XML_PRIORITY = "-1"
 
-
-def encode_xml_fmp(net_xml_file_path: str = None, flow_xml_file_path: str = None):
-    # TODO
-    pass
-
-
 def get_electric_vehicles(flow_xml_tree):
     """
     Helper function for decode_xml_fmp
