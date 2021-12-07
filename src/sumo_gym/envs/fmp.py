@@ -91,14 +91,11 @@ class FMP(object):
             # `edges` is a list of Edge instances
             # `self.edge_dict` is a mapping from SUMO edge id
             #   to idx in `edges`
-            # `self.edge_attr` is a list of tuples (sumo_edge_id [str], length [float])
-            #   corresponding to instances in `edges`
             # `self.edge_length_dict` is a dictionary
             #    mapping from SUMO edge id to edge length
             (
                 edges,
                 self.edge_dict,
-                self.edge_attr,
                 self.edge_length_dict,
             ) = convert_raw_edges(raw_edges, self.vertex_dict)
 
@@ -108,14 +105,12 @@ class FMP(object):
             (
                 charging_stations,
                 self.charging_stations_dict,
-                self.edge_attr,
                 self.edge_length_dict,
             ) = convert_raw_charging_stations(
                 raw_charging_stations,
                 vertices,
                 edges,
                 self.edge_dict,
-                self.edge_attr,
                 self.edge_length_dict,
             )
 
@@ -156,6 +151,8 @@ class FMP(object):
             self.n_vehicle = self.n_electric_vehicles = len(self.electric_vehicles)
             self.n_charging_station = len(self.charging_stations)
 
+            print("       ", self.vertex_dict)
+            print("       cs: ", self.charging_stations)
             if not self._is_valid():
                 raise ValueError("FMP setting is not valid")
 

@@ -71,6 +71,8 @@ class SumoRender:
         traci.close()
 
     def _initialize_route(self):
+        print("*****", self.edge_dict, self.edges)
+        print("         ", self.edge_length_dict)
         for i in range(self.n_vehicle):
 
             vehicle_id = self._find_key_from_value(self.ev_dict, i)
@@ -148,6 +150,7 @@ class SumoRender:
         return list(dict.keys())[list(dict.values()).index(value)]
 
     def _find_edge_index(self, via_edge):
+        print("                ", via_edge)
         for i in range(len(self.edges)):
             if via_edge[0] == self.edges[i].start and via_edge[1] == self.edges[i].end:
                 return i

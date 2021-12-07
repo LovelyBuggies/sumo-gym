@@ -79,15 +79,15 @@ def get_charging_stations(additional_xml_tree, net_xml_tree):
             if len(lanes) == 1:
                 edge_id = edge.attrib["id"]
                 break
-
-        cs_lst.append(
-            (
-                station.attrib["id"],
-                (float(x_coord), float(y_coord)),
-                edge_id,
-                float(station.attrib["power"]),
+        if "shadow" not in station.attrib["id"]:
+            cs_lst.append(
+                (
+                    station.attrib["id"],
+                    (float(x_coord), float(y_coord)),
+                    edge_id,
+                    float(station.attrib["power"]),
+                )
             )
-        )
 
     return cs_lst
 

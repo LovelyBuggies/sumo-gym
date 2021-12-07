@@ -1,5 +1,6 @@
 import sys
 import gym
+import sumo_gym
 
 if __name__ == "__main__":
     env = gym.make(

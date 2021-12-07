@@ -141,15 +141,13 @@ def convert_raw_edges(raw_edges, vertex_dict):
     """
     edges = []
     edge_dict = {}  # sumo edge_id to idx in edges
-    edge_attr = []  # list of tuples (sumo_edge_id, length)
     edge_length_dict = {}  # sumo edge_id to length
     for counter, e in enumerate(raw_edges):
         new_edge = Edge(vertex_dict[e[1]], vertex_dict[e[2]])
         edges.append(new_edge)
         edge_dict[e[0]] = counter
-        edge_attr.append((e[0], e[3]))
         edge_length_dict[e[0]] = e[3]
-    return edges, edge_dict, edge_attr, edge_length_dict
+    return edges, edge_dict, edge_length_dict
 
 
 def euclidean_distance(start_x, start_y, end_x, end_y):
@@ -161,7 +159,7 @@ def euclidean_distance(start_x, start_y, end_x, end_y):
 
 
 def convert_raw_charging_stations(
-    raw_charging_stations, vertices, edges, edge_dict, edge_attr, edge_length_dict
+    raw_charging_stations, vertices, edges, edge_dict, edge_length_dict
 ):
     """
     Each raw charging station is
@@ -188,12 +186,28 @@ def convert_raw_charging_stations(
         old_edge_start_idx = edges[edge_dict[edge_id]].start
         old_edge_end_idx = edges[edge_dict[edge_id]].end
 
-        new_edge1 = Edge(old_edge_start_idx, vtx_counter)
-        new_edge2 = Edge(vtx_counter, old_edge_end_idx)
-        edges.append(new_edge1)
-        edges.append(new_edge2)
 
-        # add edge lengths to edge_attr
+        if "-" in edge_id:
+            edge_id_shadow = edge_id[1:]
+        else:
+            edge_id_shadow = "-%s" % edge_id
+
+        curr_edge_count = len(edge_dict)
+        edges.append(Edge(old_edge_start_idx, vtx_counter))
+        edge_dict["split1_%s" % edge_id] = curr_edge_count
+        
+        curr_edge_count += 1
+        edges.append(Edge(vtx_counter, old_edge_start_idx))
+        edge_dict["split1_%s" % edge_id_shadow] = curr_edge_count
+        
+        curr_edge_count += 1
+        edges.append(Edge(vtx_counter, old_edge_end_idx))
+        edge_dict["split2_%s" % edge_id] = curr_edge_count
+        
+        curr_edge_count += 1
+        edges.append(Edge(old_edge_end_idx, vtx_counter))
+        edge_dict["split2_%s" % edge_id_shadow] = curr_edge_count
+
         old_edge_start_vtx = vertices[old_edge_start_idx]
         old_edge_end_vtx = vertices[old_edge_end_idx]
 
@@ -204,19 +218,17 @@ def convert_raw_charging_stations(
             x_coord, y_coord, old_edge_end_vtx.x, old_edge_end_vtx.y
         )
 
-        edge_attr.append(("split1_%s" % edge_id, edge1_length))
-
-        edge_attr.append(("split2_%s" % edge_id, edge2_length))
-
         edge_length_dict["split1_%s" % edge_id] = edge1_length
+        edge_length_dict["split1_%s" % edge_id_shadow] = edge1_length
         edge_length_dict["split2_%s" % edge_id] = edge2_length
+        edge_length_dict["split2_%s" % edge_id_shadow] = edge2_length
 
         # instantiate new ChargingStation with location set to idx in `vertices`
         charging_stations.append(ChargingStation(vtx_counter, 220, charging_station[3]))
 
         vtx_counter += 1
 
-    return charging_stations, charging_station_dict, edge_attr, edge_length_dict
+    return charging_stations, charging_station_dict, edge_length_dict
 
 
 def convert_raw_electric_vehicles(raw_electric_vehicles):
