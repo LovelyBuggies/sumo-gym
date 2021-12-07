@@ -43,3 +43,8 @@ tutorials/*.html
 .idea
 vizdoom.ini
 /tutorials/img/
+
+
+assets/data/battery.out.xml
+assets/data/*summary.xml
+

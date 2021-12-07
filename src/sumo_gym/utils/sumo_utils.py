@@ -12,6 +12,7 @@ class SumoRender:
     def __init__(
         self,
         sumo_gui_path: str = None,
+        sumo_configuration_path: str = None,
         edge_dict: dict = None,
         edge_length_dict: dict = None,
         ev_dict: dict = None,
@@ -35,7 +36,7 @@ class SumoRender:
         else:
             sys.exit("please declare environment variable 'SUMO_HOME'")
 
-        traci.start([self.sumo_gui_path, "-c", "assets/data/sumo_simulation.sumocfg"])
+        traci.start([self.sumo_gui_path, "-c", sumo_configuration_path])
 
     def get_stop_status(self):
         return self.stop_statuses
