@@ -205,10 +205,6 @@ def decode_xml_fmp(
     return vertices, charging_stations, electric_vehicles, edges, departures, demand
 
 
-def encode_xml(file_path):
-    pass
-
-
 def decode_xml(
     net_xml_file_path: str = None, flow_xml_file_path: str = None
 ) -> Tuple[npt.NDArray[Any]]:
