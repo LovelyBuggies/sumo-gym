@@ -86,6 +86,7 @@ def get_charging_stations(additional_xml_tree, net_xml_tree):
                     (float(x_coord), float(y_coord)),
                     edge_id,
                     float(station.attrib["power"]),
+                    float(station.attrib["endPos"]),
                 )
             )
 
