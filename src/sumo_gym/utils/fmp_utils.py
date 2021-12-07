@@ -7,6 +7,7 @@ NO_LOADING = -1
 NO_CHARGING = -1
 CHARGING_STATION_LENGTH = 5
 
+
 class Vertex(object):
     def __init__(self, x, y):
         self.x = x
@@ -198,7 +199,6 @@ def convert_raw_charging_stations(
         edge_length_positive_edge_cs = charging_station[4]
         edge_length_postive_edge = edge_length_dict[edge_id]
 
-
         curr_edge_count = len(edge_dict)
         edges.append(Edge(old_edge_start_idx, vtx_counter))
         edge_dict["split1_%s" % edge_id] = curr_edge_count
@@ -209,16 +209,23 @@ def convert_raw_charging_stations(
         edge_dict["split1_-%s" % edge_id] = curr_edge_count
         edge_length_dict["split1_-%s" % edge_id] = edge_length_positive_edge_cs
 
-
         curr_edge_count += 1
         edges.append(Edge(vtx_counter, old_edge_end_idx))
         edge_dict["split2_%s" % edge_id] = curr_edge_count
-        edge_length_dict["split2_%s" % edge_id] = edge_length_postive_edge - edge_length_positive_edge_cs + CHARGING_STATION_LENGTH
+        edge_length_dict["split2_%s" % edge_id] = (
+            edge_length_postive_edge
+            - edge_length_positive_edge_cs
+            + CHARGING_STATION_LENGTH
+        )
 
         curr_edge_count += 1
         edges.append(Edge(old_edge_end_idx, vtx_counter))
-        edge_dict["split2_-%s" % edge_id] = curr_edge_count        
-        edge_length_dict["split2_-%s" % edge_id] = edge_length_postive_edge - edge_length_positive_edge_cs + CHARGING_STATION_LENGTH
+        edge_dict["split2_-%s" % edge_id] = curr_edge_count
+        edge_length_dict["split2_-%s" % edge_id] = (
+            edge_length_postive_edge
+            - edge_length_positive_edge_cs
+            + CHARGING_STATION_LENGTH
+        )
 
         # instantiate new ChargingStation with location set to idx in `vertices`
         charging_stations.append(ChargingStation(vtx_counter, 220, charging_station[3]))

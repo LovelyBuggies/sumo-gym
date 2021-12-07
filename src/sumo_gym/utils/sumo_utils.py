@@ -133,7 +133,7 @@ class SumoRender:
                 )
                 if (
                     self.routes[i][-1] != self.routes[i][-2]
-                ): # handle the case for stopping at CS and then resume
+                ):  # handle the case for stopping at CS and then resume
                     traci.vehicle.setRoute(
                         vehID=vehicle_id, edgeList=self.routes[i][-2:]
                     )
