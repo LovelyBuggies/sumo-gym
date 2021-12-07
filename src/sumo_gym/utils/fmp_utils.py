@@ -186,7 +186,6 @@ def convert_raw_charging_stations(
         old_edge_start_idx = edges[edge_dict[edge_id]].start
         old_edge_end_idx = edges[edge_dict[edge_id]].end
 
-
         if "-" in edge_id:
             edge_id_shadow = edge_id[1:]
         else:
@@ -195,15 +194,15 @@ def convert_raw_charging_stations(
         curr_edge_count = len(edge_dict)
         edges.append(Edge(old_edge_start_idx, vtx_counter))
         edge_dict["split1_%s" % edge_id] = curr_edge_count
-        
+
         curr_edge_count += 1
         edges.append(Edge(vtx_counter, old_edge_start_idx))
         edge_dict["split1_%s" % edge_id_shadow] = curr_edge_count
-        
+
         curr_edge_count += 1
         edges.append(Edge(vtx_counter, old_edge_end_idx))
         edge_dict["split2_%s" % edge_id] = curr_edge_count
-        
+
         curr_edge_count += 1
         edges.append(Edge(old_edge_end_idx, vtx_counter))
         edge_dict["split2_%s" % edge_id_shadow] = curr_edge_count
