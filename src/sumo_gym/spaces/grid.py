@@ -2,7 +2,13 @@ from typing import Any
 import random
 
 import sumo_gym
-from sumo_gym.utils.fmp_utils import Loading, Charging, GridAction, NO_LOADING, NO_CHARGING
+from sumo_gym.utils.fmp_utils import (
+    Loading,
+    Charging,
+    GridAction,
+    NO_LOADING,
+    NO_CHARGING,
+)
 import gym
 
 import numpy as np
@@ -103,14 +109,16 @@ class GridSpace(gym.spaces.Space):
                 ):
                     print("----- Still charging")
                     samples[i].is_charging = Charging(
-                        self.states[i].is_charging, 
-                        self.charging_stations[self.states[i].is_charging].charging_speed
+                        self.states[i].is_charging,
+                        self.charging_stations[
+                            self.states[i].is_charging
+                        ].charging_speed,
                     )
                 else:
                     print("----- Charging finished")
                     samples[i].is_charging = Charging(
                         NO_CHARGING,
-                        self.electric_vehicles[i].capacity - self.states[i].battery
+                        self.electric_vehicles[i].capacity - self.states[i].battery,
                     )
             else:  # available
                 diagonal_len = 2 * (

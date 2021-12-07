@@ -128,10 +128,15 @@ class SumoRender:
                     "Vehicle ",
                     vehicle_id,
                     " has arrived stopped location, reassign new routes: ",
-                    self.routes[i][-2], self.routes[i][-1]
+                    self.routes[i][-2],
+                    self.routes[i][-1],
                 )
-                if self.routes[i][-1] != self.routes[i][-2]: # handle the case for stopping at CS and then resume
-                    traci.vehicle.setRoute(vehID=vehicle_id, edgeList=self.routes[i][-2:])
+                if (
+                    self.routes[i][-1] != self.routes[i][-2]
+                ):  # handle the case for stopping at CS and then resume
+                    traci.vehicle.setRoute(
+                        vehID=vehicle_id, edgeList=self.routes[i][-2:]
+                    )
                 traci.vehicle.setStop(
                     vehID=vehicle_id,
                     edgeID=actual_edge_id,

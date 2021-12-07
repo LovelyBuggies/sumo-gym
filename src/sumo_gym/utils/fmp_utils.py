@@ -111,6 +111,7 @@ class Loading(object):
     def __repr__(self):
         return f"(responding {self.current}, goto respond {self.target})"
 
+
 class Charging(object):
     def __init__(self, charging_station=-1, battery_charged=0):
         self.charging_station = charging_station
@@ -118,6 +119,7 @@ class Charging(object):
 
     def __repr__(self):
         return f"(goto charge {self.charging_station}, battery added {self.battery_charged})"
+
 
 class GridAction(object):
     def __init__(self, state=None):
