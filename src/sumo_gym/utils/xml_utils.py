@@ -17,11 +17,6 @@ EDGE_XML_INVALID_FUNC = "internal"
 EDGE_XML_PRIORITY = "-1"
 
 
-def encode_xml_fmp(net_xml_file_path: str = None, flow_xml_file_path: str = None):
-    # TODO
-    pass
-
-
 def get_electric_vehicles(flow_xml_tree):
     """
     Helper function for decode_xml_fmp
@@ -203,10 +198,6 @@ def decode_xml_fmp(
     departures = get_departures(flow_xml_tree)
     demand = get_demand(net_xml_tree)
     return vertices, charging_stations, electric_vehicles, edges, departures, demand
-
-
-def encode_xml(file_path):
-    pass
 
 
 def decode_xml(
