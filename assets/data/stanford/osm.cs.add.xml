@@ -7,5 +7,8 @@
 	    <chargingStation power="50" chargeInTransit="0" chrgpower="200000" efficiency="1" endPos="20" id="cS_396669269_0" lane="396669269_0" startPos="15">
 	    	<param key="approx_loc" value="-26.83 21.40"/>
 	    </chargingStation>
+	   	    <chargingStation power="50" chargeInTransit="0" chrgpower="200000" efficiency="1" endPos="23.5" id="cS_38921729_0" lane="38921729_0" startPos="18.5">
+	    	<param key="approx_loc" value="-26.83 21.40"/>
+	    </chargingStation>
 	</additional>
 </additionals>

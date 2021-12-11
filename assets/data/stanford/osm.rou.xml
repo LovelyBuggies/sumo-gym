@@ -19,7 +19,7 @@
 
 	<vehicle id="0" type="EV" depart="0" color="1,0,0">
 		<param key="actualBatteryCapacity" value="1200"/>
-      	<route edges="-413736744#1"/>
+      	<route edges="561916589 396881735#0 -684456925#9"/>
     </vehicle>
 
 
