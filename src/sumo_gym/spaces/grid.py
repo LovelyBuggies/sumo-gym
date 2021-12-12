@@ -42,7 +42,6 @@ class GridSpace(gym.spaces.Space):
         self.charging_stations = charging_stations
         self.states = states
         self.sumo = sumo
-        print("     DEMAND: ", demand)
 
     def sample(
         self,
