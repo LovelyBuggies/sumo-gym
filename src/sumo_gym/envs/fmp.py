@@ -317,7 +317,7 @@ class FMPEnv(gym.Env):
             assert self.states[i].battery >= 0
             if self.states[i].is_charging.current != NO_CHARGING:
                 self.states[i].battery += self.fmp.charging_stations[
-                    self.states[i].is_charging
+                    self.states[i].is_charging.current
                 ].charging_speed
                 self.rewards[i] += self.states[i].battery - prev_battery
 
