@@ -113,7 +113,6 @@ class GridSpace(gym.spaces.Space):
                     print("----- Charging finished")
                     samples[i].is_charging = Charging(NO_CHARGING, NO_CHARGING)
             elif self.states[i].is_charging.target != NO_CHARGING: # is on the way to charge
-                print("----- In the way to charge:", self.states[i].is_charging.target)
                 loc = sumo_gym.utils.fmp_utils.one_step_to_destination(
                     self.vertices,
                     self.edges,
@@ -122,11 +121,13 @@ class GridSpace(gym.spaces.Space):
                 )
                 samples[i].location = loc
                 if loc == self.charging_stations[self.states[i].is_charging.target].location:
+                    print("----- Arrived charging station:", self.states[i].is_charging.target)
                     samples[i].is_charging = Charging(
                         self.states[i].is_charging.target,
                         self.states[i].is_charging.target,
                     )
                 else:
+                    print("----- In the way to charge:", self.states[i].is_charging.target)
                     samples[i].is_charging = Charging(
                         self.states[i].is_charging.current,
                         self.states[i].is_charging.target,
