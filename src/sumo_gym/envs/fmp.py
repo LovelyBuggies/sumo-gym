@@ -323,12 +323,12 @@ class FMPEnv(gym.Env):
             )
             travel_info.append((prev_location, actions[i].location))
 
-            assert self.states[i].battery >= 0
+            # assert self.states[i].battery >= 0
             if self.states[i].is_charging.current != NO_CHARGING:
                 self.states[i].battery += self.fmp.charging_stations[
                     self.states[i].is_charging.current
                 ].charging_speed
-                self.rewards[i] += self.states[i].battery - prev_battery
+                # self.rewards[i] += self.states[i].battery - prev_battery
 
             if prev_is_loading != -1 and self.states[i].is_loading.current == -1:
                 self.responded.add(prev_is_loading)
