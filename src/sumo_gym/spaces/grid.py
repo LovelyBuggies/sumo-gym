@@ -1,5 +1,6 @@
 from typing import Any
 import random
+from random import randrange
 
 import sumo_gym
 from sumo_gym.utils.fmp_utils import (
@@ -145,7 +146,7 @@ class GridSpace(gym.spaces.Space):
                     self.electric_vehicles[i].capacity - diagonal_len
                 )
                 if np.random.random() < probability_of_togo_charge:
-                    rcs = random.choice(len(self.charging_stations))[0]
+                    rcs = randrange(len(self.charging_stations))
                     print("----- Goto charge:", rcs)
                     loc = sumo_gym.utils.fmp_utils.one_step_to_destination(
                         self.vertices,
