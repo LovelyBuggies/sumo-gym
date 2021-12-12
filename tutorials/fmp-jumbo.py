@@ -5,10 +5,11 @@ import sumo_gym
 if __name__ == "__main__":
     env = gym.make(
         "FMP-v0",
-        # sumo_configuration_path=sys.argv[sys.argv.index("--sumo-config-path") + 1],
-        net_xml_file_path="../assets/data/jumbo/jumbo.net.xml",
-        demand_xml_file_path="../assets/data/jumbo/jumbo.rou.xml",
-        additional_xml_file_path="../assets/data/jumbo/jumbo.cs.add.xml",
+        sumo_config_path="assets/data/jumbo/jumbo.sumocfg",
+        net_xml_file_path="assets/data/jumbo/jumbo.net.xml",
+        demand_xml_file_path="assets/data/jumbo/jumbo.rou.xml",
+        additional_xml_file_path="assets/data/jumbo/jumbo.cs.add.xml",
+        render_env=True if str(sys.argv[sys.argv.index("--render") + 1]) == "1" else False,
     )
 
     for i_episode in range(1):

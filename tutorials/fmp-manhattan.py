@@ -5,10 +5,11 @@ import sumo_gym
 if __name__ == "__main__":
     env = gym.make(
         "FMP-v0",
-        sumo_configuration_path=sys.argv[sys.argv.index("--sumo-config-path") + 1],
+        sumo_config_path=sys.argv[sys.argv.index("--sumo-config-path") + 1],
         net_xml_file_path="assets/data/manhattan/manhattan.net.xml",
         demand_xml_file_path="assets/data/manhattan/manhattan.rou.xml",
         additional_xml_file_path="assets/data/manhattan/manhattan.cs.add.xml",
+        render_env=True if str(sys.argv[sys.argv.index("--render") + 1]) == "1" else False,
     )
 
     for i_episode in range(1):

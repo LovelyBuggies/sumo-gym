@@ -230,26 +230,21 @@ class FMPEnv(gym.Env):
         else:
             self.sumo_gui_path = None
 
-        if "sumo_configuration_path" in kwargs:
-            self.sumo_configuration_path = kwargs["sumo_configuration_path"]
-            del kwargs["sumo_configuration_path"]
-        else:
-            self.sumo_configuration_path = None
+        self.sumo_config_path = kwargs["sumo_config_path"]
+        del kwargs["sumo_config_path"]
+        self.render_env = kwargs["render_env"]
+        del kwargs["render_env"]
 
         self._fmp = FMP(**kwargs)  # todo: make it "final"
-
-        if self.sumo_configuration_path is None:
-            self.sumo = None
-        else:
-            self.sumo = SumoRender(
+        self.sumo = SumoRender(
                 self.sumo_gui_path,
-                self.sumo_configuration_path,
+                self.sumo_config_path,
                 self.fmp.edge_dict,
                 self.fmp.edge_length_dict,
                 self.fmp.ev_dict,
                 self.fmp.edges,
                 self.fmp.n_electric_vehicles,
-            )
+        ) if self.render_env is True else None
 
         self.run = -1
         self._reset()
