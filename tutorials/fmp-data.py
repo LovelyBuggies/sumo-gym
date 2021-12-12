@@ -231,7 +231,7 @@ env = gym.make(
     departures=departures,
     charging_stations=charging_stations,
 )
-env.render()
+
 # plt.show()
 for i_episode in range(1):
     observation = env.reset()

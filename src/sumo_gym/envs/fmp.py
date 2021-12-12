@@ -228,7 +228,7 @@ class FMPEnv(gym.Env):
         if "SUMO_GUI_PATH" in os.environ:
             self.sumo_gui_path = os.environ["SUMO_GUI_PATH"]
         else:
-            sys.exit("please declare environment variable 'SUMO_GUI_PATH'")
+            self.sumo_gui_path = None
 
         if "sumo_configuration_path" in kwargs:
             self.sumo_configuration_path = kwargs["sumo_configuration_path"]
@@ -295,6 +295,10 @@ class FMPEnv(gym.Env):
             "Batteries": [s.battery for s in self.states],
             "Is_loading": [s.is_loading for s in self.states],
             "Is_charging": [s.is_charging for s in self.states],
+            "Takes_action": [
+                True if s.is_loading.target == NO_LOADING and s.is_charging.target == NO_CHARGING else False
+                for s in self.states
+            ]
         }
         return observation
 
@@ -353,6 +357,10 @@ class FMPEnv(gym.Env):
             "Batteries": [s.battery for s in self.states],
             "Is_loading": [s.is_loading for s in self.states],
             "Is_charging": [s.is_charging for s in self.states],
+            "Takes_action": [
+                True if s.is_loading.target == NO_LOADING and s.is_charging.target == NO_CHARGING else False
+                for s in self.states
+            ]
         }
         reward, done, info = (
             self.rewards,
