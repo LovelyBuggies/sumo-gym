@@ -108,14 +108,18 @@ class GridSpace(gym.spaces.Space):
                 ].location
                 if (
                     self.electric_vehicles[i].capacity - self.states[i].battery
-                    > self.charging_stations[self.states[i].is_charging.current].charging_speed
+                    > self.charging_stations[
+                        self.states[i].is_charging.current
+                    ].charging_speed
                 ):
                     print("----- Still charging")
                     samples[i].is_charging = self.states[i].is_charging
                 else:
                     print("----- Charging finished")
                     samples[i].is_charging = Charging(NO_CHARGING, NO_CHARGING)
-            elif self.states[i].is_charging.target != NO_CHARGING: # is on the way to charge
+            elif (
+                self.states[i].is_charging.target != NO_CHARGING
+            ):  # is on the way to charge
                 loc = sumo_gym.utils.fmp_utils.one_step_to_destination(
                     self.vertices,
                     self.edges,
@@ -123,14 +127,24 @@ class GridSpace(gym.spaces.Space):
                     self.charging_stations[self.states[i].is_charging.target].location,
                 )
                 samples[i].location = loc
-                if loc == self.charging_stations[self.states[i].is_charging.target].location:
-                    print("----- Arrived charging station:", self.states[i].is_charging.target)
+                if (
+                    loc
+                    == self.charging_stations[
+                        self.states[i].is_charging.target
+                    ].location
+                ):
+                    print(
+                        "----- Arrived charging station:",
+                        self.states[i].is_charging.target,
+                    )
                     samples[i].is_charging = Charging(
                         self.states[i].is_charging.target,
                         self.states[i].is_charging.target,
                     )
                 else:
-                    print("----- In the way to charge:", self.states[i].is_charging.target)
+                    print(
+                        "----- In the way to charge:", self.states[i].is_charging.target
+                    )
                     samples[i].is_charging = Charging(
                         self.states[i].is_charging.current,
                         self.states[i].is_charging.target,
