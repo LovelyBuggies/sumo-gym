@@ -99,27 +99,19 @@ class GridSpace(gym.spaces.Space):
                         self.states[i].is_loading.current,
                         self.states[i].is_loading.target,
                     )
-            elif self.states[i].is_charging != NO_CHARGING:  # is charging
+            elif self.states[i].is_charging.current != NO_CHARGING:  # is charging
                 samples[i].location = self.charging_stations[
-                    self.states[i].is_charging
+                    self.states[i].is_charging.current
                 ].location
                 if (
                     self.electric_vehicles[i].capacity - self.states[i].battery
-                    > self.charging_stations[self.states[i].is_charging].charging_speed
+                    > self.charging_stations[self.states[i].is_charging.current].charging_speed
                 ):
                     print("----- Still charging")
-                    samples[i].is_charging = Charging(
-                        self.states[i].is_charging,
-                        self.charging_stations[
-                            self.states[i].is_charging
-                        ].charging_speed,
-                    )
+                    samples[i].is_charging = self.states[i].is_charging
                 else:
                     print("----- Charging finished")
-                    samples[i].is_charging = Charging(
-                        NO_CHARGING,
-                        self.electric_vehicles[i].capacity - self.states[i].battery,
-                    )
+                    samples[i].is_charging = Charging(-1, -1)
             else:  # available
                 diagonal_len = 2 * (
                     float(max(self.vertices, key=lambda item: item.y).y)
@@ -151,7 +143,7 @@ class GridSpace(gym.spaces.Space):
                     )
                     samples[i].location = loc
                     if loc == self.charging_stations[ncs].location:
-                        samples[i].is_charging.charging_station = ncs
+                        samples[i].is_charging.current = ncs
                 else:
                     available_dmd = [
                         d
