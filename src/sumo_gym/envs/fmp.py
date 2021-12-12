@@ -7,6 +7,10 @@ import numpy.typing as npt
 from typing import Type, Tuple, Dict, Any
 import sumo_gym.typing
 
+from sumo_gym.utils.fmp_utils import (
+    NO_CHARGING,
+)
+
 import gym
 from gym import error, spaces, utils
 from gym.utils import seeding
@@ -292,13 +296,14 @@ class FMPEnv(gym.Env):
             prev_location = self.states[i].location
             prev_locations.append(prev_location)
             prev_is_loading = self.states[i].is_loading.current
+            prev_battery = self.states[i].battery
             (
                 self.states[i].is_loading,
                 self.states[i].is_charging,
                 self.states[i].location,
             ) = (
                 Loading(actions[i].is_loading.current, actions[i].is_loading.target),
-                actions[i].is_charging.charging_station,
+                Charging(actions[i].is_charging.current, actions[i].is_charging.target),
                 actions[i].location,
             )
             self.states[i].battery -= sumo_gym.utils.fmp_utils.dist_between(
@@ -310,8 +315,11 @@ class FMPEnv(gym.Env):
             travel_info.append((prev_location, actions[i].location))
 
             assert self.states[i].battery >= 0
-            self.states[i].battery += actions[i].is_charging.battery_charged
-            self.rewards[i] += actions[i].is_charging.battery_charged
+            if self.states[i].is_charging.current != NO_CHARGING:
+                self.states[i].battery += self.fmp.charging_stations[
+                    self.states[i].is_charging
+                ].charging_speed
+                self.rewards[i] += self.states[i].battery - prev_battery
 
             if prev_is_loading != -1 and self.states[i].is_loading.current == -1:
                 self.responded.add(prev_is_loading)
