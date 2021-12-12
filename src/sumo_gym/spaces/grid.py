@@ -58,9 +58,10 @@ class GridSpace(gym.spaces.Space):
                 responding.add(self.states[i].is_loading.target)  # todo
 
         if self.sumo is None:
-            stop_statuses = [True * n_vehicle]
+            stop_statuses = [True] * n_vehicle
         else:
             stop_statuses = self.sumo.get_stop_status()
+
         for i in range(n_vehicle):
             if not stop_statuses[i]:
                 print("----- Traveling along the edge...")

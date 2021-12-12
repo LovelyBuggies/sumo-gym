@@ -238,7 +238,7 @@ class FMPEnv(gym.Env):
 
         self._fmp = FMP(**kwargs)  # todo: make it "final"
 
-        if self.fmp.edge_dict is None:
+        if self.sumo_configuration_path is None:
             self.sumo = None
         else:
             self.sumo = SumoRender(
