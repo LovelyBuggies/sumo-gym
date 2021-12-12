@@ -1,5 +1,6 @@
 from typing import Any
 import random
+from random import randrange
 
 import sumo_gym
 from sumo_gym.utils.fmp_utils import (
@@ -41,7 +42,6 @@ class GridSpace(gym.spaces.Space):
         self.charging_stations = charging_stations
         self.states = states
         self.sumo = sumo
-        print("     DEMAND: ", demand)
 
     def sample(
         self,
@@ -57,7 +57,10 @@ class GridSpace(gym.spaces.Space):
             elif self.states[i].is_loading.target != NO_LOADING:
                 responding.add(self.states[i].is_loading.target)  # todo
 
-        stop_statuses = self.sumo.get_stop_status()
+        if self.sumo is None:
+            stop_statuses = [True * n_vehicle]
+        else:
+            stop_statuses = self.sumo.get_stop_status()
         for i in range(n_vehicle):
             if not stop_statuses[i]:
                 print("----- Traveling along the edge...")
@@ -99,26 +102,52 @@ class GridSpace(gym.spaces.Space):
                         self.states[i].is_loading.current,
                         self.states[i].is_loading.target,
                     )
-            elif self.states[i].is_charging != NO_CHARGING:  # is charging
+            elif self.states[i].is_charging.current != NO_CHARGING:  # is charging
                 samples[i].location = self.charging_stations[
-                    self.states[i].is_charging
+                    self.states[i].is_charging.current
                 ].location
                 if (
                     self.electric_vehicles[i].capacity - self.states[i].battery
-                    > self.charging_stations[self.states[i].is_charging].charging_speed
+                    > self.charging_stations[
+                        self.states[i].is_charging.current
+                    ].charging_speed
                 ):
                     print("----- Still charging")
-                    samples[i].is_charging = Charging(
-                        self.states[i].is_charging,
-                        self.charging_stations[
-                            self.states[i].is_charging
-                        ].charging_speed,
-                    )
+                    samples[i].is_charging = self.states[i].is_charging
                 else:
                     print("----- Charging finished")
+                    samples[i].is_charging = Charging(NO_CHARGING, NO_CHARGING)
+            elif (
+                self.states[i].is_charging.target != NO_CHARGING
+            ):  # is on the way to charge
+                loc = sumo_gym.utils.fmp_utils.one_step_to_destination(
+                    self.vertices,
+                    self.edges,
+                    self.states[i].location,
+                    self.charging_stations[self.states[i].is_charging.target].location,
+                )
+                samples[i].location = loc
+                if (
+                    loc
+                    == self.charging_stations[
+                        self.states[i].is_charging.target
+                    ].location
+                ):
+                    print(
+                        "----- Arrived charging station:",
+                        self.states[i].is_charging.target,
+                    )
                     samples[i].is_charging = Charging(
-                        NO_CHARGING,
-                        self.electric_vehicles[i].capacity - self.states[i].battery,
+                        self.states[i].is_charging.target,
+                        self.states[i].is_charging.target,
+                    )
+                else:
+                    print(
+                        "----- In the way to charge:", self.states[i].is_charging.target
+                    )
+                    samples[i].is_charging = Charging(
+                        self.states[i].is_charging.current,
+                        self.states[i].is_charging.target,
                     )
             else:  # available
                 diagonal_len = 2 * (
@@ -133,25 +162,17 @@ class GridSpace(gym.spaces.Space):
                     self.electric_vehicles[i].capacity - diagonal_len
                 )
                 if np.random.random() < probability_of_togo_charge:
-                    (
-                        ncs,
-                        _,
-                    ) = sumo_gym.utils.fmp_utils.nearest_charging_station_with_distance(
-                        self.vertices,
-                        self.charging_stations,
-                        self.edges,
-                        self.states[i].location,
-                    )
-                    print("----- Goto charge:", ncs)
+                    rcs = randrange(len(self.charging_stations))
+                    print("----- Goto charge:", rcs)
                     loc = sumo_gym.utils.fmp_utils.one_step_to_destination(
                         self.vertices,
                         self.edges,
                         self.states[i].location,
-                        self.charging_stations[ncs].location,
+                        self.charging_stations[rcs].location,
                     )
                     samples[i].location = loc
-                    if loc == self.charging_stations[ncs].location:
-                        samples[i].is_charging.charging_station = ncs
+                    if loc == self.charging_stations[rcs].location:
+                        samples[i].is_charging.target = rcs
                 else:
                     available_dmd = [
                         d
