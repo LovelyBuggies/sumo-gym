@@ -145,25 +145,17 @@ class GridSpace(gym.spaces.Space):
                     self.electric_vehicles[i].capacity - diagonal_len
                 )
                 if np.random.random() < probability_of_togo_charge:
-                    (
-                        ncs,
-                        _,
-                    ) = sumo_gym.utils.fmp_utils.nearest_charging_station_with_distance(
-                        self.vertices,
-                        self.charging_stations,
-                        self.edges,
-                        self.states[i].location,
-                    )
-                    print("----- Goto charge:", ncs)
+                    rcs = random.choice(len(self.charging_stations))[0]
+                    print("----- Goto charge:", rcs)
                     loc = sumo_gym.utils.fmp_utils.one_step_to_destination(
                         self.vertices,
                         self.edges,
                         self.states[i].location,
-                        self.charging_stations[ncs].location,
+                        self.charging_stations[rcs].location,
                     )
                     samples[i].location = loc
-                    if loc == self.charging_stations[ncs].location:
-                        samples[i].is_charging.target = ncs
+                    if loc == self.charging_stations[rcs].location:
+                        samples[i].is_charging.target = rcs
                 else:
                     available_dmd = [
                         d
