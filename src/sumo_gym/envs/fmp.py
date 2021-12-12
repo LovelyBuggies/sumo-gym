@@ -74,6 +74,8 @@ class FMP(object):
             self.departures = departures
             self.charging_stations = charging_stations
 
+            self.edge_dict = None
+
             if not self._is_valid():
                 raise ValueError("FMP setting is not valid")
 
@@ -232,15 +234,18 @@ class FMPEnv(gym.Env):
 
         self._fmp = FMP(**kwargs)  # todo: make it "final"
 
-        self.sumo = SumoRender(
-            self.sumo_gui_path,
-            self.sumo_configuration_path,
-            self.fmp.edge_dict,
-            self.fmp.edge_length_dict,
-            self.fmp.ev_dict,
-            self.fmp.edges,
-            self.fmp.n_electric_vehicles,
-        )
+        if self.fmp.edge_dict is None:
+            self.sumo = None
+        else:
+            self.sumo = SumoRender(
+                self.sumo_gui_path,
+                self.sumo_configuration_path,
+                self.fmp.edge_dict,
+                self.fmp.edge_length_dict,
+                self.fmp.ev_dict,
+                self.fmp.edges,
+                self.fmp.n_electric_vehicles,
+            )
 
         self.run = -1
         self._reset()
@@ -350,7 +355,8 @@ class FMPEnv(gym.Env):
             "",
         )
 
-        self.sumo.update_travel_vertex_info_for_vehicle(travel_info)
+        if self.sumo is not None:
+            self.sumo.update_travel_vertex_info_for_vehicle(travel_info)
 
         return observation, reward, done, info
 
@@ -381,10 +387,11 @@ class FMPEnv(gym.Env):
         # todo: this part should be move to .render()
         if self.sumo_gui_path is None:
             raise EnvironmentError("Need sumo-gui path to render")
-        else:
+        elif self.sumo is not None:
             self.sumo.render()
 
     # TODO: need to add default behavior also
     def close(self):
-        self.sumo.close()
+        if self.sumo is not None:
+            self.sumo.close()
         pass
