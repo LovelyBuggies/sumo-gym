@@ -195,7 +195,7 @@ class FMP(object):
 
 class FMPState(object):
     def __init__(
-        self, location=0, is_loading=Loading(-1, -1), is_charging=-1, battery=0
+        self, location=0, is_loading=Loading(-1, -1), is_charging=Charging(-1, -1), battery=0
     ):
         self.location = location
         self.is_loading = is_loading

@@ -119,7 +119,7 @@ class Charging(object):
         self.target = target
 
     def __repr__(self):
-        return f"(goto charge {self.charging_station}, battery added {self.battery_charged})"
+        return f"(charging {self.current}, go to charge {self.target})"
 
 
 class GridAction(object):
