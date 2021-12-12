@@ -111,7 +111,26 @@ class GridSpace(gym.spaces.Space):
                     samples[i].is_charging = self.states[i].is_charging
                 else:
                     print("----- Charging finished")
-                    samples[i].is_charging = Charging(-1, -1)
+                    samples[i].is_charging = Charging(NO_CHARGING, NO_CHARGING)
+            elif self.states[i].is_charging.target != NO_CHARGING: # is on the way to charge
+                print("----- In the way to charge:", self.states[i].is_charging.target)
+                loc = sumo_gym.utils.fmp_utils.one_step_to_destination(
+                    self.vertices,
+                    self.edges,
+                    self.states[i].location,
+                    self.charging_stations[self.states[i].is_charging.target].location,
+                )
+                samples[i].location = loc
+                if loc == self.charging_stations[self.states[i].is_charging.target].location:
+                    samples[i].is_charging = Charging(
+                        self.states[i].is_charging.target,
+                        self.states[i].is_charging.target,
+                    )
+                else:
+                    samples[i].is_charging = Charging(
+                        self.states[i].is_charging.current,
+                        self.states[i].is_charging.target,
+                    )
             else:  # available
                 diagonal_len = 2 * (
                     float(max(self.vertices, key=lambda item: item.y).y)
@@ -143,7 +162,7 @@ class GridSpace(gym.spaces.Space):
                     )
                     samples[i].location = loc
                     if loc == self.charging_stations[ncs].location:
-                        samples[i].is_charging.current = ncs
+                        samples[i].is_charging.target = ncs
                 else:
                     available_dmd = [
                         d
