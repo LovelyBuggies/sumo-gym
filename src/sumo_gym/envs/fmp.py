@@ -230,10 +230,17 @@ class FMPEnv(gym.Env):
         else:
             self.sumo_gui_path = None
 
-        self.sumo_config_path = kwargs["sumo_config_path"]
-        del kwargs["sumo_config_path"]
-        self.render_env = kwargs["render_env"]
-        del kwargs["render_env"]
+        if "sumo_config_path" in kwargs:
+            self.sumo_config_path = kwargs["sumo_config_path"]
+            del kwargs["sumo_config_path"]
+        else:
+            self.sumo_config_path = None
+
+        if "render_env" in kwargs:
+            self.render_env = kwargs["render_env"]
+            del kwargs["render_env"]
+        else:
+            self.render_env = False
 
         self._fmp = FMP(**kwargs)  # todo: make it "final"
         self.sumo = (
