@@ -9,7 +9,9 @@ if __name__ == "__main__":
         net_xml_file_path="assets/data/jumbo/jumbo.net.xml",
         demand_xml_file_path="assets/data/jumbo/jumbo.rou.xml",
         additional_xml_file_path="assets/data/jumbo/jumbo.cs.add.xml",
-        render_env=True if str(sys.argv[sys.argv.index("--render") + 1]) == "1" else False,
+        render_env=True
+        if str(sys.argv[sys.argv.index("--render") + 1]) == "1"
+        else False,
     )
 
     for i_episode in range(1):

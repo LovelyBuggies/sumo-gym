@@ -236,7 +236,8 @@ class FMPEnv(gym.Env):
         del kwargs["render_env"]
 
         self._fmp = FMP(**kwargs)  # todo: make it "final"
-        self.sumo = SumoRender(
+        self.sumo = (
+            SumoRender(
                 self.sumo_gui_path,
                 self.sumo_config_path,
                 self.fmp.edge_dict,
@@ -244,7 +245,10 @@ class FMPEnv(gym.Env):
                 self.fmp.ev_dict,
                 self.fmp.edges,
                 self.fmp.n_electric_vehicles,
-        ) if self.render_env is True else None
+            )
+            if self.render_env is True
+            else None
+        )
 
         self.run = -1
         self._reset()
@@ -291,9 +295,12 @@ class FMPEnv(gym.Env):
             "Is_loading": [s.is_loading for s in self.states],
             "Is_charging": [s.is_charging for s in self.states],
             "Takes_action": [
-                True if s.is_loading.target == NO_LOADING and s.is_charging.target == NO_CHARGING else False
+                True
+                if s.is_loading.target == NO_LOADING
+                and s.is_charging.target == NO_CHARGING
+                else False
                 for s in self.states
-            ]
+            ],
         }
         return observation
 
@@ -353,9 +360,12 @@ class FMPEnv(gym.Env):
             "Is_loading": [s.is_loading for s in self.states],
             "Is_charging": [s.is_charging for s in self.states],
             "Takes_action": [
-                True if s.is_loading.target == NO_LOADING and s.is_charging.target == NO_CHARGING else False
+                True
+                if s.is_loading.target == NO_LOADING
+                and s.is_charging.target == NO_CHARGING
+                else False
                 for s in self.states
-            ]
+            ],
         }
         reward, done, info = (
             self.rewards,
