@@ -1,0 +1,11 @@
+<additionals>
+<!--
+	with the convention that shadow charging station is always on edge starting with "-"
+	and the length of charging station to be 5
+-->
+   <additional>
+	    <chargingStation power="50" chargeInTransit="0" chrgpower="200000" efficiency="1" endPos="20" id="cS_1" lane="-5672571#2_0" startPos="15">
+	    	<param key="approx_loc" value="-26.83 21.40"/>
+	    </chargingStation>
+	</additional>
+</additionals>

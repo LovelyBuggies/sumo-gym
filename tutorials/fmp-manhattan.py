@@ -6,9 +6,9 @@ if __name__ == "__main__":
     env = gym.make(
         "FMP-v0",
         sumo_configuration_path=sys.argv[sys.argv.index("--sumo-config-path") + 1],
-        net_xml_file_path="assets/data/manhattan/manhattan.net.xml",
-        demand_xml_file_path="assets/data/manhattan/manhattan.rou.xml",
-        additional_xml_file_path="assets/data/manhattan/manhattan.cs.add.xml",
+        net_xml_file_path="assets/data/manhattan/osm.net.xml",
+        demand_xml_file_path="assets/data/manhattan/osm.rou.xml",
+        additional_xml_file_path="assets/data/manhattan/osm.cs.add.xml",
     )
 
     for i_episode in range(1):
