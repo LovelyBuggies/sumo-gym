@@ -1,6 +1,6 @@
 <configuration>
 	<input>
-		<net-file value="osm.net.xml"/>
+		<net-file value="manhattan.net.xml"/>
 		<route-files value="osm.rou.xml"/>
 		<additional-files value="osm.cs.add.xml" />
 	</input>
