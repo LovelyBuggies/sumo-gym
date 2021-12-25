@@ -1,41 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- generated on 2021-12-25 14:37:40 by Eclipse SUMO netedit Version 1.10.0
-<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/netconvertConfiguration.xsd">
-
-    <input>
-        <sumo-net-file value="/Users/yunhaowang/Desktop/sumo-gym/assets/data/cosmos/manhattan_0_refine.net.xml"/>
-    </input>
-
-    <output>
-        <output-file value="/Users/yunhaowang/Desktop/sumo-gym/assets/data/cosmos/cosmos.net.xml"/>
-    </output>
-
-    <processing>
-        <geometry.min-radius.fix.railways value="false"/>
-        <geometry.max-grade.fix value="false"/>
-        <offset.disable-normalization value="true"/>
-        <lefthand value="false"/>
-    </processing>
-
-    <junctions>
-        <no-turnarounds value="true"/>
-        <junctions.corner-detail value="5"/>
-        <junctions.limit-turn-speed value="5.5"/>
-        <rectangular-lane-cut value="false"/>
-    </junctions>
-
-    <pedestrian>
-        <walkingareas value="false"/>
-    </pedestrian>
-
-    <report>
-        <aggregate-warnings value="5"/>
-    </report>
-
-</configuration>
--->
-
 <net version="1.9" junctionCornerDetail="5" limitTurnSpeed="5.50" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/net_file.xsd">
 
     <location netOffset="-587554.72,-4518359.84" convBoundary="241.55,635.45,1345.30,1797.23" origBoundary="-73.961801,40.804425,-73.936284,40.849076" projParameter="+proj=utm +zone=18 +ellps=WGS84 +datum=WGS84 +units=m +no_defs"/>
