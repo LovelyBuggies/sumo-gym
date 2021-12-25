@@ -7,6 +7,10 @@ import numpy.typing as npt
 from typing import Type, Tuple, Dict, Any
 import sumo_gym.typing
 
+from sumo_gym.utils.fmp_utils import (
+    NO_CHARGING,
+)
+
 import gym
 from gym import error, spaces, utils
 from gym.utils import seeding
@@ -69,6 +73,8 @@ class FMP(object):
             self.electric_vehicles = electric_vehicles
             self.departures = departures
             self.charging_stations = charging_stations
+
+            self.edge_dict = None
 
             if not self._is_valid():
                 raise ValueError("FMP setting is not valid")
@@ -191,7 +197,11 @@ class FMP(object):
 
 class FMPState(object):
     def __init__(
-        self, location=0, is_loading=Loading(-1, -1), is_charging=-1, battery=0
+        self,
+        location=0,
+        is_loading=Loading(-1, -1),
+        is_charging=Charging(-1, -1),
+        battery=0,
     ):
         self.location = location
         self.is_loading = is_loading
@@ -218,24 +228,33 @@ class FMPEnv(gym.Env):
         if "SUMO_GUI_PATH" in os.environ:
             self.sumo_gui_path = os.environ["SUMO_GUI_PATH"]
         else:
-            sys.exit("please declare environment variable 'SUMO_GUI_PATH'")
+            self.sumo_gui_path = None
 
-        if "sumo_configuration_path" in kwargs:
-            self.sumo_configuration_path = kwargs["sumo_configuration_path"]
-            del kwargs["sumo_configuration_path"]
+        if "sumo_config_path" in kwargs:
+            self.sumo_config_path = kwargs["sumo_config_path"]
+            del kwargs["sumo_config_path"]
         else:
-            self.sumo_configuration_path = None
+            self.sumo_config_path = None
+
+        if "render_env" in kwargs:
+            self.render_env = kwargs["render_env"]
+            del kwargs["render_env"]
+        else:
+            self.render_env = False
 
         self._fmp = FMP(**kwargs)  # todo: make it "final"
-
-        self.sumo = SumoRender(
-            self.sumo_gui_path,
-            self.sumo_configuration_path,
-            self.fmp.edge_dict,
-            self.fmp.edge_length_dict,
-            self.fmp.ev_dict,
-            self.fmp.edges,
-            self.fmp.n_electric_vehicles,
+        self.sumo = (
+            SumoRender(
+                self.sumo_gui_path,
+                self.sumo_config_path,
+                self.fmp.edge_dict,
+                self.fmp.edge_length_dict,
+                self.fmp.ev_dict,
+                self.fmp.edges,
+                self.fmp.n_electric_vehicles,
+            )
+            if self.render_env is True
+            else None
         )
 
         self.run = -1
@@ -282,23 +301,32 @@ class FMPEnv(gym.Env):
             "Batteries": [s.battery for s in self.states],
             "Is_loading": [s.is_loading for s in self.states],
             "Is_charging": [s.is_charging for s in self.states],
+            "Takes_action": [
+                True
+                if s.is_loading.target == NO_LOADING
+                and s.is_charging.target == NO_CHARGING
+                else False
+                for s in self.states
+            ],
         }
         return observation
 
     def step(self, actions):
         prev_locations = []
         travel_info = []
+        self.rewards = np.zeros(self.fmp.n_vehicle)
         for i in range(self.fmp.n_vehicle):
             prev_location = self.states[i].location
             prev_locations.append(prev_location)
             prev_is_loading = self.states[i].is_loading.current
+            prev_battery = self.states[i].battery
             (
                 self.states[i].is_loading,
                 self.states[i].is_charging,
                 self.states[i].location,
             ) = (
                 Loading(actions[i].is_loading.current, actions[i].is_loading.target),
-                actions[i].is_charging.charging_station,
+                Charging(actions[i].is_charging.current, actions[i].is_charging.target),
                 actions[i].location,
             )
             self.states[i].battery -= sumo_gym.utils.fmp_utils.dist_between(
@@ -309,9 +337,12 @@ class FMPEnv(gym.Env):
             )
             travel_info.append((prev_location, actions[i].location))
 
-            assert self.states[i].battery >= 0
-            self.states[i].battery += actions[i].is_charging.battery_charged
-            self.rewards[i] += actions[i].is_charging.battery_charged
+            # assert self.states[i].battery >= 0
+            if self.states[i].is_charging.current != NO_CHARGING:
+                self.states[i].battery += self.fmp.charging_stations[
+                    self.states[i].is_charging.current
+                ].charging_speed
+                # self.rewards[i] += self.states[i].battery - prev_battery
 
             if prev_is_loading != -1 and self.states[i].is_loading.current == -1:
                 self.responded.add(prev_is_loading)
@@ -335,6 +366,13 @@ class FMPEnv(gym.Env):
             "Batteries": [s.battery for s in self.states],
             "Is_loading": [s.is_loading for s in self.states],
             "Is_charging": [s.is_charging for s in self.states],
+            "Takes_action": [
+                True
+                if s.is_loading.target == NO_LOADING
+                and s.is_charging.target == NO_CHARGING
+                else False
+                for s in self.states
+            ],
         }
         reward, done, info = (
             self.rewards,
@@ -342,7 +380,8 @@ class FMPEnv(gym.Env):
             "",
         )
 
-        self.sumo.update_travel_vertex_info_for_vehicle(travel_info)
+        if self.sumo is not None:
+            self.sumo.update_travel_vertex_info_for_vehicle(travel_info)
 
         return observation, reward, done, info
 
@@ -373,10 +412,11 @@ class FMPEnv(gym.Env):
         # todo: this part should be move to .render()
         if self.sumo_gui_path is None:
             raise EnvironmentError("Need sumo-gui path to render")
-        else:
+        elif self.sumo is not None:
             self.sumo.render()
 
     # TODO: need to add default behavior also
     def close(self):
-        self.sumo.close()
+        if self.sumo is not None:
+            self.sumo.close()
         pass

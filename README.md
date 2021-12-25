@@ -25,7 +25,7 @@ $ source .env/bin/activate
 The installation is successful so far, then you can try the examples in the tutorials, for example:
 
 ```shell
-(env)$ python3 tutorials/fmp-jumbo.py --sumo-config-path assets/data/jumbo/jumbo.sumocfg
+(env)$ python3 tutorials/fmp-jumbo.py --render 0
 ```
 
 ## Features
