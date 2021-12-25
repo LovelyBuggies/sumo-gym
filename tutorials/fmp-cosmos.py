@@ -5,10 +5,10 @@ import sumo_gym
 if __name__ == "__main__":
     env = gym.make(
         "FMP-v0",
-        sumo_config_path="assets/data/cosmos/manhattan.sumocfg",
-        net_xml_file_path="assets/data/cosmos/manhattan_0_refine.net.xml",
-        demand_xml_file_path="assets/data/cosmos/manhattan_traffic.rou.xml",
-        additional_xml_file_path="assets/data/cosmos/manhattan.cs.add.xml",
+        sumo_config_path="assets/data/cosmos/cosmos.sumocfg",
+        net_xml_file_path="assets/data/cosmos/cosmos.net.xml",
+        demand_xml_file_path="assets/data/cosmos/cosmos.rou.xml",
+        additional_xml_file_path="assets/data/cosmos/cosmos.cs.add.xml",
         render_env=True
         if str(sys.argv[sys.argv.index("--render") + 1]) == "1"
         else False,
