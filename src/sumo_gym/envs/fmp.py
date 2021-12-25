@@ -382,6 +382,7 @@ class FMPEnv(gym.Env):
 
         if self.sumo is not None:
             self.sumo.update_travel_vertex_info_for_vehicle(travel_info)
+            self.render()
 
         return observation, reward, done, info
 
