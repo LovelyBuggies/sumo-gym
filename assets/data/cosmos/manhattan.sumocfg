@@ -1,0 +1,20 @@
+<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/duarouterConfiguration.xsd">
+
+    <input>
+        <net-file value="manhattan_0_refine.net.xml"/>
+        <route-files value="manhattan_traffic.rou.xml"/>
+        <additional-files value="manhattan.cs.add.xml" />
+        <gui-settings-file value="manhattan.settings.xml,manhattan2.settings.xml"/>
+    </input>
+
+    <time>
+        <begin value="0"/>
+        <step-length value="0.5"/>
+        <end value="10000.0"/>
+    </time>
+
+    <processing>
+        <waiting-time-memory value="1000"/>
+    </processing>
+
+</configuration>

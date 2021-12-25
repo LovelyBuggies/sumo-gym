@@ -1,20 +1,18 @@
-<additionals>
 <!-- 
 	with the convention that shadow charging station is always on edge starting with "-" 
 	and the length of charging station to be 5
 -->
-   <additional>
-	    <chargingStation power="50" chargeInTransit="0" chrgpower="200000" efficiency="1" endPos="25" id="cS_1_shadow" lane="-gneE18_0" startPos="20">
-	    	<param key="approx_loc" value="32.36 23.80"/>
-	    </chargingStation>
-	    <chargingStation power="50" chargeInTransit="0" chrgpower="200000" efficiency="1" endPos="20" id="cS_2" lane="gneE2_0" startPos="15">
-	    	<param key="approx_loc" value="-26.83 21.40"/>
-	    </chargingStation>
-		<chargingStation power="50" chargeInTransit="0" chrgpower="200000" efficiency="1" endPos="39.3" id="cS_1" lane="gneE18_0" startPos="34.3">
-	    	<param key="approx_loc" value="32.36 23.80"/>
-	    </chargingStation>
-	    <chargingStation power="50" chargeInTransit="0" chrgpower="200000" efficiency="1" endPos="23.5" id="cS_2_shadow" lane="-gneE2_0" startPos="18.5">
-	    	<param key="approx_loc" value="-26.83 21.40"/>
-	    </chargingStation>
-	</additional>
-</additionals>
+<additional>
+	<chargingStation power="50" chargeInTransit="0" chrgpower="200000" efficiency="1" endPos="25" id="cS_1_shadow" lane="-gneE18_0" startPos="20">
+		<param key="approx_loc" value="32.36 23.80"/>
+	</chargingStation>
+	<chargingStation power="50" chargeInTransit="0" chrgpower="200000" efficiency="1" endPos="20" id="cS_2" lane="gneE2_0" startPos="15">
+		<param key="approx_loc" value="-26.83 21.40"/>
+	</chargingStation>
+	<chargingStation power="50" chargeInTransit="0" chrgpower="200000" efficiency="1" endPos="39.3" id="cS_1" lane="gneE18_0" startPos="34.3">
+		<param key="approx_loc" value="32.36 23.80"/>
+	</chargingStation>
+	<chargingStation power="50" chargeInTransit="0" chrgpower="200000" efficiency="1" endPos="23.5" id="cS_2_shadow" lane="-gneE2_0" startPos="18.5">
+		<param key="approx_loc" value="-26.83 21.40"/>
+	</chargingStation>
+</additional>
