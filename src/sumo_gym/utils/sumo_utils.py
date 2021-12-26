@@ -79,8 +79,6 @@ class SumoRender:
             # stop at the ending vertex of vehicle's starting edge
             # notice here each vehicle must finish traveling along it starting edge
             # there is no way to reassign it.
-            print("Step stop for vehicle: ", vehicle_id)
-
             self.routes.append(tuple([edge_id]))
 
             traci.vehicle.setStop(
@@ -92,6 +90,8 @@ class SumoRender:
                 flags=0,
                 startPos=0,
             )
+
+            print("Step stop for vehicle: ", vehicle_id)
 
     def _update_route_with_stop(self):
         """

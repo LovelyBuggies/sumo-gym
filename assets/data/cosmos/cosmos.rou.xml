@@ -19,62 +19,62 @@
         <param key="stoppingTreshold" value="0.1"/>
 	</vType>
 
-    <vehicle id="-12" type="EV" depart="80.00">
+    <vehicle id="-12" type="EV" depart="0">
         <route edges="-196117053#1 -735173276#1"/>
         <param key="actualBatteryCapacity" value="1200"/>
     </vehicle>
 
-    <vehicle id="-9" type="EV" depart="80.00">
+    <vehicle id="-9" type="EV" depart="0">
         <route edges="223503127#6 223503127#7"/>
         <param key="actualBatteryCapacity" value="1200"/>
     </vehicle>
 
-    <vehicle id="-6" type="EV" depart="80.00">
+    <vehicle id="-6" type="EV" depart="0">
         <route edges="-196116967#1 -196116967#0"/>
         <param key="actualBatteryCapacity" value="1200"/>
     </vehicle>
 
-    <vehicle id="-3" type="EV" depart="80.00">
+    <vehicle id="-3" type="EV" depart="0">
         <route edges="-577976192#13 -577976192#12"/>
         <param key="actualBatteryCapacity" value="1200"/>
     </vehicle>
 
-    <vehicle id="-11" type="EV" depart="81.00">
+    <vehicle id="-11" type="EV" depart="0">
         <route edges="-196117053#1 -735173276#1"/>
         <param key="actualBatteryCapacity" value="1200"/>
     </vehicle>
 
-    <vehicle id="-8" type="EV" depart="81.00">
+    <vehicle id="-8" type="EV" depart="0">
         <route edges="223503127#6 223503127#7"/>
         <param key="actualBatteryCapacity" value="1200"/>
     </vehicle>
 
-    <vehicle id="-5" type="EV" depart="81.00">
+    <vehicle id="-5" type="EV" depart="0">
         <route edges="-196116967#1 -196116967#0"/>
         <param key="actualBatteryCapacity" value="1200"/>
     </vehicle>
 
-    <vehicle id="-2" type="EV" depart="81.00">
+    <vehicle id="-2" type="EV" depart="0">
         <route edges="-577976192#13 -577976192#12"/>
         <param key="actualBatteryCapacity" value="1200"/>
     </vehicle>
 
-    <vehicle id="-10" type="EV" depart="82.00">
+    <vehicle id="-10" type="EV" depart="0">
         <route edges="-196117053#1 -735173276#1"/>
         <param key="actualBatteryCapacity" value="1200"/>
     </vehicle>
 
-    <vehicle id="-7" type="EV" depart="82.00">
+    <vehicle id="-7" type="EV" depart="0">
         <route edges="223503127#6 223503127#7"/>
         <param key="actualBatteryCapacity" value="1200"/>
     </vehicle>
 
-    <vehicle id="-4" type="EV" depart="82.00">
+    <vehicle id="-4" type="EV" depart="0">
         <route edges="-196116967#1 -196116967#0"/>
         <param key="actualBatteryCapacity" value="1200"/>
     </vehicle>
 
-    <vehicle id="-1" type="EV" depart="82.00">
+    <vehicle id="-1" type="EV" depart="0">
         <route edges="-577976192#13 -577976192#12"/>
         <param key="actualBatteryCapacity" value="1200"/>
     </vehicle>
