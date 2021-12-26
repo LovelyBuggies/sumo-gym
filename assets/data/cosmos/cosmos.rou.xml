@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/routes_file.xsd">
+	<vType id="EV" accel="3.0" decel="6.0" length="5.0" minGap="2.5" maxSpeed="50.0" sigma="0.5" vClass="evehicle" emissionClass="Energy" guiShape="evehicle">
+		<param key="has.battery.device" value="true"/>
+        <param key="maximumBatteryCapacity" value="1200"/>
+        <param key="maximumPower" value="1000"/>
+        <param key="vehicleMass" value="10000"/>
+        <param key="frontSurfaceArea" value="5"/>
+        <param key="airDragCoefficient" value="0.6"/>
+        <param key="internalMomentOfInertia" value="0.01"/>
+        <param key="radialDragCoefficient" value="0.5"/>
+        <param key="rollDragCoefficient" value="0.01"/>
+        <param key="constantPowerIntake" value="100"/>
+        <param key="propulsionEfficiency" value="0.9"/>
+        <param key="recuperationEfficiency" value="0.9"/>
+        <param key="stoppingTreshold" value="0.1"/>
+	</vType>
+
+    <vehicle id="-12" type="EV" depart="0">
+        <route edges="-196117053#1 -735173276#1"/>
+        <param key="actualBatteryCapacity" value="1200"/>
+    </vehicle>
+
+    <vehicle id="-9" type="EV" depart="0">
+        <route edges="223503127#6 223503127#7"/>
+        <param key="actualBatteryCapacity" value="1200"/>
+    </vehicle>
+
+    <vehicle id="-6" type="EV" depart="0">
+        <route edges="-196116967#1 -196116967#0"/>
+        <param key="actualBatteryCapacity" value="1200"/>
+    </vehicle>
+
+    <vehicle id="-3" type="EV" depart="0">
+        <route edges="-577976192#13 -577976192#12"/>
+        <param key="actualBatteryCapacity" value="1200"/>
+    </vehicle>
+
+    <vehicle id="-11" type="EV" depart="0">
+        <route edges="-196117053#1 -735173276#1"/>
+        <param key="actualBatteryCapacity" value="1200"/>
+    </vehicle>
+
+    <vehicle id="-8" type="EV" depart="0">
+        <route edges="223503127#6 223503127#7"/>
+        <param key="actualBatteryCapacity" value="1200"/>
+    </vehicle>
+
+    <vehicle id="-5" type="EV" depart="0">
+        <route edges="-196116967#1 -196116967#0"/>
+        <param key="actualBatteryCapacity" value="1200"/>
+    </vehicle>
+
+    <vehicle id="-2" type="EV" depart="0">
+        <route edges="-577976192#13 -577976192#12"/>
+        <param key="actualBatteryCapacity" value="1200"/>
+    </vehicle>
+
+    <vehicle id="-10" type="EV" depart="0">
+        <route edges="-196117053#1 -735173276#1"/>
+        <param key="actualBatteryCapacity" value="1200"/>
+    </vehicle>
+
+    <vehicle id="-7" type="EV" depart="0">
+        <route edges="223503127#6 223503127#7"/>
+        <param key="actualBatteryCapacity" value="1200"/>
+    </vehicle>
+
+    <vehicle id="-4" type="EV" depart="0">
+        <route edges="-196116967#1 -196116967#0"/>
+        <param key="actualBatteryCapacity" value="1200"/>
+    </vehicle>
+
+    <vehicle id="-1" type="EV" depart="0">
+        <route edges="-577976192#13 -577976192#12"/>
+        <param key="actualBatteryCapacity" value="1200"/>
+    </vehicle>
+</routes>

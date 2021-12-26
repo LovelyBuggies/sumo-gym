@@ -3,6 +3,7 @@ import sys
 import traci
 
 import sumo_gym.typing
+from sumo_gym.utils.fmp_utils import IDLE_LOCATION
 
 
 STOPPED_STATUS = 1
@@ -61,8 +62,13 @@ class SumoRender:
             traci.simulationStep()
 
             self.terminated = True
+
+            eligible_vehicle = traci.vehicle.getIDList()
             for i in range(self.n_vehicle):
                 vehicle_id = self._find_key_from_value(self.ev_dict, i)
+                if vehicle_id not in eligible_vehicle:
+                    continue
+                
                 if (
                     traci.vehicle.getStopState(vehicle_id) != STOPPED_STATUS
                 ):  # as long as one vehicle not arrive its assigned last vertex, continue simulation
@@ -79,8 +85,6 @@ class SumoRender:
             # stop at the ending vertex of vehicle's starting edge
             # notice here each vehicle must finish traveling along it starting edge
             # there is no way to reassign it.
-            print("Step stop for vehicle: ", vehicle_id)
-
             self.routes.append(tuple([edge_id]))
 
             traci.vehicle.setStop(
@@ -93,13 +97,16 @@ class SumoRender:
                 startPos=0,
             )
 
+            print("Step stop for vehicle: ", vehicle_id)
+
     def _update_route_with_stop(self):
         """
         Update the route for each vehicle with the edge from its current stopped vertex to the next assigned vertex,
         and set the next stop to that 'to' vertex.
         Skip the vehicles that are still traveling along the edge, i.e., ev_stop = False.
         """
-        for i in range(self.n_vehicle):
+        eligible_vehicle = traci.vehicle.getIDList()
+        for i in range(self.n_vehicle):          
             if self.stop_statuses[i]:
 
                 # handle the case when the destination of last demand is the start of current demand
@@ -110,48 +117,65 @@ class SumoRender:
 
                 self.stop_statuses[i] = False
                 vehicle_id = self._find_key_from_value(self.ev_dict, i)
-                traci.vehicle.resume(vehicle_id)
-
-                via_edge = self.travel_info[i]
-                edge_id = self._find_key_from_value(
-                    self.edge_dict, self._find_edge_index(via_edge)
-                )
-
-                if "split" not in edge_id:
-                    actual_edge_id = edge_id
-                else:
-                    actual_edge_id = edge_id[7:]
-
-                self.routes[i] += tuple([actual_edge_id])
-
-                print(
-                    "Vehicle ",
-                    vehicle_id,
-                    " has arrived stopped location, reassign new routes: ",
-                    self.routes[i][-2],
-                    self.routes[i][-1],
-                )
-                if (
-                    self.routes[i][-1] != self.routes[i][-2]
-                ):  # handle the case for stopping at CS and then resume
-                    traci.vehicle.setRoute(
-                        vehID=vehicle_id, edgeList=self.routes[i][-2:]
+                if vehicle_id not in eligible_vehicle:
+                    continue
+                
+                # all demands satisfied or being responding, remove all idle car to unblock others at junction
+                if self.travel_info[i][1] == IDLE_LOCATION:
+                    traci.vehicle.remove(vehicle_id)
+                    print(
+                        "Vehicle ",
+                        vehicle_id,
+                        " becomes idle, remove from network."
                     )
+
                 else:
-                    edge_id = actual_edge_id
-                traci.vehicle.setStop(
-                    vehID=vehicle_id,
-                    edgeID=actual_edge_id,
-                    pos=self.edge_length_dict[edge_id],
-                    laneIndex=0,
-                    duration=189999999999,
-                    flags=0,
-                    startPos=0,
-                )
+                    traci.vehicle.resume(vehicle_id)
+
+                    via_edge = self.travel_info[i]
+                    edge_id = self._find_key_from_value(
+                        self.edge_dict, self._find_edge_index(via_edge)
+                    )
+
+                    if "split" not in edge_id:
+                        actual_edge_id = edge_id
+                    else:
+                        actual_edge_id = edge_id[7:]
+
+                    self.routes[i] += tuple([actual_edge_id])
+
+                    print(
+                        "Vehicle ",
+                        vehicle_id,
+                        " has arrived stopped location, reassign new routes: ",
+                        self.routes[i][-2],
+                        self.routes[i][-1],
+                    )
+                    if (
+                        self.routes[i][-1] != self.routes[i][-2]
+                    ):  # handle the case for stopping at CS and then resume
+                        traci.vehicle.setRoute(
+                            vehID=vehicle_id, edgeList=self.routes[i][-2:]
+                        )
+                    else:
+                        edge_id = actual_edge_id
+                    traci.vehicle.setStop(
+                        vehID=vehicle_id,
+                        edgeID=actual_edge_id,
+                        pos=self.edge_length_dict[edge_id],
+                        laneIndex=0,
+                        duration=189999999999,
+                        flags=0,
+                        startPos=0,
+                    )
 
     def _update_stop_status(self):
+        eligible_vehicle = traci.vehicle.getIDList()
+
         for i in range(self.n_vehicle):
             vehicle_id = self._find_key_from_value(self.ev_dict, i)
+            if vehicle_id not in eligible_vehicle:
+                continue
             if (
                 traci.vehicle.getStopState(vehicle_id) == STOPPED_STATUS
             ):  # arrived the assigned vertex, can be assigned to the next
