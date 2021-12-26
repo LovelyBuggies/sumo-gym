@@ -252,7 +252,7 @@ class FMPEnv(gym.Env):
                 self.fmp.edges,
                 self.fmp.n_electric_vehicle,
             )
-            if self.render_env is True
+            if hasattr(self, "render_env") and self.render_env is True
             else None
         )
         self.run = -1
