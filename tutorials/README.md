@@ -25,15 +25,14 @@ Charging stations are not defined in the net.xml or rou.xml files, and are inste
 For example, after loading `simple.sumocfg` in `SUMO GUI` with delay set to 80 ms, I determined that (32.36, 23.80) was a good estimate. Here is the content of `simple_charging_station_additional.xml`:
 
 ```
-<additionals>
-    <additional>
-        <chargingStation power="10000" chargeInTransit="0" chrgpower="200000" efficiency="1" endPos="25" id="cS_1" lane="-gneE18_0" startPos="20">
-            <param key="approx_loc" value="32.36 23.80"/>
-        </chargingStation>
-    </additional>
-</additionals>
+<additional>
+    <chargingStation power="10000" chargeInTransit="0" chrgpower="200000" efficiency="1" endPos="25" id="cS_1" lane="-gneE18_0" startPos="20">
+        <param key="approx_loc" value="32.36 23.80"/>
+    </chargingStation>
+</additional>
 ```
 Also, as shown above, charging speeds can be specified through the `power` attribute (W/h). Always set `efficiency` to 1. 
+Moreover, right now we assume the charging station to be on "Edge" when determining the actions of each vehicle since we treat the charging station as a "Vertex" to route the vehicle, while in sumo, the charging stations are set on "Lane". As a work around, we create two charging stations symmetrically on both lanes of the edge.
 
 **NOTE: The decoder currently assumes that there will be at most one charging station per lane. **
 ***
