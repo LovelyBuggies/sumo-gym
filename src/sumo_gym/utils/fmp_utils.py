@@ -133,6 +133,29 @@ class GridAction(object):
         return f"({self.is_loading}, {self.is_charging}, location {self.location})"
 
 
+class FMPState(object):
+    def __init__(
+        self,
+        location=0,
+        is_loading=Loading(-1, -1),
+        is_charging=Charging(-1, -1),
+        battery=0,
+    ):
+        self.location = location
+        self.is_loading = is_loading
+        self.is_charging = is_charging
+        self.battery = battery
+        self.stopped = False  # arrive the assigned vertex
+
+    def __repr__(self):
+        return (
+            f"Location: {self.location}, "
+            + f"Is loading: {(self.is_loading.current, self.is_loading.target)},"
+            + f"Is charging: {(self.is_charging)} "
+            + f"Battery: {(self.battery)}"
+        )
+
+
 def convert_raw_vertices(raw_vertices):
     """
     Each raw vertex is [id (str), x_coord (float), y_coord (float)]
