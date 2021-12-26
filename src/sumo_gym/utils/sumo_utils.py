@@ -137,7 +137,6 @@ class SumoRender:
                         actual_edge_id = edge_id
                     else:
                         actual_edge_id = edge_id[7:]
-
                     self.routes[i] += tuple([actual_edge_id])
 
                     print(
