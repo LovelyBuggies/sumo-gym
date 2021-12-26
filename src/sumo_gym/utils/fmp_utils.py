@@ -6,6 +6,7 @@ from typing import Tuple
 NO_LOADING = -1
 NO_CHARGING = -1
 CHARGING_STATION_LENGTH = 5
+IDLE_LOCATION = "IDLE"
 
 
 class Vertex(object):

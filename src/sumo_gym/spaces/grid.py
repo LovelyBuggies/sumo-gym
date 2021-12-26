@@ -4,6 +4,7 @@ from random import randrange
 
 import sumo_gym
 from sumo_gym.utils.fmp_utils import (
+    IDLE_LOCATION,
     Loading,
     Charging,
     GridAction,
@@ -197,7 +198,7 @@ class GridSpace(gym.spaces.Space):
                             samples[i].is_loading = Loading(NO_LOADING, dmd_idx)
                     else:
                         print("----- IDLE...")
-                        samples[i].location = self.states[i].location
+                        samples[i].location = IDLE_LOCATION
 
         print("Samples: ", samples)
         return samples
