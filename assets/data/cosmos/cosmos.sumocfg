@@ -1,0 +1,19 @@
+<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/duarouterConfiguration.xsd">
+
+    <input>
+        <net-file value="cosmos.net.xml"/>
+        <route-files value="cosmos.rou.xml"/>
+        <additional-files value="cosmos.cs.add.xml" />
+    </input>
+
+    <time>
+        <begin value="0"/>
+        <step-length value="0.5"/>
+        <end value="10000.0"/>
+    </time>
+
+    <processing>
+        <waiting-time-memory value="1000"/>
+    </processing>
+
+</configuration>

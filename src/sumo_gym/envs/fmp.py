@@ -327,7 +327,9 @@ class FMPEnv(gym.Env):
             ) = (
                 Loading(actions[i].is_loading.current, actions[i].is_loading.target),
                 Charging(actions[i].is_charging.current, actions[i].is_charging.target),
-                actions[i].location,
+                prev_location
+                if actions[i].location == IDLE_LOCATION
+                else actions[i].location,
             )
             self.states[i].battery -= sumo_gym.utils.fmp_utils.dist_between(
                 self.fmp.vertices,
@@ -342,11 +344,9 @@ class FMPEnv(gym.Env):
                 self.states[i].battery += self.fmp.charging_stations[
                     self.states[i].is_charging.current
                 ].charging_speed
-                # self.rewards[i] += self.states[i].battery - prev_battery
 
             if prev_is_loading != -1 and self.states[i].is_loading.current == -1:
                 self.responded.add(prev_is_loading)
-
                 self.rewards[i] += sumo_gym.utils.fmp_utils.get_hot_spot_weight(
                     self.fmp.vertices,
                     self.fmp.edges,
@@ -382,6 +382,7 @@ class FMPEnv(gym.Env):
 
         if self.sumo is not None:
             self.sumo.update_travel_vertex_info_for_vehicle(travel_info)
+            self.render()
 
         return observation, reward, done, info
 

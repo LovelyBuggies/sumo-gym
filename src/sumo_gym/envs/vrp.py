@@ -105,7 +105,7 @@ class VRP(object):
         return True
 
     def get_adj_list(self) -> sumo_gym.typing.AdjListType:
-        return network_utils.get_adj_list(self.vertices, self.edges)
+        return network_utils.get_adj_to_list(self.vertices, self.edges)
 
 
 class VRPEnv(gym.Env):

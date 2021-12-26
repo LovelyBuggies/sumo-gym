@@ -6,6 +6,7 @@ from typing import Tuple
 NO_LOADING = -1
 NO_CHARGING = -1
 CHARGING_STATION_LENGTH = 5
+IDLE_LOCATION = "IDLE"
 
 
 class Vertex(object):
@@ -244,7 +245,10 @@ def convert_raw_electric_vehicles(raw_electric_vehicles):
     electric_vehicles = []
     ev_dict = {}  # ev sumo id to idx in electric_vehicles
     for counter, vehicle in enumerate(raw_electric_vehicles):
-        electric_vehicles.append(ElectricVehicles(counter, vehicle[1], 220, vehicle[2]))
+        electric_vehicles.append(
+            ElectricVehicles(vehicle[0], vehicle[1], 220, vehicle[2])
+        )
+
         ev_dict[vehicle[0]] = counter
 
     return electric_vehicles, ev_dict
@@ -281,7 +285,7 @@ def one_step_to_destination(vertices, edges, start_index, dest_index):
 
     while bfs_queue:
         curr = bfs_queue.pop(0)
-        adjacent_map = network_utils.get_adj_list(vertices, edges)
+        adjacent_map = network_utils.get_adj_from_list(vertices, edges)
 
         for v in adjacent_map[curr]:
             if not visited[v] and v == start_index:
@@ -304,7 +308,7 @@ def nearest_charging_station_with_distance(
 
     while bfs_queue:
         curr, curr_depth = bfs_queue.pop(0)
-        adjacent_map = network_utils.get_adj_list(vertices, edges)
+        adjacent_map = network_utils.get_adj_to_list(vertices, edges)
 
         for v in adjacent_map[curr]:
             if not visited[v] and v in charging_station_vertices:
@@ -322,7 +326,7 @@ def dist_between(vertices, edges, start_index, dest_index):
     visited[start_index] = True
     while bfs_queue:
         curr, curr_depth = bfs_queue.pop(0)
-        adjacent_map = network_utils.get_adj_list(vertices, edges)
+        adjacent_map = network_utils.get_adj_to_list(vertices, edges)
 
         for v in adjacent_map[curr]:
             if not visited[v] and v == dest_index:
@@ -334,7 +338,7 @@ def dist_between(vertices, edges, start_index, dest_index):
 
 def get_hot_spot_weight(vertices, edges, demands, demand_start):
     adjacent_vertices = np.append(
-        network_utils.get_adj_list(vertices, edges)[demand_start], demand_start
+        network_utils.get_adj_to_list(vertices, edges)[demand_start], demand_start
     )
     local_demands = len([d for d in demands if d.departure in adjacent_vertices])
 
