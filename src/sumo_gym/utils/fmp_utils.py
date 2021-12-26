@@ -245,7 +245,10 @@ def convert_raw_electric_vehicles(raw_electric_vehicles):
     electric_vehicles = []
     ev_dict = {}  # ev sumo id to idx in electric_vehicles
     for counter, vehicle in enumerate(raw_electric_vehicles):
-        electric_vehicles.append(ElectricVehicles(vehicle[0], vehicle[1], 220, vehicle[2]))
+        electric_vehicles.append(
+            ElectricVehicles(vehicle[0], vehicle[1], 220, vehicle[2])
+        )
+
         ev_dict[vehicle[0]] = counter
 
     return electric_vehicles, ev_dict
