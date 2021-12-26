@@ -55,7 +55,6 @@ def get_charging_stations(additional_xml_tree, net_xml_tree):
     Each charging station is [id, (x_coord, y_coord), edge_id, charging speed]
     """
     cs_lst = []
-    # additional = additional_xml_tree.findall("additional")
     stations = additional_xml_tree.findall("chargingStation")
     for station in stations:
 
