@@ -5,10 +5,10 @@ import sumo_gym
 if __name__ == "__main__":
     env = gym.make(
         "FMP-v0",
-        sumo_config_path=sys.argv[sys.argv.index("--sumo-config-path") + 1],
-        net_xml_file_path="assets/data/manhattan/manhattan.net.xml",
-        demand_xml_file_path="assets/data/manhattan/manhattan.rou.xml",
-        additional_xml_file_path="assets/data/manhattan/manhattan.cs.add.xml",
+        sumo_config_path="assets/data/cosmos/cosmos.sumocfg",
+        net_xml_file_path="assets/data/cosmos/cosmos.net.xml",
+        demand_xml_file_path="assets/data/cosmos/cosmos.rou.xml",
+        additional_xml_file_path="assets/data/cosmos/cosmos.cs.add.xml",
         render_env=True
         if str(sys.argv[sys.argv.index("--render") + 1]) == "1"
         else False,
@@ -16,10 +16,9 @@ if __name__ == "__main__":
 
     for i_episode in range(1):
         observation = env.reset()
-        for t in range(3000):
+        for t in range(10000):
             action = env.action_space.sample()
             observation, reward, done, info = env.step(action)
-            env.render()
             if done:
                 print("Episode finished after {} timesteps.\n".format(t + 1))
                 break

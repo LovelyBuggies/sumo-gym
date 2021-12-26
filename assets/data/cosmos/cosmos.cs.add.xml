@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+	with the convention that shadow charging station is always on edge starting with "-" 
+	and the length of charging station to be 5
+-->
+
+<additional xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/additional_file.xsd">
+    <chargingStation id="0" power="50" lane="735173276#0_0" startPos="30.52" endPos="35.52">
+        <param key="approx_loc" value="754.74 1627.20"/>
+    </chargingStation>
+    <chargingStation id="0_shadow" power="50" lane="-735173276#0_0" startPos="31.23" endPos="36.23">
+        <param key="approx_loc" value="751.76 1628.46"/>
+    </chargingStation>
+    <chargingStation id="1" power="50" lane="608355942_0" startPos="22.89" endPos="27.89">
+        <param key="approx_loc" value="704.00 1156.03"/>
+    </chargingStation>
+    <chargingStation id="1_shadow" power="50" lane="-608355942_0" startPos="29.47" endPos="34.47">
+        <param key="approx_loc" value="702.92 1152.81"/>
+    </chargingStation>
+</additional>
