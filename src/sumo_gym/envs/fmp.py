@@ -7,10 +7,6 @@ import numpy.typing as npt
 from typing import Type, Tuple, Dict, Any
 import sumo_gym.typing
 
-from sumo_gym.utils.fmp_utils import (
-    NO_CHARGING,
-)
-
 import gym
 from gym import error, spaces, utils
 from gym.utils import seeding
@@ -23,13 +19,14 @@ from sumo_gym.utils.fmp_utils import *
 class FMP(object):
     def __init__(
         self,
+        mode: str = None,
         net_xml_file_path: str = None,
         demand_xml_file_path: str = None,
         additional_xml_file_path: str = None,
         n_vertex: int = 0,
         n_edge: int = 0,
         n_vehicle: int = 0,
-        n_electric_vehicles: int = 0,
+        n_electric_vehicle: int = 0,
         n_charging_station: int = 1,
         vertices: sumo_gym.typing.VerticesType = None,
         demand: sumo_gym.utils.fmp_utils.Demand = None,
@@ -38,129 +35,130 @@ class FMP(object):
         departures: sumo_gym.typing.DeparturesType = None,
         charging_stations: sumo_gym.utils.fmp_utils.ChargingStation = None,
     ):
-        """
-        :param n_vertex:                the number of vertices
-        :param n_charging_station:      the number of charging stations
-        :param n_edge:                  the number of edges
-        :param n_vehicle:               the number of vehicles
-        :param vertices:                the vertices, [vertex_index, x_position, y_position]
-        :param charging_stations:       the charging stations, [vertex_index, chargeDelay]
-        :param electric_vehicles:       the vehicles, [vehicle_index, speed, actualBatteryCapacity, maximumBatteryCapacity)]
-        :param demand:                  the demand at vertices, [start_vertex_index, end_vertex_index]
-        :param edges:                   the edges, [from_vertex_index, to_vertex_index]
-        :param departures:              the initial settings of vehicles, [vehicle_index, starting_vertex_index]
-        Create a Fleet Management Problem setting (assume capacity of all vehicles = 1, all demands at each possible node = 1).
-        """
-
-        if (
-            net_xml_file_path is None
-            or demand_xml_file_path is None
-            or additional_xml_file_path is None
-        ):
-            # number
-            self.n_vertex = n_vertex
-            self.n_edge = n_edge
-            self.n_vehicle = n_vehicle
-            self.n_electric_vehicles = n_electric_vehicles
-            self.n_charging_station = n_charging_station
-
-            # network
-            self.vertices = vertices
-            self.demand = demand
-            self.edges = edges
-
-            # vehicles
-            self.electric_vehicles = electric_vehicles
-            self.departures = departures
-            self.charging_stations = charging_stations
-
-            self.edge_dict = None
-
-            if not self._is_valid():
-                raise ValueError("FMP setting is not valid")
-
+        if mode is None:
+            raise Exception("Need a mode to identify")
+        elif mode == 'sumo_config':
+            self.__sumo_config_init(net_xml_file_path, demand_xml_file_path, additional_xml_file_path)
+        elif mode == 'numerical':
+            self.__numerical_init(n_vertex, n_edge, n_vehicle, n_electric_vehicle, n_charging_station, vertices, demand, edges, electric_vehicles, departures, charging_stations)
         else:
-            (
-                raw_vertices,  # [id (str), x_coord (float), y_coord (float)]
-                raw_charging_stations,  # [id, (x_coord, y_coord), edge_id, charging speed]
-                raw_electric_vehicles,  # [id (str), maximum speed (float), maximumBatteryCapacity (float)]
-                raw_edges,  # [id (str), from_vertex_id (str), to_vertex_id (str)]
-                raw_departures,  # [vehicle_id, starting_edge_id]
-                raw_demand,  # [junction_id, dest_vertex_id]
-            ) = sumo_gym.utils.xml_utils.decode_xml_fmp(
-                net_xml_file_path, demand_xml_file_path, additional_xml_file_path
-            )
+            raise Exception("Need a valid mode")
 
-            # `vertices` is a list of Vertex instances
-            # `self.vertex_dict` is a mapping from
-            #   vertex id in SUMO to idx in vertices
-            vertices, self.vertex_dict = convert_raw_vertices(raw_vertices)
+        if not self._is_valid():
+            raise ValueError("FMP setting is not valid")
 
-            # `edges` is a list of Edge instances
-            # `self.edge_dict` is a mapping from SUMO edge id
-            #   to idx in `edges`
-            # `self.edge_length_dict` is a dictionary
-            #    mapping from SUMO edge id to edge length
-            (
-                edges,
-                self.edge_dict,
-                self.edge_length_dict,
-            ) = convert_raw_edges(raw_edges, self.vertex_dict)
+    def __numerical_init(
+            self,
+            n_vertex: int = 0,
+            n_edge: int = 0,
+            n_vehicle: int = 0,
+            n_electric_vehicle: int = 0,
+            n_charging_station: int = 1,
+            vertices: sumo_gym.typing.VerticesType = None,
+            demand: sumo_gym.utils.fmp_utils.Demand = None,
+            edges: sumo_gym.typing.EdgeType = None,
+            electric_vehicles: sumo_gym.utils.fmp_utils.ElectricVehicles = None,
+            departures: sumo_gym.typing.DeparturesType = None,
+            charging_stations: sumo_gym.utils.fmp_utils.ChargingStation = None,
+    ):
+        # number
+        self.n_vertex = n_vertex
+        self.n_edge = n_edge
+        self.n_vehicle = n_vehicle
+        self.n_electric_vehicle = n_electric_vehicle
+        self.n_charging_station = n_charging_station
 
-            # `charging_stations` is a list of ChargingStation instances
-            # `self.charging_stations_dict` is a mapping from idx in `charging_stations`
-            #    to SUMO station id
-            (
-                charging_stations,
-                self.charging_stations_dict,
-                self.edge_length_dict,
-            ) = convert_raw_charging_stations(
-                raw_charging_stations,
-                vertices,
-                edges,
-                self.edge_dict,
-                self.edge_length_dict,
-            )
+        # network
+        self.vertices = vertices
+        self.demand = demand
+        self.edges = edges
 
-            # `electric_vehicles` is a list of ElectricVehicles instances
-            # `self.ev_dict` is a mapping from ev sumo id to idx in `electric_vehicles`
-            electric_vehicles, self.ev_dict = convert_raw_electric_vehicles(
-                raw_electric_vehicles
-            )
+        # vehicles
+        self.electric_vehicles = electric_vehicles
+        self.departures = departures
+        self.charging_stations = charging_stations
 
-            # departure should be defined for all vehicles
-            # `self.departures` and `self.actual_departures` are
-            #   lists of indices in `vertices`
-            # self.departures[i] is the starting point of electric_vehicles[i] (the endpoint of the passed in edge)
-            # self.actual_depatures[i] is the actual start vertex of electric_vehicles[i] (the starting point of the passed in edge)
-            departures, actual_departures = convert_raw_departures(
-                raw_departures,
-                self.ev_dict,
-                edges,
-                self.edge_dict,
-                len(electric_vehicles),
-            )
+        self.edge_dict = None
 
-            # `demand` is a list of Demand instances
-            demand = convert_raw_demand(raw_demand, self.vertex_dict)
+    def __sumo_config_init(
+            self,
+            net_xml_file_path: str = None,
+            demand_xml_file_path: str = None,
+            additional_xml_file_path: str = None,
+    ):
+        (
+            raw_vertices,  # [id (str), x_coord (float), y_coord (float)]
+            raw_charging_stations,  # [id, (x_coord, y_coord), edge_id, charging speed]
+            raw_electric_vehicles,  # [id (str), maximum speed (float), maximumBatteryCapacity (float)]
+            raw_edges,  # [id (str), from_vertex_id (str), to_vertex_id (str)]
+            raw_departures,  # [vehicle_id, starting_edge_id]
+            raw_demand,  # [junction_id, dest_vertex_id]
+        ) = sumo_gym.utils.xml_utils.decode_xml_fmp(
+            net_xml_file_path, demand_xml_file_path, additional_xml_file_path
+        )
 
-            # set the FMP variables
-            self.vertices = np.asarray(vertices)
-            self.edges = np.asarray(edges)
-            self.charging_stations = np.asarray(charging_stations)
-            self.electric_vehicles = np.asarray(electric_vehicles)
-            self.departures = np.asarray(departures)
-            self.departures = [int(x) for x in self.departures]
-            self.actual_departures = np.asarray(actual_departures)
-            self.demand = np.asarray(demand)
+        # `vertices` is a list of Vertex instances
+        # `self.vertex_dict` is a mapping from vertex id in SUMO to idx in vertices
+        vertices, self.vertex_dict = convert_raw_vertices(raw_vertices)
 
-            self.n_vertex = len(self.vertices)
-            self.n_edge = len(self.edges)
-            self.n_vehicle = self.n_electric_vehicles = len(self.electric_vehicles)
-            self.n_charging_station = len(self.charging_stations)
+        # `edges` is a list of Edge instances
+        # `self.edge_dict` is a mapping from SUMO edge id to idx in `edges`
+        # `self.edge_length_dict` is a dictionary mapping from SUMO edge id to edge length
+        (
+            edges,
+            self.edge_dict,
+            self.edge_length_dict,
+        ) = convert_raw_edges(raw_edges, self.vertex_dict)
 
-            if not self._is_valid():
-                raise ValueError("FMP setting is not valid")
+        # `charging_stations` is a list of ChargingStation instances
+        # `self.charging_stations_dict` is a mapping from idx in `charging_stations` to SUMO station id
+        (
+            charging_stations,
+            self.charging_stations_dict,
+            self.edge_length_dict,
+        ) = convert_raw_charging_stations(
+            raw_charging_stations,
+            vertices,
+            edges,
+            self.edge_dict,
+            self.edge_length_dict,
+        )
+
+        # `electric_vehicles` is a list of ElectricVehicles instances
+        # `self.ev_dict` is a mapping from ev sumo id to idx in `electric_vehicles`
+        electric_vehicles, self.ev_dict = convert_raw_electric_vehicles(
+            raw_electric_vehicles
+        )
+
+        # departure should be defined for all vehicles
+        # `self.departures` and `self.actual_departures` are lists of indices in `vertices`
+        # self.departures[i] is the starting point of electric_vehicles[i] (the endpoint of the passed in edge)
+        # self.actual_depatures[i] is the actual start vertex of electric_vehicles[i] (the starting point of the passed in edge)
+        departures, actual_departures = convert_raw_departures(
+            raw_departures,
+            self.ev_dict,
+            edges,
+            self.edge_dict,
+            len(electric_vehicles),
+        )
+
+        # `demand` is a list of Demand instances
+        demand = convert_raw_demand(raw_demand, self.vertex_dict)
+
+        # set the FMP variables
+        self.vertices = np.asarray(vertices)
+        self.edges = np.asarray(edges)
+        self.charging_stations = np.asarray(charging_stations)
+        self.electric_vehicles = np.asarray(electric_vehicles)
+        self.departures = np.asarray(departures)
+        self.departures = [int(x) for x in self.departures]
+        self.actual_departures = np.asarray(actual_departures)
+        self.demand = np.asarray(demand)
+
+        self.n_vertex = len(self.vertices)
+        self.n_edge = len(self.edges)
+        self.n_vehicle = self.n_electric_vehicle = len(self.electric_vehicles)
+        self.n_charging_station = len(self.charging_stations)
 
     def _is_valid(self):
         if (
@@ -195,29 +193,6 @@ class FMP(object):
         return True
 
 
-class FMPState(object):
-    def __init__(
-        self,
-        location=0,
-        is_loading=Loading(-1, -1),
-        is_charging=Charging(-1, -1),
-        battery=0,
-    ):
-        self.location = location
-        self.is_loading = is_loading
-        self.is_charging = is_charging
-        self.battery = battery
-        self.stopped = False  # arrive the assigned vertex
-
-    def __repr__(self):
-        return (
-            f"Location: {self.location}, "
-            + f"Is loading: {(self.is_loading.current, self.is_loading.target)},"
-            + f"Is charging: {(self.is_charging)} "
-            + f"Battery: {(self.battery)}"
-        )
-
-
 class FMPEnv(gym.Env):
     metadata = {"render.modes": ["human"]}
     fmp = property(operator.attrgetter("_fmp"))
@@ -225,22 +200,32 @@ class FMPEnv(gym.Env):
 
     def __init__(self, **kwargs):
 
-        if "SUMO_GUI_PATH" in os.environ:
-            self.sumo_gui_path = os.environ["SUMO_GUI_PATH"]
-        else:
-            self.sumo_gui_path = None
+        if 'mode' not in kwargs:
+            raise Exception("Need a mode to identify")
+        elif kwargs['mode'] == 'sumo_config':
+            if "SUMO_GUI_PATH" in os.environ:
+                self.sumo_gui_path = os.environ["SUMO_GUI_PATH"]
+            else:
+                raise Exception("Need 'SUMO_GUI_PATH' in the local environment")
 
-        if "sumo_config_path" in kwargs:
-            self.sumo_config_path = kwargs["sumo_config_path"]
-            del kwargs["sumo_config_path"]
-        else:
-            self.sumo_config_path = None
+            if "sumo_config_path" in kwargs:
+                self.sumo_config_path = kwargs["sumo_config_path"]
+                del kwargs["sumo_config_path"]
+            else:
+                raise Exception("Need 'sumo_config_path' argument to initialize")
 
-        if "render_env" in kwargs:
-            self.render_env = kwargs["render_env"]
-            del kwargs["render_env"]
+            if "render_env" in kwargs:
+                self.render_env = kwargs["render_env"]
+                del kwargs["render_env"]
+            else:
+                self.render_env = False
+
+        elif kwargs['mode'] == 'numerical':
+            if "render_env" in kwargs:
+                raise Exception("Only support render for 'sumo_config' mode")
+
         else:
-            self.render_env = False
+            raise Exception("Need a valid mode")
 
         self._fmp = FMP(**kwargs)  # todo: make it "final"
         self.sumo = (
@@ -251,12 +236,11 @@ class FMPEnv(gym.Env):
                 self.fmp.edge_length_dict,
                 self.fmp.ev_dict,
                 self.fmp.edges,
-                self.fmp.n_electric_vehicles,
+                self.fmp.n_electric_vehicle,
             )
             if self.render_env is True
             else None
         )
-
         self.run = -1
         self._reset()
         self._freeze()
@@ -275,9 +259,9 @@ class FMPEnv(gym.Env):
         return self._reset()
 
     def _reset(self):
-        self.states = [FMPState() for _ in range(self.fmp.n_electric_vehicles)]
+        self.states = [FMPState() for _ in range(self.fmp.n_electric_vehicle)]
         self.responded = set()
-        for i in range(self.fmp.n_electric_vehicles):
+        for i in range(self.fmp.n_electric_vehicle):
             self.states[i].location = self.fmp.departures[i]
             self.states[i].battery = self.fmp.electric_vehicles[i].capacity
 
@@ -290,7 +274,7 @@ class FMPEnv(gym.Env):
                 self.fmp.electric_vehicles,
                 self.fmp.charging_stations,
                 self.states,
-                self.sumo,
+                self.sumo if hasattr(self, 'sumo') else None,
             )
         )
         self.actions: sumo_gym.typing.ActionsType = None
@@ -380,7 +364,7 @@ class FMPEnv(gym.Env):
             "",
         )
 
-        if self.sumo is not None:
+        if hasattr(self, 'sumo') and self.sumo is not None:
             self.sumo.update_travel_vertex_info_for_vehicle(travel_info)
             self.render()
 
@@ -418,6 +402,5 @@ class FMPEnv(gym.Env):
 
     # TODO: need to add default behavior also
     def close(self):
-        if self.sumo is not None:
+        if hasattr(self, 'sumo') and self.sumo is not None:
             self.sumo.close()
-        pass

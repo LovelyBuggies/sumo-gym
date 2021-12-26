@@ -5,6 +5,7 @@ import sumo_gym
 if __name__ == "__main__":
     env = gym.make(
         "FMP-v0",
+        mode='sumo_config',
         sumo_config_path="assets/data/cosmos/cosmos.sumocfg",
         net_xml_file_path="assets/data/cosmos/cosmos.net.xml",
         demand_xml_file_path="assets/data/cosmos/cosmos.rou.xml",

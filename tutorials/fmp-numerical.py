@@ -5,6 +5,7 @@ from sumo_gym.envs.fmp import FMP
 from sumo_gym.utils.fmp_utils import Vertex, Edge, Demand
 from sumo_gym.utils.fmp_utils import ChargingStation, ElectricVehicles
 import random
+import sys
 
 import matplotlib.pyplot as plt
 
@@ -177,10 +178,10 @@ edges = np.asarray(
 n_vertex = len(vertices)
 n_edge = len(edges)
 n_vehicle = 1
-n_electric_vehicles = 1
+n_electric_vehicle = 1
 n_charging_station = 3
 electric_vehicles = np.asarray(
-    [ElectricVehicles(i, 1, 220, 50) for i in range(n_electric_vehicles)]
+    [ElectricVehicles(i, 1, 220, 50) for i in range(n_electric_vehicle)]
 )
 charging_stations = np.asarray(
     [
@@ -219,10 +220,11 @@ print()
 
 env = gym.make(
     "FMP-v0",
+    mode='numerical',
     n_vertex=n_vertex,
     n_edge=n_edge,
     n_vehicle=n_vehicle,
-    n_electric_vehicles=n_electric_vehicles,
+    n_electric_vehicle=n_electric_vehicle,
     n_charging_station=n_charging_station,
     vertices=vertices,
     demand=demand,
