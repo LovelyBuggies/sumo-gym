@@ -314,6 +314,7 @@ class FMPEnv(gym.Env):
     def step(self, actions):
         prev_locations = []
         travel_info = []
+        self.rewards = np.zeros(self.fmp.n_vehicle)
         for i in range(self.fmp.n_vehicle):
             prev_location = self.states[i].location
             prev_locations.append(prev_location)
