@@ -5,7 +5,7 @@ import sumo_gym
 if __name__ == "__main__":
     env = gym.make(
         "FMP-v0",
-        mode='sumo_config',
+        mode="sumo_config",
         sumo_config_path="assets/data/jumbo/jumbo.sumocfg",
         net_xml_file_path="assets/data/jumbo/jumbo.net.xml",
         demand_xml_file_path="assets/data/jumbo/jumbo.rou.xml",

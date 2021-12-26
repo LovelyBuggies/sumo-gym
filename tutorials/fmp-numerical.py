@@ -220,7 +220,7 @@ print()
 
 env = gym.make(
     "FMP-v0",
-    mode='numerical',
+    mode="numerical",
     n_vertex=n_vertex,
     n_edge=n_edge,
     n_vehicle=n_vehicle,

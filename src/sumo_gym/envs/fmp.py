@@ -37,10 +37,24 @@ class FMP(object):
     ):
         if mode is None:
             raise Exception("Need a mode to identify")
-        elif mode == 'sumo_config':
-            self.__sumo_config_init(net_xml_file_path, demand_xml_file_path, additional_xml_file_path)
-        elif mode == 'numerical':
-            self.__numerical_init(n_vertex, n_edge, n_vehicle, n_electric_vehicle, n_charging_station, vertices, demand, edges, electric_vehicles, departures, charging_stations)
+        elif mode == "sumo_config":
+            self.__sumo_config_init(
+                net_xml_file_path, demand_xml_file_path, additional_xml_file_path
+            )
+        elif mode == "numerical":
+            self.__numerical_init(
+                n_vertex,
+                n_edge,
+                n_vehicle,
+                n_electric_vehicle,
+                n_charging_station,
+                vertices,
+                demand,
+                edges,
+                electric_vehicles,
+                departures,
+                charging_stations,
+            )
         else:
             raise Exception("Need a valid mode")
 
@@ -48,18 +62,18 @@ class FMP(object):
             raise ValueError("FMP setting is not valid")
 
     def __numerical_init(
-            self,
-            n_vertex: int = 0,
-            n_edge: int = 0,
-            n_vehicle: int = 0,
-            n_electric_vehicle: int = 0,
-            n_charging_station: int = 1,
-            vertices: sumo_gym.typing.VerticesType = None,
-            demand: sumo_gym.utils.fmp_utils.Demand = None,
-            edges: sumo_gym.typing.EdgeType = None,
-            electric_vehicles: sumo_gym.utils.fmp_utils.ElectricVehicles = None,
-            departures: sumo_gym.typing.DeparturesType = None,
-            charging_stations: sumo_gym.utils.fmp_utils.ChargingStation = None,
+        self,
+        n_vertex: int = 0,
+        n_edge: int = 0,
+        n_vehicle: int = 0,
+        n_electric_vehicle: int = 0,
+        n_charging_station: int = 1,
+        vertices: sumo_gym.typing.VerticesType = None,
+        demand: sumo_gym.utils.fmp_utils.Demand = None,
+        edges: sumo_gym.typing.EdgeType = None,
+        electric_vehicles: sumo_gym.utils.fmp_utils.ElectricVehicles = None,
+        departures: sumo_gym.typing.DeparturesType = None,
+        charging_stations: sumo_gym.utils.fmp_utils.ChargingStation = None,
     ):
         # number
         self.n_vertex = n_vertex
@@ -81,10 +95,10 @@ class FMP(object):
         self.edge_dict = None
 
     def __sumo_config_init(
-            self,
-            net_xml_file_path: str = None,
-            demand_xml_file_path: str = None,
-            additional_xml_file_path: str = None,
+        self,
+        net_xml_file_path: str = None,
+        demand_xml_file_path: str = None,
+        additional_xml_file_path: str = None,
     ):
         (
             raw_vertices,  # [id (str), x_coord (float), y_coord (float)]
@@ -200,9 +214,9 @@ class FMPEnv(gym.Env):
 
     def __init__(self, **kwargs):
 
-        if 'mode' not in kwargs:
+        if "mode" not in kwargs:
             raise Exception("Need a mode to identify")
-        elif kwargs['mode'] == 'sumo_config':
+        elif kwargs["mode"] == "sumo_config":
             if "SUMO_GUI_PATH" in os.environ:
                 self.sumo_gui_path = os.environ["SUMO_GUI_PATH"]
             else:
@@ -220,7 +234,7 @@ class FMPEnv(gym.Env):
             else:
                 self.render_env = False
 
-        elif kwargs['mode'] == 'numerical':
+        elif kwargs["mode"] == "numerical":
             if "render_env" in kwargs:
                 raise Exception("Only support render for 'sumo_config' mode")
 
@@ -274,7 +288,7 @@ class FMPEnv(gym.Env):
                 self.fmp.electric_vehicles,
                 self.fmp.charging_stations,
                 self.states,
-                self.sumo if hasattr(self, 'sumo') else None,
+                self.sumo if hasattr(self, "sumo") else None,
             )
         )
         self.actions: sumo_gym.typing.ActionsType = None
@@ -364,7 +378,7 @@ class FMPEnv(gym.Env):
             "",
         )
 
-        if hasattr(self, 'sumo') and self.sumo is not None:
+        if hasattr(self, "sumo") and self.sumo is not None:
             self.sumo.update_travel_vertex_info_for_vehicle(travel_info)
             self.render()
 
@@ -402,5 +416,5 @@ class FMPEnv(gym.Env):
 
     # TODO: need to add default behavior also
     def close(self):
-        if hasattr(self, 'sumo') and self.sumo is not None:
+        if hasattr(self, "sumo") and self.sumo is not None:
             self.sumo.close()
