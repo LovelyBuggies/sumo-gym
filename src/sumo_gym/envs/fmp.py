@@ -314,7 +314,6 @@ class FMPEnv(gym.Env):
     def step(self, actions):
         prev_locations = []
         travel_info = []
-        self.rewards = np.zeros(self.fmp.n_vehicle)
         for i in range(self.fmp.n_vehicle):
             prev_location = self.states[i].location
             prev_locations.append(prev_location)
@@ -342,11 +341,9 @@ class FMPEnv(gym.Env):
                 self.states[i].battery += self.fmp.charging_stations[
                     self.states[i].is_charging.current
                 ].charging_speed
-                # self.rewards[i] += self.states[i].battery - prev_battery
 
             if prev_is_loading != -1 and self.states[i].is_loading.current == -1:
                 self.responded.add(prev_is_loading)
-
                 self.rewards[i] += sumo_gym.utils.fmp_utils.get_hot_spot_weight(
                     self.fmp.vertices,
                     self.fmp.edges,
