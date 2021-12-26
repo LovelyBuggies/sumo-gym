@@ -281,7 +281,7 @@ def one_step_to_destination(vertices, edges, start_index, dest_index):
 
     while bfs_queue:
         curr = bfs_queue.pop(0)
-        adjacent_map = network_utils.get_adj_list(vertices, edges)
+        adjacent_map = network_utils.get_adj_from_list(vertices, edges)
 
         for v in adjacent_map[curr]:
             if not visited[v] and v == start_index:
@@ -304,7 +304,7 @@ def nearest_charging_station_with_distance(
 
     while bfs_queue:
         curr, curr_depth = bfs_queue.pop(0)
-        adjacent_map = network_utils.get_adj_list(vertices, edges)
+        adjacent_map = network_utils.get_adj_to_list(vertices, edges)
 
         for v in adjacent_map[curr]:
             if not visited[v] and v in charging_station_vertices:
@@ -322,7 +322,7 @@ def dist_between(vertices, edges, start_index, dest_index):
     visited[start_index] = True
     while bfs_queue:
         curr, curr_depth = bfs_queue.pop(0)
-        adjacent_map = network_utils.get_adj_list(vertices, edges)
+        adjacent_map = network_utils.get_adj_to_list(vertices, edges)
 
         for v in adjacent_map[curr]:
             if not visited[v] and v == dest_index:
@@ -334,7 +334,7 @@ def dist_between(vertices, edges, start_index, dest_index):
 
 def get_hot_spot_weight(vertices, edges, demands, demand_start):
     adjacent_vertices = np.append(
-        network_utils.get_adj_list(vertices, edges)[demand_start], demand_start
+        network_utils.get_adj_to_list(vertices, edges)[demand_start], demand_start
     )
     local_demands = len([d for d in demands if d.departure in adjacent_vertices])
 
