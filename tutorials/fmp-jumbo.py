@@ -21,7 +21,6 @@ if __name__ == "__main__":
             action = env.action_space.sample()
             observation, reward, done, info = env.step(action)
             print("Takes actions: ", observation["Takes_action"])
-            # env.render()
             if done:
                 print("Episode finished after {} timesteps.\n".format(t + 1))
                 break
