@@ -68,7 +68,7 @@ class SumoRender:
                 vehicle_id = self._find_key_from_value(self.ev_dict, i)
                 if vehicle_id not in eligible_vehicle:
                     continue
-                
+
                 if (
                     traci.vehicle.getStopState(vehicle_id) != STOPPED_STATUS
                 ):  # as long as one vehicle not arrive its assigned last vertex, continue simulation
@@ -106,7 +106,7 @@ class SumoRender:
         Skip the vehicles that are still traveling along the edge, i.e., ev_stop = False.
         """
         eligible_vehicle = traci.vehicle.getIDList()
-        for i in range(self.n_vehicle):          
+        for i in range(self.n_vehicle):
             if self.stop_statuses[i]:
 
                 # handle the case when the destination of last demand is the start of current demand
@@ -119,15 +119,11 @@ class SumoRender:
                 vehicle_id = self._find_key_from_value(self.ev_dict, i)
                 if vehicle_id not in eligible_vehicle:
                     continue
-                
+
                 # all demands satisfied or being responding, remove all idle car to unblock others at junction
                 if self.travel_info[i][1] == IDLE_LOCATION:
                     traci.vehicle.remove(vehicle_id)
-                    print(
-                        "Vehicle ",
-                        vehicle_id,
-                        " becomes idle, remove from network."
-                    )
+                    print("Vehicle ", vehicle_id, " becomes idle, remove from network.")
 
                 else:
                     traci.vehicle.resume(vehicle_id)

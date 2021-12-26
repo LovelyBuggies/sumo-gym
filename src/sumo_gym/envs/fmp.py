@@ -327,7 +327,9 @@ class FMPEnv(gym.Env):
             ) = (
                 Loading(actions[i].is_loading.current, actions[i].is_loading.target),
                 Charging(actions[i].is_charging.current, actions[i].is_charging.target),
-                prev_location if actions[i].location == IDLE_LOCATION else actions[i].location,
+                prev_location
+                if actions[i].location == IDLE_LOCATION
+                else actions[i].location,
             )
             self.states[i].battery -= sumo_gym.utils.fmp_utils.dist_between(
                 self.fmp.vertices,
