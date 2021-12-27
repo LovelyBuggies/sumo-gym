@@ -20,6 +20,7 @@ if __name__ == "__main__":
         for t in range(10000):
             action = env.action_space.sample()
             observation, reward, done, info = env.step(action)
+            print("Takes actions: ", observation["Takes_action"])
             if done:
                 print("Episode finished after {} timesteps.\n".format(t + 1))
                 break

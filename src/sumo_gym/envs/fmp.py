@@ -252,7 +252,7 @@ class FMPEnv(gym.Env):
                 self.fmp.edges,
                 self.fmp.n_electric_vehicle,
             )
-            if self.render_env is True
+            if hasattr(self, "render_env") and self.render_env is True
             else None
         )
         self.run = -1
@@ -318,6 +318,16 @@ class FMPEnv(gym.Env):
             prev_locations.append(prev_location)
             prev_is_loading = self.states[i].is_loading.current
             prev_battery = self.states[i].battery
+
+            self.states[i].battery -= sumo_gym.utils.fmp_utils.dist_between(
+                self.fmp.vertices,
+                self.fmp.edges,
+                prev_location
+                if actions[i].location == IDLE_LOCATION
+                else actions[i].location,
+                prev_location,
+            )
+
             (
                 self.states[i].is_loading,
                 self.states[i].is_charging,
@@ -325,15 +335,7 @@ class FMPEnv(gym.Env):
             ) = (
                 Loading(actions[i].is_loading.current, actions[i].is_loading.target),
                 Charging(actions[i].is_charging.current, actions[i].is_charging.target),
-                prev_location
-                if actions[i].location == IDLE_LOCATION
-                else actions[i].location,
-            )
-            self.states[i].battery -= sumo_gym.utils.fmp_utils.dist_between(
-                self.fmp.vertices,
-                self.fmp.edges,
-                self.states[i].location,
-                prev_location,
+                actions[i].location,
             )
             travel_info.append((prev_location, actions[i].location))
 
@@ -368,6 +370,7 @@ class FMPEnv(gym.Env):
                 True
                 if s.is_loading.target == NO_LOADING
                 and s.is_charging.target == NO_CHARGING
+                and not s.location == IDLE_LOCATION
                 else False
                 for s in self.states
             ],
