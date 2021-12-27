@@ -12,7 +12,7 @@ $ python custom_env.py --help
 """
 import argparse
 import gym
-from gym.spaces import Discrete, Box
+from gym.spaces import Discrete, Box, Dict
 import numpy as np
 import os
 import random
@@ -29,6 +29,8 @@ from ray.rllib.models.torch.fcnet import FullyConnectedNetwork as TorchFC
 from ray.rllib.utils.framework import try_import_tf, try_import_torch
 from ray.rllib.utils.test_utils import check_learning_achieved
 from ray.tune.logger import pretty_print
+
+from matplotlib import pyplot as plt
 
 tf1, tf, tfv = try_import_tf()
 torch, nn = try_import_torch()
@@ -62,11 +64,11 @@ parser.add_argument(
 parser.add_argument(
     "--stop-reward",
     type=float,
-    default=0.1,
+    default=0.60,
     help="Reward at which we stop training.")
 parser.add_argument(
     "--no-tune",
-    action="store_true",
+    action="store_false",
     help="Run without Tune using a manual train loop instead. In this case,"
     "use PPO without grid search and no TensorBoard.")
 parser.add_argument(
@@ -83,6 +85,8 @@ class SimpleCorridor(gym.Env):
         self.end_pos = config["corridor_length"]
         self.cur_pos = 0
         self.action_space = Discrete(2)
+        #self.observation_space = Dict({"observation_self":Box(
+        #    0.0, self.end_pos, shape=(1, ), dtype=np.float32)})
         self.observation_space = Box(
             0.0, self.end_pos, shape=(1, ), dtype=np.float32)
         # Set the seed. This is only used for the final (reach goal) reward.
@@ -145,6 +149,13 @@ class TorchCustomModel(TorchModelV2, nn.Module):
         return torch.reshape(self.torch_sub_model.value_function(), [-1])
 
 
+def plot_rewards(max_rewards, mean_rewards, min_rewards):
+    plt.plot(max_rewards, label="max_rewards")
+    plt.plot(mean_rewards, label="mean_rewards")
+    plt.plot(min_rewards, label="min_rewards")
+    plt.legend()
+    plt.savefig('reward.png')
+
 if __name__ == "__main__":
     args = parser.parse_args()
     print(f"Running with following CLI options: {args}")
@@ -178,6 +189,9 @@ if __name__ == "__main__":
         "episode_reward_mean": args.stop_reward,
     }
 
+    max_rewards = []
+    mean_rewards = []
+    min_rewards = []
     if args.no_tune:
         # manual training with train loop using PPO and fixed learning rate
         if args.run != "PPO":
@@ -192,6 +206,10 @@ if __name__ == "__main__":
         for _ in range(args.stop_iters):
             result = trainer.train()
             print(pretty_print(result))
+            max_rewards.append(result["episode_reward_max"])
+            mean_rewards.append(result["episode_reward_mean"])
+            min_rewards.append(result["episode_reward_min"])
+
             # stop training of the target train steps or reward are reached
             if result["timesteps_total"] >= args.stop_timesteps or \
                     result["episode_reward_mean"] >= args.stop_reward:
@@ -200,9 +218,9 @@ if __name__ == "__main__":
         # automated run with Tune and grid search and TensorBoard
         print("Training automatically with Ray Tune")
         results = tune.run(args.run, config=config, stop=stop)
-
         if args.as_test:
             print("Checking if learning goals were achieved")
             check_learning_achieved(results, args.stop_reward)
 
+    plot_rewards(max_rewards, mean_rewards, min_rewards)
     ray.shutdown()
