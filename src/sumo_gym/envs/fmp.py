@@ -309,7 +309,18 @@ class FMPEnv(gym.Env):
         }
         return observation
 
+
     def step(self, actions):
+        observation, reward, done, info = self._step(actions)
+        rewards = np.zeros(self.fmp.n_vehicle)
+        while observation["Takes_action"] == False:
+            observation, reward, done, info = self._step(actions)
+            rewards += reward
+
+        return observation, reward, done, info
+
+
+    def _step(self, actions):
         prev_locations = []
         travel_info = []
         self.rewards = np.zeros(self.fmp.n_vehicle)
