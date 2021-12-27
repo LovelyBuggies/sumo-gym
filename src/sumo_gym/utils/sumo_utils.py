@@ -100,7 +100,6 @@ class SumoRender:
 
             print("Step stop for vehicle: ", vehicle_id)
 
-
     def _park_vehicle_to_assigned_starting_pos(self):
         print("Parking all car to their destinations of the starting edges...")
         while False in self.stop_statuses:
