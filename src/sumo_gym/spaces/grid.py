@@ -65,6 +65,8 @@ class GridSpace(gym.spaces.Space):
 
         for i in range(n_vehicle):
             if self.states[i].location == IDLE_LOCATION: # idle vehicle remove from simulation, skip action
+                print("----- IDLE...")
+                samples[i] = self.states[i]
                 continue
 
             if not stop_statuses[i]:
