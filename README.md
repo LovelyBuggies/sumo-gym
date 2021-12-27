@@ -41,7 +41,7 @@ import gym
 from sumo_gym.envs.fmp import FMP
 
 env = gym.make(
-    "FMP-v0", n_vertex, n_edge, n_vehicle, 
+    "FMP-v0", mode, n_vertex, n_edge, n_vehicle, 
     n_electric_vehicles, n_charging_station, 
     vertices, demand, edges, 
     electric_vehicles, departures, charging_stations,

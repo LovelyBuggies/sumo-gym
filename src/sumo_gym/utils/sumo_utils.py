@@ -52,10 +52,11 @@ class SumoRender:
             print("Initialize the first starting edge for vehicle...")
             self.initialized = True
             self._initialize_route()
-
-        self._update_route_with_stop()
-        traci.simulationStep()
-        self._update_stop_status()
+            self._park_vehicle_to_assigned_starting_pos()
+        else:
+            self._update_route_with_stop()
+            traci.simulationStep()
+            self._update_stop_status()
 
     def close(self):
         while not self.terminated:
@@ -98,6 +99,13 @@ class SumoRender:
             )
 
             print("Step stop for vehicle: ", vehicle_id)
+
+    def _park_vehicle_to_assigned_starting_pos(self):
+        print("Parking all car to their destinations of the starting edges...")
+        while False in self.stop_statuses:
+            traci.simulationStep()
+            self._update_stop_status()
+        print("All vehicles ready for model routing.")
 
     def _update_route_with_stop(self):
         """

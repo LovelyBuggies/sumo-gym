@@ -5,6 +5,7 @@ import sumo_gym
 if __name__ == "__main__":
     env = gym.make(
         "FMP-v0",
+        mode="sumo_config",
         sumo_config_path="assets/data/jumbo/jumbo.sumocfg",
         net_xml_file_path="assets/data/jumbo/jumbo.net.xml",
         demand_xml_file_path="assets/data/jumbo/jumbo.rou.xml",
@@ -19,8 +20,7 @@ if __name__ == "__main__":
         for t in range(3000):
             action = env.action_space.sample()
             observation, reward, done, info = env.step(action)
-            print(observation["Takes_action"])
-            # env.render()
+            print("Takes actions: ", observation["Takes_action"])
             if done:
                 print("Episode finished after {} timesteps.\n".format(t + 1))
                 break
