@@ -64,6 +64,13 @@ class GridSpace(gym.spaces.Space):
             stop_statuses = self.sumo.get_stop_status()
 
         for i in range(n_vehicle):
+            if (
+                self.states[i].location == IDLE_LOCATION
+            ):  # idle vehicle remove from simulation, skip action
+                print("----- IDLE...")
+                samples[i] = self.states[i]
+                continue
+
             if not stop_statuses[i]:
                 print("----- Traveling along the edge...")
                 continue
@@ -77,7 +84,10 @@ class GridSpace(gym.spaces.Space):
                     self.demand[self.states[i].is_loading.current].destination,
                 )
 
-                if loc == self.demand[self.states[i].is_loading.current].destination:
+                if (
+                    self.states[i].location
+                    == self.demand[self.states[i].is_loading.current].destination
+                ):
                     samples[i].is_loading = Loading(NO_LOADING, NO_LOADING)
                 else:
                     samples[i].is_loading = Loading(
@@ -122,15 +132,8 @@ class GridSpace(gym.spaces.Space):
             elif (
                 self.states[i].is_charging.target != NO_CHARGING
             ):  # is on the way to charge
-                loc = sumo_gym.utils.fmp_utils.one_step_to_destination(
-                    self.vertices,
-                    self.edges,
-                    self.states[i].location,
-                    self.charging_stations[self.states[i].is_charging.target].location,
-                )
-                samples[i].location = loc
                 if (
-                    loc
+                    self.states[i].location
                     == self.charging_stations[
                         self.states[i].is_charging.target
                     ].location
@@ -147,6 +150,15 @@ class GridSpace(gym.spaces.Space):
                     print(
                         "----- In the way to charge:", self.states[i].is_charging.target
                     )
+                    loc = sumo_gym.utils.fmp_utils.one_step_to_destination(
+                        self.vertices,
+                        self.edges,
+                        self.states[i].location,
+                        self.charging_stations[
+                            self.states[i].is_charging.target
+                        ].location,
+                    )
+                    samples[i].location = loc
                     samples[i].is_charging = Charging(
                         self.states[i].is_charging.current,
                         self.states[i].is_charging.target,
@@ -173,8 +185,7 @@ class GridSpace(gym.spaces.Space):
                         self.charging_stations[rcs].location,
                     )
                     samples[i].location = loc
-                    if loc == self.charging_stations[rcs].location:
-                        samples[i].is_charging.target = rcs
+                    samples[i].is_charging.target = rcs
                 else:
                     available_dmd = [
                         d
