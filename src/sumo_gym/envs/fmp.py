@@ -256,7 +256,7 @@ class FMPEnv(gym.Env):
             else None
         )
         self.run = -1
-        self._reset()
+        self._inner_reset()
         self._freeze()
 
     def __setattr__(self, key, value):
@@ -270,9 +270,9 @@ class FMPEnv(gym.Env):
         self.__isfrozen = True
 
     def reset(self):
-        return self._reset()
+        return self._inner_reset()
 
-    def _reset(self):
+    def _inner_reset(self):
         self.states = [FMPState() for _ in range(self.fmp.n_electric_vehicle)]
         self.responded = set()
         for i in range(self.fmp.n_electric_vehicle):
@@ -340,10 +340,10 @@ class FMPEnv(gym.Env):
             )
             actions = [tmp]
 
-        observation, reward, done, info = self._step(actions)
+        observation, reward, done, info = self._inner_step(actions)
         rewards = np.zeros(self.fmp.n_vehicle)
         while any(observation["Takes_action"]) == False: # todo only makes sense for single agent
-            observation, reward, done, info = self._step(self.move_space.sample())
+            observation, reward, done, info = self._inner_step(self.move_space.sample())
             rewards = np.asarray([rewards[i] + reward[i] for i in range(len(rewards))])
             if done:
                 break
@@ -360,7 +360,7 @@ class FMPEnv(gym.Env):
         return observation, reward, done, info
 
 
-    def _step(self, actions):
+    def _inner_step(self, actions):
         prev_locations = []
         travel_info = []
         self.rewards = np.zeros(self.fmp.n_vehicle)
