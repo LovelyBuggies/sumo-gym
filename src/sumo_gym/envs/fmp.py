@@ -297,8 +297,8 @@ class FMPEnv(gym.Env):
             self.demand_dict_action_space[i] = i - self.fmp.n_charging_station
 
         self.observation_space = gym.spaces.Box(
-            low=np.array([0., 0., 0., 0.]),
-            high=np.array([self.fmp.n_vertex, self.fmp.electric_vehicles[0].capacity, 1., 1.]),
+            low=np.array([0., 0., 0., 0., 0.]),
+            high=np.array([self.fmp.n_vertex, self.fmp.electric_vehicles[0].capacity, 1., 1., 1.]),
             dtype=np.float32
         )
         self.actions: sumo_gym.typing.ActionsType = None
@@ -317,7 +317,16 @@ class FMPEnv(gym.Env):
                 for s in self.states
             ],
         }
-        return observation
+        obs = np.asarray(
+            [
+                observation["Locations"][0],
+                observation["Batteries"][0],
+                1. if observation["Is_loading"][0] else 0.,
+                1. if observation["Is_charging"][0] else 0.,
+                1. if observation["Takes_action"][0] else 0.,
+             ]
+        )
+        return obs
 
 
     def step(self, discrete_action):
@@ -340,11 +349,11 @@ class FMPEnv(gym.Env):
             )
             actions = [tmp]
 
-        observation, reward, done, info = self._inner_step(actions)
-        rewards = np.zeros(self.fmp.n_vehicle)
-        while any(observation["Takes_action"]) == False: # todo only makes sense for single agent
+        obs, reward, done, info = self._inner_step(actions)
+        rew = 0
+        while obs[-1] == False: # todo only makes sense for single agent
             observation, reward, done, info = self._inner_step(self.move_space.sample())
-            rewards = np.asarray([rewards[i] + reward[i] for i in range(len(rewards))])
+            rew += reward
             if done:
                 break
 
@@ -357,7 +366,7 @@ class FMPEnv(gym.Env):
             del self.demand_dict_action_space[action_space_new_len]
 
         self.run += 1
-        return observation, reward, done, info
+        return obs, reward, done, info
 
 
     def _inner_step(self, actions):
@@ -429,17 +438,27 @@ class FMPEnv(gym.Env):
                 for s in self.states
             ],
         }
+        obs = np.asarray(
+            [
+                observation["Locations"][0],
+                observation["Batteries"][0],
+                1. if observation["Is_loading"][0] else 0.,
+                1. if observation["Is_charging"][0] else 0.,
+                1. if observation["Takes_action"][0] else 0.,
+            ]
+        )
+
         reward, done, info = (
             self.rewards,
             self.responded == set(range(len(self.fmp.demand))) or observation["Batteries"][0] < 0,
-            "",
+            observation,
         )
 
         if hasattr(self, "sumo") and self.sumo is not None:
             self.sumo.update_travel_vertex_info_for_vehicle(travel_info)
             self.render()
 
-        return observation, reward, done, info
+        return obs, reward[0], done, info
 
     def plot(
         self,
