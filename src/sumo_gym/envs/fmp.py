@@ -313,10 +313,11 @@ class FMPEnv(gym.Env):
     def step(self, actions):
         observation, reward, done, info = self._step(actions)
         rewards = np.zeros(self.fmp.n_vehicle)
-        while observation["Takes_action"] == False:
-            observation, reward, done, info = self._step(actions)
-            rewards += reward
+        while any(observation["Takes_action"]) == False: # todo only makes sense for single agent
+            observation, reward, done, info = self._step(self.action_space.sample())
+            rewards = np.asarray([rewards[i] + reward[i] for i in range(len(rewards))])
 
+        self.run += 1
         return observation, reward, done, info
 
 
@@ -328,7 +329,7 @@ class FMPEnv(gym.Env):
             prev_location = self.states[i].location
             prev_locations.append(prev_location)
             prev_is_loading = self.states[i].is_loading.current
-            prev_battery = self.states[i].battery
+            # prev_battery = self.states[i].battery
 
             self.states[i].battery -= sumo_gym.utils.fmp_utils.dist_between(
                 self.fmp.vertices,
