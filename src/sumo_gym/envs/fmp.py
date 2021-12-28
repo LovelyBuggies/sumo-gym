@@ -345,8 +345,10 @@ class FMPEnv(gym.Env):
         while any(observation["Takes_action"]) == False: # todo only makes sense for single agent
             observation, reward, done, info = self._step(self.move_space.sample())
             rewards = np.asarray([rewards[i] + reward[i] for i in range(len(rewards))])
+            if done:
+                break
 
-        # if finish a demand, then remove it from action space
+        # when finish a demand, remove it from action space
         if not discrete_action < self.fmp.n_charging_station:
             action_space_new_len = self.fmp.n_charging_station + len(self.demand_dict_action_space) - 1
             self.action_space = gym.spaces.Discrete(action_space_new_len)
@@ -388,7 +390,10 @@ class FMPEnv(gym.Env):
             )
             travel_info.append((prev_location, actions[i].location))
 
-            # assert self.states[i].battery >= 0
+            if self.states[i].battery < 0:
+                self.rewards[i] -= 1000
+                continue
+
             if self.states[i].is_charging.current != NO_CHARGING:
                 self.states[i].battery += self.fmp.charging_stations[
                     self.states[i].is_charging.current
@@ -426,7 +431,7 @@ class FMPEnv(gym.Env):
         }
         reward, done, info = (
             self.rewards,
-            self.responded == set(range(len(self.fmp.demand))),
+            self.responded == set(range(len(self.fmp.demand))) or observation["Batteries"][0] < 0,
             "",
         )
 
