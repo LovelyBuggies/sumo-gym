@@ -235,7 +235,7 @@ check_env(env, warn=True)
 env = make_vec_env(lambda: env, n_envs=1)
 
 
-model = A2C('MlpPolicy', env, verbose=1, tensorboard_log="./assets/tensorboards/fmpenv/a2c/")
+model = PPO('MlpPolicy', env, verbose=1, tensorboard_log="./assets/tensorboards/fmpenv/ppo/")
 model.learn(total_timesteps=10000, tb_log_name="mlp_policy", reset_num_timesteps=False)
 
 obs = env.reset()
