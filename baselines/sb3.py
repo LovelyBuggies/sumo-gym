@@ -236,7 +236,7 @@ env = make_vec_env(lambda: env, n_envs=1)
 
 
 model = PPO('MlpPolicy', env, verbose=1, tensorboard_log="./assets/tensorboards/fmpenv/ppo/")
-model.learn(total_timesteps=10000, tb_log_name="mlp_policy", reset_num_timesteps=False)
+model.learn(total_timesteps=50_000, tb_log_name="mlp_policy", reset_num_timesteps=False)
 
 obs = env.reset()
 n_steps = 4
