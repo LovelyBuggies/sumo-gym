@@ -57,9 +57,9 @@ def get_charging_stations(additional_xml_tree, net_xml_tree):
     cs_lst = []
     stations = additional_xml_tree.findall("chargingStation")
     for station in stations:
-        
+
         if "shadow" not in station.attrib["id"]:
-            
+
             # get approximate location
             x_coord, y_coord = station.findall("param")[0].attrib["value"].split()
             # get edge_id
