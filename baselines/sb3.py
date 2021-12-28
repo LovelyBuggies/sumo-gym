@@ -1,5 +1,5 @@
 from stable_baselines3.common.env_checker import check_env
-from stable_baselines3 import PPO, A2C
+from stable_baselines3 import PPO, A2C, DQN
 from stable_baselines3.common.env_util import make_vec_env
 
 import gym
@@ -235,8 +235,10 @@ check_env(env, warn=True)
 env = make_vec_env(lambda: env, n_envs=1)
 
 
-model = PPO('MlpPolicy', env, verbose=1, tensorboard_log="./assets/tensorboards/fmpenv/ppo/")
-model.learn(total_timesteps=50_000, tb_log_name="mlp_policy", reset_num_timesteps=False)
+# model = PPO('MlpPolicy', env, verbose=1, tensorboard_log="./assets/tensorboards/fmpenv/ppo/")
+# model = A2C('MlpPolicy', env, verbose=1, tensorboard_log="./assets/tensorboards/fmpenv/a2c/")
+model = DQN("MlpPolicy", env, verbose=1, tensorboard_log="./assets/tensorboards/fmpenv/dqn/")
+model.learn(total_timesteps=10000, tb_log_name="mlp_policy", reset_num_timesteps=False)
 
 obs = env.reset()
 n_steps = 4
