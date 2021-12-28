@@ -2,6 +2,7 @@
 	with the convention that shadow charging station is always on edge starting with "-" 
 	and the length of charging station to be 5
 -->
+
 <additional>
 	<chargingStation power="50" chargeInTransit="0" chrgpower="200000" efficiency="1" endPos="25" id="cS_1_shadow" lane="-gneE18_0" startPos="20">
 	</chargingStation>
