@@ -225,7 +225,7 @@ class FMPEnv(AECEnv):
         # set up AEC related attributes, should not be changed after initialization.
         self.possible_agents = self.fmp.ev_dict.keys()
         self.agent_name_mapping = self.fmp.ev_dict
-        self._action_spaces = {agent: gym.spaces.Discrete(self.fmp.n_charging_station + len(self.fmp.demand)) for agent in self.possible_agents}
+        self._action_spaces = {agent: gym.spaces.Discrete(self.fmp.n_charging_station + len(self.fmp.demand) + 1) for agent in self.possible_agents}
         self._observation_spaces = {agent: gym.spaces.Box(
             low=np.array([0., 0., 0., 0., 0.]),
             high=np.array([self.fmp.n_vertex, self.fmp.electric_vehicles[0].capacity, 1., 1., 1.]),
@@ -301,7 +301,7 @@ class FMPEnv(AECEnv):
 
     @functools.lru_cache(maxsize=None)
     def action_space(self, agent):
-        return gym.spaces.Discrete(self.fmp.n_charging_station + len(self.fmp.demand) - len(self.responded))
+        return gym.spaces.Discrete(self.fmp.n_charging_station + len(self.fmp.demand) + 1 - len(self.responded))
 
 
     def observe(self, agent):
