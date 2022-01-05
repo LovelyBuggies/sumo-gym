@@ -311,20 +311,18 @@ class FMPEnv(AECEnv):
         # observation of one agent is the previous state of the other
         return np.array(self.observations[agent])
 
-    def _get_default_obs(self):
-        return {
-            "Locations": [s.location for s in self.states],
-            "Batteries": [s.battery for s in self.states],
-            "Is_loading": [s.is_loading for s in self.states],
-            "Is_charging": [s.is_charging for s in self.states],
-            "Takes_action": [
-                True
-                if s.is_loading.target == NO_LOADING
-                and s.is_charging.target == NO_CHARGING
-                else False
-                for s in self.states
-            ],
-        }
+    def _get_default_obs(self, agent):
+        agent_index = self.agent_name_mapping[agent]
+
+        return np.asarray(
+            [
+                self.states[agent_index].location,
+                self.states[agent_index].battery,
+                1. if self.states[agent_index].is_loading else 0.,
+                1. if self.states[agent_index].is_charging else 0.,
+                1. if self.states[agent_index].is_loading.target == NO_LOADING and self.states[agent_index].is_charging.target == NO_CHARGING else 0.,
+             ]
+        )
 
     def _inner_reset(self):
         '''
@@ -346,7 +344,7 @@ class FMPEnv(AECEnv):
         self.dones = {agent: False for agent in self.agents}
         self.infos = {agent: {} for agent in self.agents}
         self.states = {agent: FMPState() for agent in self.agents}
-        self.observations = {agent: self._get_single_default_ob() for agent in self.agents}
+        self.observations = {agent: self._get_default_obs(agent) for agent in self.agents}
         self.num_moves = 0
         '''
         Our agent_selector utility allows easy cyclic stepping through the agents list.
