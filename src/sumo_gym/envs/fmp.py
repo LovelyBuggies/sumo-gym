@@ -430,6 +430,8 @@ class FMPEnv(AECEnv):
 
         # selects the next agent.
         self.agent_selection = self._agent_selector.next()
+        # Adds .rewards to ._cumulative_rewards
+        self._accumulate_rewards()
 
         # update previous info for agent
         self.prev_locations[agent] = self.states[agent].location
