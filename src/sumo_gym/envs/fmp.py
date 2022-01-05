@@ -3,7 +3,6 @@ import random
 import sys
 import os
 import numpy as np
-import numpy.typing as npt
 from typing import Type, Tuple, Dict, Any
 import sumo_gym.typing
 
@@ -14,6 +13,11 @@ import sumo_gym
 from sumo_gym.utils.sumo_utils import SumoRender
 from sumo_gym.utils.svg_uitls import vehicle_marker
 from sumo_gym.utils.fmp_utils import *
+
+import functools
+from pettingzoo import AECEnv
+from pettingzoo.utils import agent_selector
+from pettingzoo.utils import wrappers
 
 
 class FMP(object):
@@ -207,13 +211,31 @@ class FMP(object):
         return True
 
 
-class FMPEnv(gym.Env):
+class FMPEnv(AECEnv):
     metadata = {"render.modes": ["human"]}
     fmp = property(operator.attrgetter("_fmp"))
     __isfrozen = False
 
     def __init__(self, **kwargs):
 
+        # set up sumo related attributes
+        self._setup_sumo_attributes(**kwargs)
+        self.run = -1
+
+        # set up AEC related attributes, should not be changed after initialization.
+        self.possible_agents = self.fmp.ev_dict.keys()
+        self.agent_name_mapping = self.fmp.ev_dict
+        self._action_spaces = {agent: gym.spaces.Discrete(self.fmp.n_charging_station + len(self.fmp.demand)) for agent in self.possible_agents}
+        self._observation_spaces = {agent: gym.spaces.Box(
+            low=np.array([0., 0., 0., 0., 0.]),
+            high=np.array([self.fmp.n_vertex, self.fmp.electric_vehicles[0].capacity, 1., 1., 1.]),
+            dtype=np.float32
+        ) for agent in self.possible_agents}
+
+        self._inner_reset()
+        self._freeze()
+
+    def _setup_sumo_attributes(self,**kwargs):
         if "mode" not in kwargs:
             raise Exception("Need a mode to identify")
         elif kwargs["mode"] == "sumo_config":
@@ -255,9 +277,6 @@ class FMPEnv(gym.Env):
             if hasattr(self, "render_env") and self.render_env is True
             else None
         )
-        self.run = -1
-        self._inner_reset()
-        self._freeze()
 
     def __setattr__(self, key, value):
         if self.__isfrozen and not hasattr(self, key):
@@ -272,8 +291,70 @@ class FMPEnv(gym.Env):
     def reset(self):
         return self._inner_reset()
 
+    @functools.lru_cache(maxsize=None)
+    def observation_space(self, agent):
+        return gym.spaces.Box(
+            low=np.array([0., 0., 0., 0., 0.]),
+            high=np.array([self.fmp.n_vertex, self.fmp.electric_vehicles[0].capacity, 1., 1., 1.]),
+            dtype=np.float32
+        )
+
+    @functools.lru_cache(maxsize=None)
+    def action_space(self, agent):
+        return gym.spaces.Discrete(self.fmp.n_charging_station + len(self.fmp.demand))
+
+
+    def observe(self, agent):
+        '''
+        Observe should return the observation of the specified agent. 
+        '''
+        # observation of one agent is the previous state of the other
+        return np.array(self.observations[agent])
+
+    def _get_default_obs(self):
+        return {
+            "Locations": [s.location for s in self.states],
+            "Batteries": [s.battery for s in self.states],
+            "Is_loading": [s.is_loading for s in self.states],
+            "Is_charging": [s.is_charging for s in self.states],
+            "Takes_action": [
+                True
+                if s.is_loading.target == NO_LOADING
+                and s.is_charging.target == NO_CHARGING
+                else False
+                for s in self.states
+            ],
+        }
+
     def _inner_reset(self):
-        self.states = [FMPState() for _ in range(self.fmp.n_electric_vehicle)]
+        '''
+        Reset needs to initialize the following attributes
+        - agents
+        - rewards
+        - _cumulative_rewards
+        - dones
+        - infos
+        - agent_selection
+        And must set up the environment so that render(), step(), and observe()
+        can be called without issues.
+
+        Here it sets up the state dictionary which is used by step() and the observations dictionary which is used by step() and observe()
+        '''
+        self.agents = self.possible_agents[:]
+        self.rewards = {agent: 0 for agent in self.agents}
+        self._cumulative_rewards = {agent: 0 for agent in self.agents}
+        self.dones = {agent: False for agent in self.agents}
+        self.infos = {agent: {} for agent in self.agents}
+        self.states = {agent: FMPState() for agent in self.agents}
+        self.observations = {agent: self._get_single_default_ob() for agent in self.agents}
+        self.num_moves = 0
+        '''
+        Our agent_selector utility allows easy cyclic stepping through the agents list.
+        '''
+        self._agent_selector = agent_selector(self.agents)
+        self.agent_selection = self._agent_selector.next()
+
+
         self.responded = set()
         for i in range(self.fmp.n_electric_vehicle):
             self.states[i].location = self.fmp.departures[i]
@@ -291,16 +372,10 @@ class FMPEnv(gym.Env):
                 self.sumo if hasattr(self, "sumo") else None,
             )
         )
-        self.action_space = gym.spaces.Discrete(self.fmp.n_charging_station + len(self.fmp.demand))
         self.demand_dict_action_space = dict()
         for i in range(self.fmp.n_charging_station, self.fmp.n_charging_station + len(self.fmp.demand), 1):
             self.demand_dict_action_space[i] = i - self.fmp.n_charging_station
 
-        self.observation_space = gym.spaces.Box(
-            low=np.array([0., 0., 0., 0., 0.]),
-            high=np.array([self.fmp.n_vertex, self.fmp.electric_vehicles[0].capacity, 1., 1., 1.]),
-            dtype=np.float32
-        )
         self.actions: sumo_gym.typing.ActionsType = None
         self.rewards: sumo_gym.typing.RewardsType = np.zeros(self.fmp.n_vehicle)
 
@@ -460,35 +535,13 @@ class FMPEnv(gym.Env):
 
         return obs, reward[0], done, info
 
-    def plot(
-        self,
-        *,
-        ax_dict=None,
-        **kwargs: Any,
-    ) -> Any:
-        get_colors = lambda n: list(
-            map(lambda i: "#" + "%06x" % random.randint(0x000000, 0x666666), range(n))
-        )
-        plot_kwargs = {
-            "fmp_vertex_s": 200,
-            "fmp_vertex_c": "navy",
-            "fmp_vertex_marker": r"$\odot$",
-            "demand_width": 0.4,
-            "demand_color": get_colors(self.fmp.n_vertex),
-            "loading_width": 0.6,
-            "loading_color": get_colors(self.fmp.n_vehicle),
-            "location_marker": vehicle_marker,
-            "location_s": 2000,
-            "location_c": "lightgrey",
-        }
-        self.plot(**plot_kwargs)
-
     def render(self, mode="human"):
-        # todo: this part should be move to .render()
         if self.sumo_gui_path is None:
             raise EnvironmentError("Need sumo-gui path to render")
         elif self.sumo is not None:
-            self.sumo.render()
+            # TODO: need sumo render modification here
+            # self.sumo.render()
+            print("sumo render")
 
     # TODO: need to add default behavior also
     def close(self):
