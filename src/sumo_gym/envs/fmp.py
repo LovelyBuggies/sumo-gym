@@ -444,7 +444,7 @@ class FMPEnv(AECEnv):
 
     def _update_demand_space(self, action):
         # when a demand is being responding or responded, remove it from action space for other agents
-        if not action < self.fmp.n_charging_station:
+        if not action < self.fmp.n_charging_station and action < self.fmp.n_charging_station + len(self.demand_dict_action_space):
             action_space_new_len = self.fmp.n_charging_station + len(self.demand_dict_action_space) - 1
             for i in range(action, action_space_new_len, 1):
                 self.demand_dict_action_space[i] = self.demand_dict_action_space[i + 1]
