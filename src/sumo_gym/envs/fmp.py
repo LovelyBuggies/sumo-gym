@@ -93,7 +93,7 @@ class FMP(object):
 
         # vehicles
         self.electric_vehicles = electric_vehicles
-        self.ev_dict = {f"v{i}": v for i, v in enumerate(self.electric_vehicles)}
+        self.ev_dict = {f"v{i}": i for i, _ in enumerate(self.electric_vehicles)}
         self.departures = departures
         self.charging_stations = charging_stations
 

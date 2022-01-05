@@ -4,6 +4,8 @@ import sumo_gym
 from sumo_gym.utils.fmp_utils import Vertex, Edge, Demand, ChargingStation, ElectricVehicles
 import random
 import sys
+from pettingzoo.test import api_test
+from pettingzoo.utils import wrappers
 
 import matplotlib.pyplot as plt
 
@@ -216,7 +218,7 @@ print(departures)
 print(demand)
 print()
 
-env = gym.make(
+raw_env = gym.make(
     "FMP-v0",
     mode="numerical",
     n_vertex=n_vertex,
@@ -232,15 +234,20 @@ env = gym.make(
     charging_stations=charging_stations,
 )
 
-# plt.show()
-for i_episode in range(1):
-    observation = env.reset()
-    for t in range(150):
-        action = env.action_space.sample()
-        observation, reward, done, info = env.step(action)
-        # print(observation["Takes_action"])
-        if done:
-            print("Episode finished after {} timesteps.\n".format(t + 1))
-            break
+def env_f():
+    '''
+    The env function often wraps the environment in wrappers by default.
+    You can find full documentation for these methods
+    elsewhere in the developer documentation.
+    '''
+    env = raw_env
+    # This wrapper is only for environments which print results to the terminal
+    env = wrappers.CaptureStdoutWrapper(env)
+    # this wrapper helps error handling for discrete action spaces
+    env = wrappers.AssertOutOfBoundsWrapper(env)
+    # Provides a wide vareity of helpful user errors
+    # Strongly recomended
+    env = wrappers.OrderEnforcingWrapper(env)
+    return env
 
-env.close()
+api_test(env_f(), num_cycles=10, verbose_progress=False)
