@@ -295,7 +295,7 @@ class FMPEnv(AECEnv):
             low=np.array([0., 0., 0., 0., 0.]),
             high=np.array([self.fmp.n_vertex,
                            self.fmp.electric_vehicles[0].capacity,
-                           2*(len(self.fmp.demand) - len(self.responded)) + 1,
+                           2*(len(self.fmp.demand) - len(self.demand_dict_action_space)) + 1,
                            2*self.fmp.n_charging_station + 1,
                            1.]),
             dtype=np.float64
@@ -377,7 +377,6 @@ class FMPEnv(AECEnv):
         for i in range(self.fmp.n_charging_station, self.fmp.n_charging_station + len(self.fmp.demand), 1):
             self.demand_dict_action_space[i] = i - self.fmp.n_charging_station
 
-
     def step(self, action):
         '''
         step(action) takes in an action for the current agent (specified by
@@ -404,7 +403,7 @@ class FMPEnv(AECEnv):
         self._cumulative_rewards[agent] = 0
 
         # stores action of current agent and update action space
-        self.states[self.agent_selection] = self._convert_discrete_action_to_move(action)
+        self.states[self.agent_selection] = self._convert_discrete_action_to_move(action, agent)
         self._update_demand_space(action)
         
         self._update_battery_for_agent(agent, self.states[self.agent_selection])
@@ -434,6 +433,9 @@ class FMPEnv(AECEnv):
         # update previous info for agent
         self.prev_locations[agent] = self.states[agent].location
         self.prev_is_loading[agent] = self.states[agent].is_loading
+
+        infos = {agent: {} for agent in self.agents}
+        return self.observations, self.rewards, self.dones, infos
 
 
     def _update_demand_space(self, action):
