@@ -2,12 +2,8 @@ import numpy as np
 import gym
 import sumo_gym
 from sumo_gym.utils.fmp_utils import Vertex, Edge, Demand, ChargingStation, ElectricVehicles
-import random
-import sys
 from pettingzoo.test import api_test
 from pettingzoo.utils import wrappers
-
-import matplotlib.pyplot as plt
 
 vertices = np.asarray(
     [
