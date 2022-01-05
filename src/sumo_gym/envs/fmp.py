@@ -459,7 +459,10 @@ class FMPEnv(AECEnv):
                 self.fmp.vertices, self.fmp.edges, self.states[agent].location,
                 self.fmp.charging_stations[self.states[agent].is_charging.target].location
             )
+        elif action == self.fmp.n_charging_station + len(self.demand_dict_action_space): # no move
+            converted_action = self.states[agent]
         else:
+            print("     demand dict: ", self.demand_dict_action_space, action)
             demand_idx = self.demand_dict_action_space[action]
             converted_action = self.states[agent]
             converted_action.is_loading, converted_action.is_charging = Loading(NO_LOADING, demand_idx), Charging(NO_CHARGING, NO_CHARGING)
