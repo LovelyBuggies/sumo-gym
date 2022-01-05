@@ -288,9 +288,6 @@ class FMPEnv(AECEnv):
     def _freeze(self):
         self.__isfrozen = True
 
-    def reset(self):
-        return self._inner_reset()
-
     @functools.lru_cache(maxsize=None)
     def observation_space(self, agent):
         return gym.spaces.Box(
@@ -325,7 +322,7 @@ class FMPEnv(AECEnv):
              ]
         )
 
-    def _inner_reset(self):
+    def reset(self):
         '''
         Reset needs to initialize the following attributes
         - agents
