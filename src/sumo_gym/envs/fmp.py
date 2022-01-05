@@ -459,7 +459,7 @@ class FMPEnv(AECEnv):
                 self.fmp.vertices, self.fmp.edges, self.states[agent].location,
                 self.fmp.charging_stations[self.states[agent].is_charging.target].location
             )
-        elif action == self.fmp.n_charging_station + len(self.demand_dict_action_space): # no move
+        elif action >= self.fmp.n_charging_station + len(self.demand_dict_action_space): # no move
             converted_action = self.states[agent]
         else:
             demand_idx = self.demand_dict_action_space[action]
