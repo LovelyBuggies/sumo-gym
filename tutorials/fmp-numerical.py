@@ -1,9 +1,13 @@
 import numpy as np
 import gym
 import sumo_gym
-from sumo_gym.envs.fmp import FMP
-from sumo_gym.utils.fmp_utils import Vertex, Edge, Demand
-from sumo_gym.utils.fmp_utils import ChargingStation, ElectricVehicles
+from sumo_gym.utils.fmp_utils import (
+    Vertex,
+    Edge,
+    Demand,
+    ChargingStation,
+    ElectricVehicles,
+)
 import random
 import sys
 
@@ -240,6 +244,7 @@ for i_episode in range(1):
     for t in range(150):
         action = env.action_space.sample()
         observation, reward, done, info = env.step(action)
+        # print(observation["Takes_action"])
         if done:
             print("Episode finished after {} timesteps.\n".format(t + 1))
             break
