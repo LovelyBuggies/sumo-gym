@@ -347,7 +347,7 @@ class FMPEnv(AECEnv):
         self.observations = {agent: self._get_default_obs(agent) for agent in self.agents}
         self.num_moves = 0
         '''
-        Our agent_selector utility allows easy cyclic stepping through the agents list.
+        Our agent_selector utility allows easy cyclic stoepping through the agents list.
         '''
         self._agent_selector = agent_selector(self.agents)
         self.agent_selection = self._agent_selector.next()
@@ -376,30 +376,6 @@ class FMPEnv(AECEnv):
 
         self.actions: sumo_gym.typing.ActionsType = None
         self.rewards: sumo_gym.typing.RewardsType = np.zeros(self.fmp.n_vehicle)
-
-        observation = {
-            "Locations": [s.location for s in self.states],
-            "Batteries": [s.battery for s in self.states],
-            "Is_loading": [s.is_loading for s in self.states],
-            "Is_charging": [s.is_charging for s in self.states],
-            "Takes_action": [
-                True
-                if s.is_loading.target == NO_LOADING
-                and s.is_charging.target == NO_CHARGING
-                else False
-                for s in self.states
-            ],
-        }
-        obs = np.asarray(
-            [
-                observation["Locations"][0],
-                observation["Batteries"][0],
-                1. if observation["Is_loading"][0] else 0.,
-                1. if observation["Is_charging"][0] else 0.,
-                1. if observation["Takes_action"][0] else 0.,
-             ]
-        )
-        return obs
 
 
     def step(self, discrete_action):
