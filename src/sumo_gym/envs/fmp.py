@@ -224,7 +224,7 @@ class FMPEnv(AECEnv):
         self.num_moves = -1
 
         # set up AEC related attributes, should not be changed after initialization.
-        self.possible_agents = self.fmp.ev_dict.keys()
+        self.possible_agents = list(self.fmp.ev_dict.keys())
         self.agent_name_mapping = self.fmp.ev_dict
         self._action_spaces = {agent: gym.spaces.Discrete(self.fmp.n_charging_station + len(self.fmp.demand) + 1) for agent in self.possible_agents}
         self._observation_spaces = {agent: gym.spaces.Box(
@@ -233,7 +233,8 @@ class FMPEnv(AECEnv):
             dtype=np.float64
         ) for agent in self.possible_agents}
 
-        self._freeze()
+        self.reset()
+        # self._freeze()
 
     def _setup_sumo_attributes(self,**kwargs):
         if "mode" not in kwargs:
@@ -356,9 +357,9 @@ class FMPEnv(AECEnv):
 
 
         self.responded = set()
-        for i in range(self.fmp.n_electric_vehicle):
-            self.states[i].location = self.fmp.departures[i]
-            self.states[i].battery = self.fmp.electric_vehicles[i].capacity
+        for agent in self.agents:
+            self.states[agent].location = self.fmp.departures[self.agent_name_mapping[agent]]
+            self.states[agent].battery = self.fmp.electric_vehicles[self.agent_name_mapping[agent]].capacity
 
         self.move_space: sumo_gym.spaces.grid.GridSpace = (
             sumo_gym.spaces.grid.GridSpace(
