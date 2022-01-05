@@ -232,7 +232,6 @@ class FMPEnv(AECEnv):
             dtype=np.float32
         ) for agent in self.possible_agents}
 
-        self._inner_reset()
         self._freeze()
 
     def _setup_sumo_attributes(self,**kwargs):
