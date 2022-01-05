@@ -177,11 +177,11 @@ edges = np.asarray(
 
 n_vertex = len(vertices)
 n_edge = len(edges)
-n_vehicle = 1
-n_electric_vehicle = 1
+n_vehicle = 2
+n_electric_vehicle = 2
 n_charging_station = 3
 electric_vehicles = np.asarray(
-    [ElectricVehicles(i, 1, 220, 50) for i in range(n_electric_vehicle)]
+    [ElectricVehicles(i, 1, 220, 50) for i in range(n_electric_vehicle)],
 )
 charging_stations = np.asarray(
     [
@@ -198,7 +198,7 @@ available_vertices = np.asarray(
         not in (charging_station.location for charging_station in charging_stations)
     ]
 )
-departures = np.asarray([19])
+departures = np.asarray([19, 15])
 demand = np.asarray(
     [
         Demand(6, 4),

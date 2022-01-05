@@ -423,11 +423,11 @@ class FMPEnv(AECEnv):
             # The dones dictionary must be updated for all players.
             self.dones = {agent: self.responded == set(range(len(self.fmp.demand))) or self.states[self.agent_selection].battery < 0 for agent in self.agents}
                 
-        else:
-            # necessary so that observe() returns a reasonable observation at all times.
-            self.states[self.agents[1 - self.agent_name_mapping[agent]]] = None
-            # no rewards are allocated until both players give an action
-            # self._clear_rewards()
+        # else:
+        #     # necessary so that observe() returns a reasonable observation at all times.
+        #     self.states[self.agents[1 - self.agent_name_mapping[agent]]] = None
+        #     # no rewards are allocated until both players give an action
+        #     # self._clear_rewards()
 
         # selects the next agent.
         self.agent_selection = self._agent_selector.next()
