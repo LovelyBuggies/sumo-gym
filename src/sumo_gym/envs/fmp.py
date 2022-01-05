@@ -301,7 +301,7 @@ class FMPEnv(AECEnv):
 
     @functools.lru_cache(maxsize=None)
     def action_space(self, agent):
-        return gym.spaces.Discrete(self.fmp.n_charging_station + len(self.fmp.demand) + 1 - len(self.responded))
+        return gym.spaces.Discrete(self.fmp.n_charging_station + len(self.demand_dict_action_space) + 1)
 
 
     def observe(self, agent):
@@ -435,7 +435,7 @@ class FMPEnv(AECEnv):
 
 
     def _update_demand_space(self, action):
-        # when a demand reponded, remove it from action space for other agents
+        # when a demand is being responding or responded, remove it from action space for other agents
         if not action < self.fmp.n_charging_station:
             action_space_new_len = self.fmp.n_charging_station + len(self.demand_dict_action_space) - 1
             for i in range(action, action_space_new_len, 1):
