@@ -406,7 +406,7 @@ class FMPEnv(AECEnv):
 
         # stores action of current agent and update action space
         self.states[self.agent_selection] = self._convert_discrete_action_to_move(action)
-        self._update_action_space_dict_for_conversion(action)
+        self._update_demand_space(action)
         
         self._update_battery_for_agent(agent, self.states[self.agent_selection])
         self.observations[agent] = self._get_obs_from_action(self.states[agent])
@@ -415,7 +415,7 @@ class FMPEnv(AECEnv):
         if self._agent_selector.is_last():
             # rewards for all agents are placed in the .rewards dictionary, and update the observations
             for agent in self.agents:
-                self.rewards[agent] = self._calculate_reward(agent)
+                self.rewards[agent] += self._calculate_reward(agent)
 
             self.num_moves += 1
             # The dones dictionary must be updated for all players.
@@ -429,12 +429,13 @@ class FMPEnv(AECEnv):
 
         # selects the next agent.
         self.agent_selection = self._agent_selector.next()
-        # Adds .rewards to ._cumulative_rewards
-        self._accumulate_rewards()
+
+        # update previous info for agent
         self.prev_locations[agent] = self.states[agent].location
         self.prev_is_loading[agent] = self.states[agent].is_loading
 
-    def _update_action_space_dict_for_conversion(self, action):
+
+    def _update_demand_space(self, action):
         # when a demand reponded, remove it from action space for other agents
         if not action < self.fmp.n_charging_station:
             action_space_new_len = self.fmp.n_charging_station + len(self.demand_dict_action_space) - 1
