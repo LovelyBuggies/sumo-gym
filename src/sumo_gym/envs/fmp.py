@@ -296,7 +296,7 @@ class FMPEnv(AECEnv):
             high=np.array([self.fmp.n_vertex,
                            self.fmp.electric_vehicles[0].capacity,
                            2*(len(self.fmp.demand) - len(self.responded)) + 1,
-                           2*len(self.fmp.n_charging_station) + 1,
+                           2*self.fmp.n_charging_station + 1,
                            1.]),
             dtype=np.float64
         )
@@ -377,8 +377,6 @@ class FMPEnv(AECEnv):
         for i in range(self.fmp.n_charging_station, self.fmp.n_charging_station + len(self.fmp.demand), 1):
             self.demand_dict_action_space[i] = i - self.fmp.n_charging_station
 
-        self.actions: sumo_gym.typing.ActionsType = None
-        self.rewards: sumo_gym.typing.RewardsType = np.zeros(self.fmp.n_vehicle)
 
     def step(self, action):
         '''
