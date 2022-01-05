@@ -502,7 +502,7 @@ class FMPEnv(AECEnv):
                 is_loading,
                 is_charging,
                 True if is_loading == NO_LOADING and is_charging == NO_CHARGING else False,
-            ]
+            ], dtype=np.float64
         )
 
     def _calculate_reward(self, agent):
