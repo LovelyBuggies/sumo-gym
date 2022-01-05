@@ -483,17 +483,17 @@ class FMPEnv(AECEnv):
 
     def _get_obs_from_action(self, action):
         if action.is_loading.current == NO_LOADING and action.is_loading.target == NO_LOADING:
-            is_loading = -1
+            is_loading = 0
         elif action.is_loading.current == NO_LOADING:
-            is_loading = action.is_loading.target
+            is_loading = action.is_loading.target + 1
         else:
-            is_loading = 2 * action.is_loading.target
+            is_loading = 2 * action.is_loading.target + 1
         if action.is_charging.current == NO_CHARGING and action.is_charging.target == NO_CHARGING:
-            is_charging = -1
+            is_charging = 0
         elif action.is_charging.current == NO_CHARGING:
-            is_charging = action.is_charging.target
+            is_charging = action.is_charging.target + 1
         else:
-            is_charging = 2 * action.is_charging.target
+            is_charging = 2 * action.is_charging.target + 1
         
         return np.asarray(
             [
