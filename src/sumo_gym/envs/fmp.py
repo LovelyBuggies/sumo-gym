@@ -229,7 +229,11 @@ class FMPEnv(AECEnv):
         self._action_spaces = {agent: gym.spaces.Discrete(self.fmp.n_charging_station + len(self.fmp.demand) + 1) for agent in self.possible_agents}
         self._observation_spaces = {agent: gym.spaces.Box(
             low=np.array([0., 0., 0., 0., 0.]),
-            high=np.array([self.fmp.n_vertex, self.fmp.electric_vehicles[0].capacity, 1., 1., 1.]),
+            high=np.array([self.fmp.n_vertex,
+                           self.fmp.electric_vehicles[0].capacity,
+                           2*len(self.fmp.demand) + 1,
+                           2*self.fmp.n_charging_station + 1,
+                           1.]),
             dtype=np.float64
         ) for agent in self.possible_agents}
 
@@ -295,7 +299,7 @@ class FMPEnv(AECEnv):
             low=np.array([0., 0., 0., 0., 0.]),
             high=np.array([self.fmp.n_vertex,
                            self.fmp.electric_vehicles[0].capacity,
-                           2*(len(self.fmp.demand) - len(self.demand_dict_action_space)) + 1,
+                           2*len(self.demand_dict_action_space) + 1,
                            2*self.fmp.n_charging_station + 1,
                            1.]),
             dtype=np.float64
