@@ -432,7 +432,7 @@ class FMPEnv(AECEnv):
 
         # update previous info for agent
         self.prev_locations[agent] = self.states[agent].location
-        self.prev_is_loading[agent] = self.states[agent].is_loading
+        self.prev_is_loading[agent] = self.states[agent].is_loading.current
 
         infos = {agent: {} for agent in self.agents}
         return self.observations, self.rewards, self.dones, infos
