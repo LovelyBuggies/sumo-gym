@@ -214,10 +214,6 @@ demand = np.asarray(
     ]
 )
 
-print(departures)
-print(demand)
-print()
-
 raw_env = gym.make(
     "FMP-v0",
     mode="numerical",
