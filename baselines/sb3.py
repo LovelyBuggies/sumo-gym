@@ -16,8 +16,7 @@ env = gym.make(
         net_xml_file_path="assets/data/jumbo/jumbo.net.xml",
         demand_xml_file_path="assets/data/jumbo/jumbo.rou.xml",
         additional_xml_file_path="assets/data/jumbo/jumbo.cs.add.xml",
-        render_env=True
-        False,
+        render_env=False,
     )
 
 
