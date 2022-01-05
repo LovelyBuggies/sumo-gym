@@ -230,7 +230,7 @@ class FMPEnv(AECEnv):
         self._observation_spaces = {agent: gym.spaces.Box(
             low=np.array([0., 0., 0., 0., 0.]),
             high=np.array([self.fmp.n_vertex, self.fmp.electric_vehicles[0].capacity, 1., 1., 1.]),
-            dtype=np.float32
+            dtype=np.float64
         ) for agent in self.possible_agents}
 
         self._freeze()
@@ -297,7 +297,7 @@ class FMPEnv(AECEnv):
                            2*(len(self.fmp.demand) - len(self.responded)) + 1,
                            2*len(self.fmp.n_charging_station) + 1,
                            1.]),
-            dtype=np.float32
+            dtype=np.float64
         )
 
     @functools.lru_cache(maxsize=None)
