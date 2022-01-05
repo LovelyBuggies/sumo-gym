@@ -16,7 +16,13 @@ from gym.spaces import Discrete, Box, Dict
 import numpy as np
 import os
 import random
-from sumo_gym.utils.fmp_utils import Vertex, Edge, Demand, ChargingStation, ElectricVehicles
+from sumo_gym.utils.fmp_utils import (
+    Vertex,
+    Edge,
+    Demand,
+    ChargingStation,
+    ElectricVehicles,
+)
 from sumo_gym.envs.fmp import FMPEnv
 
 import ray
@@ -39,44 +45,40 @@ torch, nn = try_import_torch()
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
-    "--run",
-    type=str,
-    default="PPO",
-    help="The RLlib-registered algorithm to use.")
+    "--run", type=str, default="PPO", help="The RLlib-registered algorithm to use."
+)
 parser.add_argument(
     "--framework",
     choices=["tf", "tf2", "tfe", "torch"],
     default="tf",
-    help="The DL framework specifier.")
+    help="The DL framework specifier.",
+)
 parser.add_argument(
     "--as-test",
     action="store_true",
     help="Whether this script should be run as a test: --stop-reward must "
-    "be achieved within --stop-timesteps AND --stop-iters.")
+    "be achieved within --stop-timesteps AND --stop-iters.",
+)
 parser.add_argument(
-    "--stop-iters",
-    type=int,
-    default=50,
-    help="Number of iterations to train.")
+    "--stop-iters", type=int, default=50, help="Number of iterations to train."
+)
 parser.add_argument(
-    "--stop-timesteps",
-    type=int,
-    default=100000,
-    help="Number of timesteps to train.")
+    "--stop-timesteps", type=int, default=100000, help="Number of timesteps to train."
+)
 parser.add_argument(
-    "--stop-reward",
-    type=float,
-    default=0.60,
-    help="Reward at which we stop training.")
+    "--stop-reward", type=float, default=0.60, help="Reward at which we stop training."
+)
 parser.add_argument(
     "--no-tune",
     action="store_false",
     help="Run without Tune using a manual train loop instead. In this case,"
-    "use PPO without grid search and no TensorBoard.")
+    "use PPO without grid search and no TensorBoard.",
+)
 parser.add_argument(
     "--local-mode",
     action="store_true",
-    help="Init Ray in local mode for easier debugging.")
+    help="Init Ray in local mode for easier debugging.",
+)
 
 
 # class SimpleCorridor(gym.Env):
@@ -321,12 +323,13 @@ demand = np.asarray(
 class CustomModel(TFModelV2):
     """Example of a keras custom model that just delegates to an fc-net."""
 
-    def __init__(self, obs_space, action_space, num_outputs, model_config,
-                 name):
-        super(CustomModel, self).__init__(obs_space, action_space, num_outputs,
-                                          model_config, name)
-        self.model = FullyConnectedNetwork(obs_space, action_space,
-                                           num_outputs, model_config, name)
+    def __init__(self, obs_space, action_space, num_outputs, model_config, name):
+        super(CustomModel, self).__init__(
+            obs_space, action_space, num_outputs, model_config, name
+        )
+        self.model = FullyConnectedNetwork(
+            obs_space, action_space, num_outputs, model_config, name
+        )
 
     def forward(self, input_dict, state, seq_lens):
         return self.model.forward(input_dict, state, seq_lens)
@@ -338,14 +341,15 @@ class CustomModel(TFModelV2):
 class TorchCustomModel(TorchModelV2, nn.Module):
     """Example of a PyTorch custom model that just delegates to a fc-net."""
 
-    def __init__(self, obs_space, action_space, num_outputs, model_config,
-                 name):
-        TorchModelV2.__init__(self, obs_space, action_space, num_outputs,
-                              model_config, name)
+    def __init__(self, obs_space, action_space, num_outputs, model_config, name):
+        TorchModelV2.__init__(
+            self, obs_space, action_space, num_outputs, model_config, name
+        )
         nn.Module.__init__(self)
 
-        self.torch_sub_model = TorchFC(obs_space, action_space, num_outputs,
-                                       model_config, name)
+        self.torch_sub_model = TorchFC(
+            obs_space, action_space, num_outputs, model_config, name
+        )
 
     def forward(self, input_dict, state, seq_lens):
         input_dict["obs"] = input_dict["obs"].float()
@@ -361,7 +365,8 @@ def plot_rewards(max_rewards, mean_rewards, min_rewards):
     plt.plot(mean_rewards, label="mean_rewards")
     plt.plot(min_rewards, label="min_rewards")
     plt.legend()
-    plt.savefig('reward.png')
+    plt.savefig("reward.png")
+
 
 if __name__ == "__main__":
     args = parser.parse_args()
@@ -372,8 +377,8 @@ if __name__ == "__main__":
     # Can also register the env creator function explicitly with:
     # register_env("corridor", lambda config: SimpleCorridor(config))
     ModelCatalog.register_custom_model(
-        "my_model", TorchCustomModel
-        if args.framework == "torch" else CustomModel)
+        "my_model", TorchCustomModel if args.framework == "torch" else CustomModel
+    )
 
     config = {
         "env": FMPEnv,  # or "corridor" if registered above
@@ -429,8 +434,10 @@ if __name__ == "__main__":
             min_rewards.append(result["episode_reward_min"])
 
             # stop training of the target train steps or reward are reached
-            if result["timesteps_total"] >= args.stop_timesteps or \
-                    result["episode_reward_mean"] >= args.stop_reward:
+            if (
+                result["timesteps_total"] >= args.stop_timesteps
+                or result["episode_reward_mean"] >= args.stop_reward
+            ):
                 break
     else:
         # automated run with Tune and grid search and TensorBoard

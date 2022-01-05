@@ -291,15 +291,29 @@ class FMPEnv(gym.Env):
                 self.sumo if hasattr(self, "sumo") else None,
             )
         )
-        self.action_space = gym.spaces.Discrete(self.fmp.n_charging_station + len(self.fmp.demand))
+        self.action_space = gym.spaces.Discrete(
+            self.fmp.n_charging_station + len(self.fmp.demand)
+        )
         self.demand_dict_action_space = dict()
-        for i in range(self.fmp.n_charging_station, self.fmp.n_charging_station + len(self.fmp.demand), 1):
+        for i in range(
+            self.fmp.n_charging_station,
+            self.fmp.n_charging_station + len(self.fmp.demand),
+            1,
+        ):
             self.demand_dict_action_space[i] = i - self.fmp.n_charging_station
 
         self.observation_space = gym.spaces.Box(
-            low=np.array([0., 0., 0., 0., 0.]),
-            high=np.array([self.fmp.n_vertex, self.fmp.electric_vehicles[0].capacity, 1., 1., 1.]),
-            dtype=np.float32
+            low=np.array([0.0, 0.0, 0.0, 0.0, 0.0]),
+            high=np.array(
+                [
+                    self.fmp.n_vertex,
+                    self.fmp.electric_vehicles[0].capacity,
+                    1.0,
+                    1.0,
+                    1.0,
+                ]
+            ),
+            dtype=np.float32,
         )
         self.actions: sumo_gym.typing.ActionsType = None
         self.rewards: sumo_gym.typing.RewardsType = np.zeros(self.fmp.n_vehicle)
@@ -321,37 +335,44 @@ class FMPEnv(gym.Env):
             [
                 observation["Locations"][0],
                 observation["Batteries"][0],
-                1. if observation["Is_loading"][0] else 0.,
-                1. if observation["Is_charging"][0] else 0.,
-                1. if observation["Takes_action"][0] else 0.,
-             ]
+                1.0 if observation["Is_loading"][0] else 0.0,
+                1.0 if observation["Is_charging"][0] else 0.0,
+                1.0 if observation["Takes_action"][0] else 0.0,
+            ]
         )
         return obs
-
 
     def step(self, discrete_action):
         # convert action space action to move space action
         if discrete_action < self.fmp.n_charging_station:
             tmp = GridAction(self.states[0])
-            tmp.is_loading, tmp.is_charging = Loading(NO_LOADING, NO_LOADING), Charging(NO_CHARGING, discrete_action)
+            tmp.is_loading, tmp.is_charging = Loading(NO_LOADING, NO_LOADING), Charging(
+                NO_CHARGING, discrete_action
+            )
             tmp.location = one_step_to_destination(
-                self.fmp.vertices, self.fmp.edges, self.states[0].location,
-                self.fmp.charging_stations[self.states[0].is_charging.target].location
+                self.fmp.vertices,
+                self.fmp.edges,
+                self.states[0].location,
+                self.fmp.charging_stations[self.states[0].is_charging.target].location,
             )
             actions = [tmp]
         else:
             demand_idx = self.demand_dict_action_space[discrete_action]
             tmp = GridAction(self.states[0])
-            tmp.is_loading, tmp.is_charging = Loading(NO_LOADING, demand_idx), Charging(NO_CHARGING, NO_CHARGING)
+            tmp.is_loading, tmp.is_charging = Loading(NO_LOADING, demand_idx), Charging(
+                NO_CHARGING, NO_CHARGING
+            )
             tmp.location = one_step_to_destination(
-                self.fmp.vertices, self.fmp.edges, self.states[0].location,
+                self.fmp.vertices,
+                self.fmp.edges,
+                self.states[0].location,
                 self.fmp.demand[self.states[0].is_loading.current].destination,
             )
             actions = [tmp]
 
         obs, reward, done, info = self._inner_step(actions)
         rew = 0
-        while obs[-1] == False: # todo only makes sense for single agent
+        while obs[-1] == False:  # todo only makes sense for single agent
             observation, reward, done, info = self._inner_step(self.move_space.sample())
             rew += reward
             if done:
@@ -359,7 +380,9 @@ class FMPEnv(gym.Env):
 
         # when finish a demand, remove it from action space
         if not discrete_action < self.fmp.n_charging_station:
-            action_space_new_len = self.fmp.n_charging_station + len(self.demand_dict_action_space) - 1
+            action_space_new_len = (
+                self.fmp.n_charging_station + len(self.demand_dict_action_space) - 1
+            )
             self.action_space = gym.spaces.Discrete(action_space_new_len)
             for i in range(discrete_action, action_space_new_len, 1):
                 self.demand_dict_action_space[i] = self.demand_dict_action_space[i + 1]
@@ -367,7 +390,6 @@ class FMPEnv(gym.Env):
 
         self.run += 1
         return obs, reward, done, info
-
 
     def _inner_step(self, actions):
         prev_locations = []
@@ -442,15 +464,16 @@ class FMPEnv(gym.Env):
             [
                 observation["Locations"][0],
                 observation["Batteries"][0],
-                1. if observation["Is_loading"][0] else 0.,
-                1. if observation["Is_charging"][0] else 0.,
-                1. if observation["Takes_action"][0] else 0.,
+                1.0 if observation["Is_loading"][0] else 0.0,
+                1.0 if observation["Is_charging"][0] else 0.0,
+                1.0 if observation["Takes_action"][0] else 0.0,
             ]
         )
 
         reward, done, info = (
             self.rewards,
-            self.responded == set(range(len(self.fmp.demand))) or observation["Batteries"][0] < 0,
+            self.responded == set(range(len(self.fmp.demand)))
+            or observation["Batteries"][0] < 0,
             observation,
         )
 
