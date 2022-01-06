@@ -232,9 +232,12 @@ env = wrappers.OrderEnforcingWrapper(env)
 # api_test(env, num_cycles=10, verbose_progress=False)
 
 env.reset()
-for agent in env.agent_iter():
-    observation, reward, done, info = env.last()
-    if done:
-        break
-    action = env.action_space(agent).sample()
-    env.step(action)
+for _ in range(100):
+    for agent in env.agent_iter():
+        action = env.action_space(agent).sample()
+        observation, reward, done, info = env.step(action)
+
+        if done:
+            break
+
+env.close()
