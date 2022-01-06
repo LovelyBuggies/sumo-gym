@@ -439,6 +439,7 @@ class FMPEnv(AECEnv):
         self.prev_is_loading[agent] = self.states[agent].is_loading.current
 
         infos = {agent: {} for agent in self.agents}
+        return self.observations, self.rewards, self.dones, infos
 
 
     def _update_demand_space(self, action):
