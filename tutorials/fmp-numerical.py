@@ -210,7 +210,7 @@ demand = np.asarray(
     ]
 )
 
-raw_env = gym.make(
+env = gym.make(
     "FMP-v0",
     mode="numerical",
     n_vertex=n_vertex,
@@ -225,15 +225,16 @@ raw_env = gym.make(
     departures=departures,
     charging_stations=charging_stations,
 )
+env = wrappers.CaptureStdoutWrapper(env)
+env = wrappers.AssertOutOfBoundsWrapper(env)
+env = wrappers.OrderEnforcingWrapper(env)
 
-def env_f():
-    '''
-    The env function often wraps the environment in wrappers by default.
-    '''
-    env = raw_env
-    env = wrappers.CaptureStdoutWrapper(env)
-    env = wrappers.AssertOutOfBoundsWrapper(env)
-    env = wrappers.OrderEnforcingWrapper(env)
-    return env
+# api_test(env, num_cycles=10, verbose_progress=False)
 
-api_test(env_f(), num_cycles=10, verbose_progress=False)
+env.reset()
+for agent in env.agent_iter():
+    observation, reward, done, info = env.last()
+    if done:
+        break
+    action = env.action_space(agent).sample()
+    env.step(action)
