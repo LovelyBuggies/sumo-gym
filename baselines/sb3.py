@@ -2,12 +2,13 @@ import numpy as np
 import gym
 import sumo_gym
 from sumo_gym.utils.fmp_utils import Vertex, Edge, Demand, ChargingStation, ElectricVehicles
-import random
-import sys
 from pettingzoo.test import api_test
 from pettingzoo.utils import wrappers
+from pettingzoo.utils import to_parallel
 
-import matplotlib.pyplot as plt
+from stable_baselines3 import PPO
+from stable_baselines3.ppo import MlpPolicy
+import supersuit as ss
 
 vertices = np.asarray(
     [
@@ -214,7 +215,7 @@ demand = np.asarray(
     ]
 )
 
-raw_env = gym.make(
+env = gym.make(
     "FMP-v0",
     mode="numerical",
     n_vertex=n_vertex,
@@ -229,20 +230,9 @@ raw_env = gym.make(
     departures=departures,
     charging_stations=charging_stations,
 )
+env = to_parallel(env)
+env = ss.pettingzoo_env_to_vec_env_v1(env)
+env = ss.concat_vec_envs_v1(env, 8, num_cpus=1, base_class='stable_baselines3')
 
-def env_f():
-    '''
-    The env function often wraps the environment in wrappers by default.
-    You can find full documentation for these methods elsewhere in the developer documentation.
-    '''
-    env = raw_env
-    # This wrapper is only for environments which print results to the terminal
-    env = wrappers.CaptureStdoutWrapper(env)
-    # this wrapper helps error handling for discrete action spaces
-    env = wrappers.AssertOutOfBoundsWrapper(env)
-    # Provides a wide vareity of helpful user errors
-    # Strongly recomended
-    env = wrappers.OrderEnforcingWrapper(env)
-    return env
-
-api_test(env_f(), num_cycles=10, verbose_progress=False)
+model = PPO(MlpPolicy, env, verbose=3, gamma=0.95, n_steps=256, ent_coef=0.0905168, learning_rate=0.00062211, vf_coef=0.042202, max_grad_norm=0.9, gae_lambda=0.99, n_epochs=5, clip_range=0.3, batch_size=256)
+model.learn(total_timesteps=2)

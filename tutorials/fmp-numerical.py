@@ -229,15 +229,10 @@ raw_env = gym.make(
 def env_f():
     '''
     The env function often wraps the environment in wrappers by default.
-    You can find full documentation for these methods elsewhere in the developer documentation.
     '''
     env = raw_env
-    # This wrapper is only for environments which print results to the terminal
     env = wrappers.CaptureStdoutWrapper(env)
-    # this wrapper helps error handling for discrete action spaces
     env = wrappers.AssertOutOfBoundsWrapper(env)
-    # Provides a wide vareity of helpful user errors
-    # Strongly recomended
     env = wrappers.OrderEnforcingWrapper(env)
     return env
 
