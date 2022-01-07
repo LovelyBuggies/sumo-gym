@@ -595,7 +595,6 @@ class FMPEnv(AECEnv):
             del self.demand_dict_action_space[action_space_new_len]
 
     def _convert_discrete_action_to_move(self, action, agent):
-        print(action, self.fmp.n_charging_station + len(self.demand_dict_action_space))
         # convert action space action to move space action
         if action < self.fmp.n_charging_station:
             converted_action = self.states[agent]
