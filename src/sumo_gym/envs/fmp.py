@@ -417,6 +417,7 @@ class FMPEnv(AECEnv):
             # handles stepping an agent which is already done
             # accepts a None action for the one agent, and moves the agent_selection to
             # the next done agent, or if there are no more done agents, to the next live agent
+            action = None
             self._was_done_step(action)
             return self.observations, self.rewards, self.dones, self.infos
 
@@ -448,12 +449,13 @@ class FMPEnv(AECEnv):
         return self.observations, self.rewards, self.dones, self.infos
 
     def _inner_step(self, agent):
-        self._perform_one_move(agent)
-        self._update_battery_for_agent(agent, self.states[agent])
-        self._calculate_reward(agent)
-        self.observations[agent] = self._get_obs_from_action(self.states[agent])
-        print("     observation for agent: ", agent, self.observations[agent])
-        self._update_previous_state(agent)
+        if not self.dones[agent]:
+            self._perform_one_move(agent)
+            self._update_battery_for_agent(agent, self.states[agent])
+            self._calculate_reward(agent)
+            self.observations[agent] = self._get_obs_from_action(self.states[agent])
+            print("     observation for agent: ", agent, self.observations[agent])
+            self._update_previous_state(agent)
 
 
     def _update_previous_state(self, agent):
