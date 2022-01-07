@@ -342,19 +342,19 @@ class FMPEnv(AECEnv):
         Here it sets up the state dictionary which is used by step() and the observations dictionary which is used by step() and observe()
         '''
         self.agents = self.possible_agents[:]
-        self.rewards = {agent: 0 for agent in self.agents}
-        self._cumulative_rewards = {agent: 0 for agent in self.agents}
+        self.rewards = {agent: 0. for agent in self.agents}
+        self._cumulative_rewards = {agent: 0. for agent in self.agents}
         self.dones = {agent: False for agent in self.agents}
         self.infos = {agent: {} for agent in self.agents}
         self.states = {agent: FMPState() for agent in self.agents}
         self.observations = {agent: self._get_default_obs(agent) for agent in self.agents}
 
-        self.prev_locations = {agent: 0 for agent in self.agents}
+        self.prev_locations = {agent: 0. for agent in self.agents}
         self.prev_is_loading = {agent: NO_LOADING for agent in self.agents}
 
         self.num_moves = 0
         '''
-        Our agent_selector utility allows easy cyclic stoepping through the agents list.
+        Our agent_selector utility allows easy cyclic stepping through the agents list.
         '''
         self._agent_selector = agent_selector(self.agents)
         self.agent_selection = self._agent_selector.next()
@@ -392,14 +392,26 @@ class FMPEnv(AECEnv):
         - agent_selection (to the next agent)
         And any internal state used by observe() or render()
         '''
+        agent = self.agent_selection
+        if action is None:
+            self.observations[agent] = np.asarray(
+                [
+                    IDLE_LOCATION,
+                    0.,
+                    0.,
+                    0.,
+                    False,
+                ], dtype=np.float64
+            )
+            self.dones[agent] = True
+            self.infos[agent] = {}
 
-        if self.dones[self.agent_selection]:
+        if self.dones[agent]:
             # handles stepping an agent which is already done
             # accepts a None action for the one agent, and moves the agent_selection to
             # the next done agent, or if there are no more done agents, to the next live agent
-            return self._was_done_step(action)
-
-        agent = self.agent_selection
+            self._was_done_step(action)
+            return self.observations, self.rewards, self.dones, self.infos
 
         # the agent which stepped last had its _cumulative_rewards accounted for
         # (because it was returned by last()), so the _cumulative_rewards for this
@@ -438,8 +450,8 @@ class FMPEnv(AECEnv):
         self.prev_locations[agent] = self.states[agent].location
         self.prev_is_loading[agent] = self.states[agent].is_loading.current
 
-        infos = {agent: {} for agent in self.agents}
-        return self.observations, self.rewards, self.dones, infos
+        self.infos[agent] = {}
+        return self.observations, self.rewards, self.dones, self.infos
 
 
     def _update_demand_space(self, action):
@@ -494,6 +506,7 @@ class FMPEnv(AECEnv):
             is_loading = action.is_loading.target + 1
         else:
             is_loading = 2 * action.is_loading.target + 1
+
         if action.is_charging.current == NO_CHARGING and action.is_charging.target == NO_CHARGING:
             is_charging = 0
         elif action.is_charging.current == NO_CHARGING:
@@ -515,7 +528,6 @@ class FMPEnv(AECEnv):
         reward = 0
         if self.states[agent].battery < 0:
             reward -= 1000
-            
 
         if self.prev_is_loading[agent] != -1 and self.states[agent].is_loading.current == -1:
             self.responded.add(self.prev_is_loading[agent])

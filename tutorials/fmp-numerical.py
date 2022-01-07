@@ -239,3 +239,5 @@ for _ in range(10):
             break
         action = env.action_space(agent).sample()
         env.step(action)
+
+env.close()
