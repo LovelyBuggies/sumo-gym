@@ -445,9 +445,7 @@ class FMPEnv(AECEnv):
         # Adds .rewards to ._cumulative_rewards
         self._accumulate_rewards()
 
-        # update previous info for agent
-        self.prev_locations[agent] = self.states[agent].location
-        self.prev_is_loading[agent] = self.states[agent].is_loading.current
+        self._update_previous_state(agent)
 
         self.infos[agent] = {}
         return self.observations, self.rewards, self.dones, self.infos
@@ -457,9 +455,16 @@ class FMPEnv(AECEnv):
         self._update_battery_for_agent(agent, self.states[agent])
         self._add_demand_satisfied_reward(agent)
         self.observations[agent] = self._get_obs_from_action(self.states[agent])
+        self._update_previous_state(agent)
+
+
+    def _update_previous_state(self, agent):
+        self.prev_locations[agent] = self.states[agent].location
+        self.prev_is_loading[agent] = self.states[agent].is_loading.current
+
 
     def _add_demand_satisfied_reward(self, agent):
-        prev_is_loading = self.prev_is_loading[agent].is_loading.current
+        prev_is_loading = self.prev_is_loading[agent]
 
         if prev_is_loading != NO_LOADING and self.states[agent].is_loading.current == NO_LOADING:
             self.rewards[agent] += get_hot_spot_weight(
