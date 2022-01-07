@@ -603,6 +603,7 @@ class FMPEnv(AECEnv):
             )
         elif action >= self.fmp.n_charging_station + len(self.demand_dict_action_space): # no move
             converted_action = self.states[agent]
+            self.rewards[agent] -= 10
         else:
             demand_idx = self.demand_dict_action_space[action]
             converted_action = self.states[agent]
