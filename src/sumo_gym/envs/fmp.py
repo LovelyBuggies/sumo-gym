@@ -433,7 +433,7 @@ class FMPEnv(AECEnv):
 
             self.num_moves += 1
             # The dones dictionary must be updated for all players.
-            self.dones = {agent: self.responded == set(range(len(self.fmp.demand))) or self.states[self.agent_selection].battery < 0 for agent in self.agents}
+            self.dones = {agent: self.responded == set(range(len(self.fmp.demand))) or self.states[self.agent_selection].battery <= 0 for agent in self.agents}
                 
         # else:
         #     # necessary so that observe() returns a reasonable observation at all times.
@@ -528,6 +528,7 @@ class FMPEnv(AECEnv):
         reward = 0
         if self.states[agent].battery < 0:
             reward -= 1000
+            return reward
 
         if self.prev_is_loading[agent] != -1 and self.states[agent].is_loading.current == -1:
             self.responded.add(self.prev_is_loading[agent])
