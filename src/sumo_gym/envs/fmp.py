@@ -436,6 +436,7 @@ class FMPEnv(AECEnv):
         if self._agent_selector.is_last():
             self.num_moves += 1
             # The dones dictionary must be updated for all players.
+            print("!!! responded: ", self.responded)
             self.dones = {agent: self.responded == set(range(len(self.fmp.demand))) or self.states[agent].battery <= 0 for agent in self.agents}
 
         # selects the next agent.
@@ -593,6 +594,7 @@ class FMPEnv(AECEnv):
             for i in range(action, action_space_new_len, 1):
                 self.demand_dict_action_space[i] = self.demand_dict_action_space[i + 1]
             del self.demand_dict_action_space[action_space_new_len]
+            print("!!! demand space updates: ", self.demand_dict_action_space)
 
     def _convert_discrete_action_to_move(self, action, agent):
         # convert action space action to move space action
@@ -615,6 +617,7 @@ class FMPEnv(AECEnv):
                 self.fmp.demand[self.states[agent].is_loading.current].destination,
             )
 
+        print("     #### Converted action ", converted_action, agent)
         return converted_action
 
     def _update_battery_for_agent(self, agent, action):
