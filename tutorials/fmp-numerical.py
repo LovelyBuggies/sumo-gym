@@ -231,7 +231,7 @@ env = wrappers.OrderEnforcingWrapper(env)
 
 # api_test(env, num_cycles=10, verbose_progress=False)
 
-for _ in range(10):
+for _ in range(1):
     env.reset()
     for agent in env.agent_iter():
         observation, reward, done, info = env.last()
