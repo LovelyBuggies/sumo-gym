@@ -411,6 +411,7 @@ class FMPEnv(AECEnv):
         while observation[4] == False:
             self._inner_step(agent)
             agent = self._agent_selector.next()
+            observation, _, _, _ = self.last()
 
         if self.dones[agent]:
             # handles stepping an agent which is already done
@@ -480,7 +481,7 @@ class FMPEnv(AECEnv):
             )
 
     def _perform_one_move(self, agent):
-        if self.states[agent].is_loading.current != NO_LOADING:  # is on the way
+        if self.states[agent].is_loading.current != NO_LOADING:  # is on the way to demand
             print("----- In the way of demand:", self.states[agent].is_loading.current)
             loc = one_step_to_destination(
                 self.fmp.vertices,
@@ -500,7 +501,7 @@ class FMPEnv(AECEnv):
                     self.states[agent].is_loading.target,
                 )
             self.states[agent].location = loc
-        elif self.states[agent].is_loading.target != NO_LOADING:  # is to the way
+        elif self.states[agent].is_loading.target != NO_LOADING:  # is to the way to demand
             print("----- In the way to respond:", self.states[agent].is_loading.target)
             loc = one_step_to_destination(
                 self.fmp.vertices,
@@ -525,9 +526,7 @@ class FMPEnv(AECEnv):
             ].location
             # TODO: assume one timestep can finish charging for now
             self.states[agent].is_charging = Charging(NO_CHARGING, NO_CHARGING)
-        elif (
-            self.states[agent].is_charging.target != NO_CHARGING
-        ):  # is on the way to charge
+        elif self.states[agent].is_charging.target != NO_CHARGING:  # is on the way to charge
             if (
                 self.states[agent].location
                 == self.fmp.charging_stations[
@@ -626,7 +625,7 @@ class FMPEnv(AECEnv):
                 action.battery,
                 is_loading,
                 is_charging,
-                True if is_loading == NO_LOADING and is_charging == NO_CHARGING else False,
+                True if is_loading == 0 and is_charging == 0 else False,
             ], dtype=np.float64
         )
 
