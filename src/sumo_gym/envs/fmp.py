@@ -433,10 +433,6 @@ class FMPEnv(AECEnv):
 
         # collect reward if it is the last agent to act
         if self._agent_selector.is_last():
-            # rewards for all agents are placed in the .rewards dictionary, and update the observations
-            for agent in self.agents:
-                self.rewards[agent] += self._calculate_reward(agent)
-
             self.num_moves += 1
             # The dones dictionary must be updated for all players.
             self.dones = {agent: self.responded == set(range(len(self.fmp.demand))) or self.states[agent].battery <= 0 for agent in self.agents}
@@ -454,8 +450,9 @@ class FMPEnv(AECEnv):
     def _inner_step(self, agent):
         self._perform_one_move(agent)
         self._update_battery_for_agent(agent, self.states[agent])
-        self._add_demand_satisfied_reward(agent)
+        self._calculate_reward(agent)
         self.observations[agent] = self._get_obs_from_action(self.states[agent])
+        print("     observation for agent: ", agent, self.observations[agent])
         self._update_previous_state(agent)
 
 
@@ -479,6 +476,31 @@ class FMPEnv(AECEnv):
                 self.fmp.demand[prev_is_loading].departure,
                 self.fmp.demand[prev_is_loading].destination,
             )
+
+    def _calculate_reward(self, agent):
+        reward = 0
+        if self.states[agent].battery < 0:
+            reward -= 1000
+            self.dones[agent] = True
+            return
+
+        if self.prev_is_loading[agent] != -1 and self.states[agent].is_loading.current == -1:
+            self.responded.add(self.prev_is_loading[agent])
+            reward += sumo_gym.utils.fmp_utils.get_hot_spot_weight(
+                self.fmp.vertices,
+                self.fmp.edges,
+                self.fmp.demand,
+                self.fmp.demand[self.prev_is_loading[agent]].departure,
+            ) * sumo_gym.utils.fmp_utils.dist_between(
+                self.fmp.vertices,
+                self.fmp.edges,
+                self.fmp.demand[self.prev_is_loading[agent]].departure,
+                self.fmp.demand[self.prev_is_loading[agent]].destination,
+            )
+            print("     added reward: ", reward)
+            self.rewards[agent] += reward
+
+
 
     def _perform_one_move(self, agent):
         print("For agent: ", agent)
@@ -560,6 +582,8 @@ class FMPEnv(AECEnv):
                     self.states[agent].is_charging.target,
                 )
 
+        print("     updated status for agent",self.states[agent])
+
     def _update_demand_space(self, action):
         # when a demand is being responding or responded, remove it from action space for other agents
         if not action < self.fmp.n_charging_station and action < self.fmp.n_charging_station + len(self.demand_dict_action_space):
@@ -629,29 +653,6 @@ class FMPEnv(AECEnv):
                 True if is_loading == 0 and is_charging == 0 else False,
             ], dtype=np.float64
         )
-
-    def _calculate_reward(self, agent):
-        reward = 0
-        if self.states[agent].battery < 0:
-            reward -= 1000
-            self.dones[agent] = True
-
-        if self.prev_is_loading[agent] != -1 and self.states[agent].is_loading.current == -1:
-            self.responded.add(self.prev_is_loading[agent])
-            reward += sumo_gym.utils.fmp_utils.get_hot_spot_weight(
-                self.fmp.vertices,
-                self.fmp.edges,
-                self.fmp.demand,
-                self.fmp.demand[self.prev_is_loading[agent]].departure,
-            ) * sumo_gym.utils.fmp_utils.dist_between(
-                self.fmp.vertices,
-                self.fmp.edges,
-                self.fmp.demand[self.prev_is_loading[agent]].departure,
-                self.fmp.demand[self.prev_is_loading[agent]].destination,
-            )
-            print("     ---- should add reward: ", reward, " for agent: ", agent)
-
-        return reward
 
     def render(self, mode="human"):
         if self.sumo_gui_path is None:
