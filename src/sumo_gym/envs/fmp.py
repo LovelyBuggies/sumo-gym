@@ -481,6 +481,7 @@ class FMPEnv(AECEnv):
             )
 
     def _perform_one_move(self, agent):
+        print("For agent: ", agent)
         if self.states[agent].is_loading.current != NO_LOADING:  # is on the way to demand
             print("----- In the way of demand:", self.states[agent].is_loading.current)
             loc = one_step_to_destination(
