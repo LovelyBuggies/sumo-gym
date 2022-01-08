@@ -407,11 +407,11 @@ class FMPEnv(AECEnv):
             self.dones[agent] = True
             self.infos[agent] = {}
 
-        observation, _, _, _ = self.last()
-        if observation[4] == False:
+        take_action = self.states[agent].is_loading.target == NO_LOADING and self.states[agent].is_charging.target == NO_CHARGING
+        if take_action == False:
             self._inner_step(agent)
-            agent = self._agent_selector.next()
-            observation, _, _, _ = self.last()
+            self.agent_selection = self._agent_selector.next()
+            return self.observations, self.rewards, self.dones, self.infos
 
         if self.dones[agent]:
             # handles stepping an agent which is already done
@@ -436,7 +436,7 @@ class FMPEnv(AECEnv):
         if self._agent_selector.is_last():
             self.num_moves += 1
             # The dones dictionary must be updated for all players.
-            print("!!! responded: ", self.responded)
+            print(">>>>>>>>>>", self.responded)
             self.dones = {agent: self.responded == set(range(len(self.fmp.demand))) or self.states[agent].battery <= 0 for agent in self.agents}
 
         # selects the next agent.
@@ -617,7 +617,8 @@ class FMPEnv(AECEnv):
                 self.fmp.demand[self.states[agent].is_loading.current].destination,
             )
 
-        print("     #### Converted action ", converted_action, agent)
+        print("For agent: ", agent)
+        print("     Converted action ", converted_action)
         return converted_action
 
     def _update_battery_for_agent(self, agent, action):
