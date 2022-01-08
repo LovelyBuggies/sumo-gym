@@ -345,7 +345,12 @@ class FMPEnv(AECEnv):
         self.rewards = {agent: 0. for agent in self.agents}
         self._cumulative_rewards = {agent: 0. for agent in self.agents}
         self.dones = {agent: False for agent in self.agents}
-        self.infos = {agent: {} for agent in self.agents}
+        self.infos = {agent: {
+                        "episode": {
+                            "r": 0,
+                            "l": 0,
+                        }
+                    } for agent in self.agents for agent in self.agents}
         self.states = {agent: FMPState() for agent in self.agents}
         self.observations = {agent: self._get_default_obs(agent) for agent in self.agents}
 
@@ -448,6 +453,7 @@ class FMPEnv(AECEnv):
                     } for agent in self.agents
                 }
                 self.reset()
+                print("=========== ", infos)
                 return self.observations, self.rewards, self.dones, infos
 
         # selects the next agent.
