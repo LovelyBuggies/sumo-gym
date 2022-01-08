@@ -618,7 +618,7 @@ class FMPEnv(AECEnv):
             )
 
         print("For agent: ", agent)
-        print("     Converted action ", converted_action)
+        print("     #### Converted action ", converted_action)
         return converted_action
 
     def _update_battery_for_agent(self, agent, action):
