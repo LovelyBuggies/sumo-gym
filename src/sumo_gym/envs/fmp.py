@@ -439,8 +439,7 @@ class FMPEnv(AECEnv):
             self.dones = {agent: self.responded == set(range(len(self.fmp.demand))) or self.states[agent].battery <= 0 for agent in self.agents}
             if self.responded == set(range(len(self.fmp.demand))): # all demand satisfied, reset and network
                 print("===== All demand satisfied, reset and update the info buffer =====")
-                self.reset()
-                self.infos = {
+                infos = {
                     agent: {
                         "episode": {
                             "r": self.rewards[agent],
@@ -448,7 +447,8 @@ class FMPEnv(AECEnv):
                         }
                     } for agent in self.agents
                 }
-                return self.observations, self.rewards, self.dones, self.infos
+                self.reset()
+                return self.observations, self.rewards, self.dones, infos
 
         # selects the next agent.
         self.agent_selection = self._agent_selector.next()
