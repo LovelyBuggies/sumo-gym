@@ -436,8 +436,19 @@ class FMPEnv(AECEnv):
         if self._agent_selector.is_last():
             self.num_moves += 1
             # The dones dictionary must be updated for all players.
-            print(">>>>>>>>>>", self.responded)
             self.dones = {agent: self.responded == set(range(len(self.fmp.demand))) or self.states[agent].battery <= 0 for agent in self.agents}
+            if self.responded == set(range(len(self.fmp.demand))): # all demand satisfied, reset and network
+                print("===== All demand satisfied, reset and update the info buffer =====")
+                self.reset()
+                self.infos = {
+                    agent: {
+                        "episode": {
+                            "r": self.rewards[agent],
+                            "l": self.num_moves,
+                        }
+                    } for agent in self.agents
+                }
+                return self.observations, self.rewards, self.dones, self.infos
 
         # selects the next agent.
         self.agent_selection = self._agent_selector.next()
@@ -458,11 +469,9 @@ class FMPEnv(AECEnv):
             print("     observation for agent: ", agent, self.observations[agent])
             self._update_previous_state(agent)
 
-
     def _update_previous_state(self, agent):
         self.prev_locations[agent] = self.states[agent].location
         self.prev_is_loading[agent] = self.states[agent].is_loading.current
-
 
     def _add_demand_satisfied_reward(self, agent):
         prev_is_loading = self.prev_is_loading[agent]
@@ -502,8 +511,6 @@ class FMPEnv(AECEnv):
             )
             print("     added reward: ", reward)
             self.rewards[agent] += reward
-
-
 
     def _perform_one_move(self, agent):
         print("For agent: ", agent)
@@ -594,7 +601,6 @@ class FMPEnv(AECEnv):
             for i in range(action, action_space_new_len, 1):
                 self.demand_dict_action_space[i] = self.demand_dict_action_space[i + 1]
             del self.demand_dict_action_space[action_space_new_len]
-            print("!!! demand space updates: ", self.demand_dict_action_space)
 
     def _convert_discrete_action_to_move(self, action, agent):
         # convert action space action to move space action
