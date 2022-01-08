@@ -473,22 +473,6 @@ class FMPEnv(AECEnv):
         self.prev_locations[agent] = self.states[agent].location
         self.prev_is_loading[agent] = self.states[agent].is_loading.current
 
-    def _add_demand_satisfied_reward(self, agent):
-        prev_is_loading = self.prev_is_loading[agent]
-
-        if prev_is_loading != NO_LOADING and self.states[agent].is_loading.current == NO_LOADING:
-            self.rewards[agent] += get_hot_spot_weight(
-                self.fmp.vertices,
-                self.fmp.edges,
-                self.fmp.demand,
-                self.fmp.demand[prev_is_loading].departure,
-            ) * dist_between(
-                self.fmp.vertices,
-                self.fmp.edges,
-                self.fmp.demand[prev_is_loading].departure,
-                self.fmp.demand[prev_is_loading].destination,
-            )
-
     def _calculate_reward(self, agent):
         reward = 0
         if self.states[agent].battery < 0:
