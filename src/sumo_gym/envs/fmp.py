@@ -238,6 +238,8 @@ class FMPEnv(AECEnv):
         ) for agent in self.possible_agents}
 
         self.reset()
+        self._reset_info()
+
         # self._freeze()
 
     def _setup_sumo_attributes(self,**kwargs):
@@ -327,6 +329,16 @@ class FMPEnv(AECEnv):
              ]
         )
 
+    def _reset_info(self):
+        self.infos = {
+            agent: {
+                "episode": {
+                    "r": 0,
+                    "l": 0,
+                }
+            } for agent in self.agents for agent in self.agents
+        }
+
     def reset(self):
         '''
         Reset needs to initialize the following attributes
@@ -345,12 +357,7 @@ class FMPEnv(AECEnv):
         self.rewards = {agent: 0. for agent in self.agents}
         self._cumulative_rewards = {agent: 0. for agent in self.agents}
         self.dones = {agent: False for agent in self.agents}
-        self.infos = {agent: {
-                        "episode": {
-                            "r": 0,
-                            "l": 0,
-                        }
-                    } for agent in self.agents for agent in self.agents}
+
         self.states = {agent: FMPState() for agent in self.agents}
         self.observations = {agent: self._get_default_obs(agent) for agent in self.agents}
 
@@ -363,7 +370,6 @@ class FMPEnv(AECEnv):
         '''
         self._agent_selector = agent_selector(self.agents)
         self.agent_selection = self._agent_selector.next()
-
 
         self.responded = set()
         for agent in self.agents:
@@ -444,7 +450,10 @@ class FMPEnv(AECEnv):
             self.dones = {agent: self.responded == set(range(len(self.fmp.demand))) or self.states[agent].battery <= 0 for agent in self.agents}
             if self.responded == set(range(len(self.fmp.demand))): # all demand satisfied, reset and network
                 print("===== All demand satisfied, reset and update the info buffer =====")
-                infos = {
+                # update the agent rewards only when the whole network has been satisfied
+                # it will automatically be reset for each agent separatly in the next round
+                # when action is chosen by the model for each agent respectively
+                self.infos = {
                     agent: {
                         "episode": {
                             "r": self.rewards[agent],
@@ -453,8 +462,7 @@ class FMPEnv(AECEnv):
                     } for agent in self.agents
                 }
                 self.reset()
-                print("=========== ", infos)
-                return self.observations, self.rewards, self.dones, infos
+                return self.observations, self.rewards, self.dones, self.infos
 
         # selects the next agent.
         self.agent_selection = self._agent_selector.next()
