@@ -336,7 +336,7 @@ class FMPEnv(AECEnv):
                     "r": 0,
                     "l": 0,
                 }
-            } for agent in self.agents for agent in self.agents
+            } for agent in self.agents
         }
 
     def reset(self):
@@ -357,6 +357,7 @@ class FMPEnv(AECEnv):
         self.rewards = {agent: 0. for agent in self.agents}
         self._cumulative_rewards = {agent: 0. for agent in self.agents}
         self.dones = {agent: False for agent in self.agents}
+        self._inner_dones = {agent: False for agent in self.agents}
 
         self.states = {agent: FMPState() for agent in self.agents}
         self.observations = {agent: self._get_default_obs(agent) for agent in self.agents}
@@ -415,7 +416,8 @@ class FMPEnv(AECEnv):
                     False,
                 ], dtype=np.float64
             )
-            self.dones[agent] = True
+            print("Set DONE to true for agent: ", agent)
+            self._inner_dones[agent] = True
             self.infos[agent] = {}
 
         take_action = self.states[agent].is_loading.target == NO_LOADING and self.states[agent].is_charging.target == NO_CHARGING
@@ -424,7 +426,7 @@ class FMPEnv(AECEnv):
             self.agent_selection = self._agent_selector.next()
             return self.observations, self.rewards, self.dones, self.infos
 
-        if self.dones[agent]:
+        if self._inner_dones[agent]:
             # handles stepping an agent which is already done
             # accepts a None action for the one agent, and moves the agent_selection to
             # the next done agent, or if there are no more done agents, to the next live agent
@@ -447,7 +449,11 @@ class FMPEnv(AECEnv):
         if self._agent_selector.is_last():
             self.num_moves += 1
             # The dones dictionary must be updated for all players.
-            self.dones = {agent: self.responded == set(range(len(self.fmp.demand))) or self.states[agent].battery <= 0 for agent in self.agents}
+            self.dones = {
+                agent: self.responded == set(range(len(self.fmp.demand)))
+                for agent in self.agents
+            }
+
             if self.responded == set(range(len(self.fmp.demand))): # all demand satisfied, reset and network
                 print("===== All demand satisfied, reset and update the info buffer =====")
                 # update the agent rewards only when the whole network has been satisfied
@@ -475,7 +481,7 @@ class FMPEnv(AECEnv):
         return self.observations, self.rewards, self.dones, self.infos
 
     def _inner_step(self, agent):
-        if not self.dones[agent]:
+        if not self._inner_dones[agent]:
             self._perform_one_move(agent)
             self._update_battery_for_agent(agent, self.states[agent])
             self._calculate_reward(agent)
@@ -491,7 +497,7 @@ class FMPEnv(AECEnv):
         reward = 0
         if self.states[agent].battery < 0:
             reward -= 1000
-            self.dones[agent] = True
+            self._inner_dones[agent] = True
             return
 
         if self.prev_is_loading[agent] != -1 and self.states[agent].is_loading.current == -1:
