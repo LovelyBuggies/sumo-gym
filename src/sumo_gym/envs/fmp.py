@@ -639,6 +639,10 @@ class FMPEnv(AECEnv):
             self.states[agent].battery += self.fmp.charging_stations[
                 self.states[agent].is_charging.current
             ].charging_speed
+            self.states[agent].battery = min(
+                self.fmp.electric_vehicles[self.agent_name_mapping[agent]].capacity,
+                self.states[agent].battery,
+            )
 
     def _get_obs_from_action(self, action):
         if action.is_loading.current == NO_LOADING and action.is_loading.target == NO_LOADING:
