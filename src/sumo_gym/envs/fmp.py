@@ -512,26 +512,23 @@ class FMPEnv(AECEnv):
         if self.states[agent].battery < 0:
             reward -= 1000
             self._inner_dones[agent] = True
-            return
+        else:
+            if self.prev_is_loading[agent] != -1 and self.states[agent].is_loading.current == -1:
+                self.responded.add(self.prev_is_loading[agent])
+                reward += sumo_gym.utils.fmp_utils.get_hot_spot_weight(
+                    self.fmp.vertices,
+                    self.fmp.edges,
+                    self.fmp.demand,
+                    self.fmp.demand[self.prev_is_loading[agent]].departure,
+                ) * sumo_gym.utils.fmp_utils.dist_between(
+                    self.fmp.vertices,
+                    self.fmp.edges,
+                    self.fmp.demand[self.prev_is_loading[agent]].departure,
+                    self.fmp.demand[self.prev_is_loading[agent]].destination,
+                )
+                print("     added reward: ", reward)
 
-        if (
-            self.prev_is_loading[agent] != -1
-            and self.states[agent].is_loading.current == -1
-        ):
-            self.responded.add(self.prev_is_loading[agent])
-            reward += sumo_gym.utils.fmp_utils.get_hot_spot_weight(
-                self.fmp.vertices,
-                self.fmp.edges,
-                self.fmp.demand,
-                self.fmp.demand[self.prev_is_loading[agent]].departure,
-            ) * sumo_gym.utils.fmp_utils.dist_between(
-                self.fmp.vertices,
-                self.fmp.edges,
-                self.fmp.demand[self.prev_is_loading[agent]].departure,
-                self.fmp.demand[self.prev_is_loading[agent]].destination,
-            )
-            print("     added reward: ", reward)
-            self.rewards[agent] += reward
+        self.rewards[agent] += reward
 
     def _perform_one_move(self, agent):
         print("For agent: ", agent)
