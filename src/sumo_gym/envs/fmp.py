@@ -215,7 +215,6 @@ class FMP(object):
 class FMPEnv(AECEnv):
     metadata = {"render.modes": ["human"]}
     fmp = property(operator.attrgetter("_fmp"))
-    __isfrozen = False
 
     def __init__(self, **kwargs):
 
@@ -226,23 +225,29 @@ class FMPEnv(AECEnv):
         # set up AEC related attributes, should not be changed after initialization.
         self.possible_agents = list(self.fmp.ev_dict.keys())
         self.agent_name_mapping = self.fmp.ev_dict
-        self._action_spaces = {agent: gym.spaces.Discrete(self.fmp.n_charging_station + len(self.fmp.demand) + 1) for agent in self.possible_agents}
-        self._observation_spaces = {agent: gym.spaces.Box(
-            low=np.array([0., 0., 0., 0., 0.]),
-            high=np.array([self.fmp.n_vertex,
-                           self.fmp.electric_vehicles[0].capacity,
-                           2*len(self.fmp.demand) + 1,
-                           2*self.fmp.n_charging_station + 1,
-                           1.]),
-            dtype=np.float64
-        ) for agent in self.possible_agents}
+        self._action_spaces = {
+            agent: gym.spaces.Discrete(self.fmp.n_charging_station + len(self.fmp.demand) + 1)
+            for agent in self.possible_agents
+        }
+        self._observation_spaces = {
+            agent: gym.spaces.Box(
+                low=np.array([0., 0., 0., 0., 0.]),
+                high=np.array([
+                    self.fmp.n_vertex,
+                    self.fmp.electric_vehicles[0].capacity,
+                    2 * len(self.fmp.demand) + 1,
+                    2 * self.fmp.n_charging_station + 1,
+                    1.
+                ]),
+                dtype=np.float64
+            )
+            for agent in self.possible_agents
+        }
 
         self.reset()
         self._reset_info()
 
-        # self._freeze()
-
-    def _setup_fmp_attributes(self,**kwargs):
+    def _setup_fmp_attributes(self, **kwargs):
         if "mode" not in kwargs:
             raise Exception("Need a mode to identify")
         elif kwargs["mode"] == "sumo_config":
@@ -285,49 +290,27 @@ class FMPEnv(AECEnv):
             else None
         )
 
-    def __setattr__(self, key, value):
-        if self.__isfrozen and not hasattr(self, key):
-            raise TypeError(
-                "Cannot add new attributes once instance %r is initialized" % self
-            )
-        object.__setattr__(self, key, value)
-
-    def _freeze(self):
-        self.__isfrozen = True
-
     @functools.lru_cache(maxsize=None)
     def observation_space(self, agent):
         return gym.spaces.Box(
             low=np.array([0., 0., 0., 0., 0.]),
             high=np.array([self.fmp.n_vertex,
                            self.fmp.electric_vehicles[0].capacity,
-                           2*len(self.demand_dict_action_space) + 1,
-                           2*self.fmp.n_charging_station + 1,
+                           2 * len(self.fmp.demand) + 1,
+                           2 * self.fmp.n_charging_station + 1,
                            1.]),
             dtype=np.float64
         )
 
     @functools.lru_cache(maxsize=None)
     def action_space(self, agent):
-        return gym.spaces.Discrete(self.fmp.n_charging_station + len(self.demand_dict_action_space) + 1)
-
+        return gym.spaces.Discrete(self.fmp.n_charging_station + len(self.fmp.demand) + 1)
 
     def observe(self, agent):
         '''
         Observe should return the observation of the specified agent. 
         '''
         return np.array(self.observations[agent])
-
-    def _get_default_obs(self, agent):
-        return np.asarray(
-            [
-                self.states[agent].location,
-                self.states[agent].battery,
-                1. if self.states[agent].is_loading else 0.,
-                1. if self.states[agent].is_charging else 0.,
-                1. if self.states[agent].is_loading.target == NO_LOADING and self.states[agent].is_charging.target == NO_CHARGING else 0.,
-             ]
-        )
 
     def _reset_info(self):
         self.infos = {
@@ -340,7 +323,7 @@ class FMPEnv(AECEnv):
         }
 
     def reset(self):
-        '''
+        """
         Reset needs to initialize the following attributes
         - agents
         - rewards
@@ -352,7 +335,7 @@ class FMPEnv(AECEnv):
         can be called without issues.
 
         Here it sets up the state dictionary which is used by step() and the observations dictionary which is used by step() and observe()
-        '''
+        """
         self.agents = self.possible_agents[:]
         self.rewards = {agent: 0. for agent in self.agents}
         self._cumulative_rewards = {agent: 0. for agent in self.agents}
@@ -360,7 +343,10 @@ class FMPEnv(AECEnv):
         self._inner_dones = {agent: False for agent in self.agents}
 
         self.states = {agent: FMPState() for agent in self.agents}
-        self.observations = {agent: self._get_default_obs(agent) for agent in self.agents}
+        self.observations = {
+            agent: np.asarray([self.states[agent].location, self.states[agent].battery, 0., 0., 0.])
+            for agent in self.agents
+        }
 
         self.prev_locations = {agent: 0. for agent in self.agents}
         self.prev_is_loading = {agent: NO_LOADING for agent in self.agents}
