@@ -336,7 +336,7 @@ class FMPEnv(AECEnv):
                     "r": 0,
                     "l": 0,
                 }
-            } for agent in self.agents for agent in self.agents
+            } for agent in self.agents
         }
 
     def reset(self):
