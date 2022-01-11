@@ -220,7 +220,7 @@ class FMPEnv(AECEnv):
     def __init__(self, **kwargs):
 
         # set up sumo related attributes
-        self._setup_sumo_attributes(**kwargs)
+        self._setup_fmp_attributes(**kwargs)
         self.num_moves = -1
 
         # set up AEC related attributes, should not be changed after initialization.
@@ -242,7 +242,7 @@ class FMPEnv(AECEnv):
 
         # self._freeze()
 
-    def _setup_sumo_attributes(self,**kwargs):
+    def _setup_fmp_attributes(self,**kwargs):
         if "mode" not in kwargs:
             raise Exception("Need a mode to identify")
         elif kwargs["mode"] == "sumo_config":
