@@ -220,26 +220,29 @@ class FMPEnv(AECEnv):
 
         # set up sumo related attributes
         self._setup_fmp_attributes(**kwargs)
-        self.num_moves = -1
 
         # set up AEC related attributes, should not be changed after initialization.
         self.possible_agents = list(self.fmp.ev_dict.keys())
         self.agent_name_mapping = self.fmp.ev_dict
         self._action_spaces = {
-            agent: gym.spaces.Discrete(self.fmp.n_charging_station + len(self.fmp.demand) + 1)
+            agent: gym.spaces.Discrete(
+                self.fmp.n_charging_station + len(self.fmp.demand) + 1
+            )
             for agent in self.possible_agents
         }
         self._observation_spaces = {
             agent: gym.spaces.Box(
-                low=np.array([0., 0., 0., 0., 0.]),
-                high=np.array([
-                    self.fmp.n_vertex,
-                    self.fmp.electric_vehicles[0].capacity,
-                    2 * len(self.fmp.demand) + 1,
-                    2 * self.fmp.n_charging_station + 1,
-                    1.
-                ]),
-                dtype=np.float64
+                low=np.array([0.0, 0.0, 0.0, 0.0, 0.0]),
+                high=np.array(
+                    [
+                        self.fmp.n_vertex,
+                        self.fmp.electric_vehicles[0].capacity,
+                        2 * len(self.fmp.demand) + 1,
+                        2 * self.fmp.n_charging_station + 1,
+                        1.0,
+                    ]
+                ),
+                dtype=np.float64,
             )
             for agent in self.possible_agents
         }
@@ -293,23 +296,29 @@ class FMPEnv(AECEnv):
     @functools.lru_cache(maxsize=None)
     def observation_space(self, agent):
         return gym.spaces.Box(
-            low=np.array([0., 0., 0., 0., 0.]),
-            high=np.array([self.fmp.n_vertex,
-                           self.fmp.electric_vehicles[0].capacity,
-                           2 * len(self.fmp.demand) + 1,
-                           2 * self.fmp.n_charging_station + 1,
-                           1.]),
-            dtype=np.float64
+            low=np.array([0.0, 0.0, 0.0, 0.0, 0.0]),
+            high=np.array(
+                [
+                    self.fmp.n_vertex,
+                    self.fmp.electric_vehicles[0].capacity,
+                    2 * len(self.fmp.demand) + 1,
+                    2 * self.fmp.n_charging_station + 1,
+                    1.0,
+                ]
+            ),
+            dtype=np.float64,
         )
 
     @functools.lru_cache(maxsize=None)
     def action_space(self, agent):
-        return gym.spaces.Discrete(self.fmp.n_charging_station + len(self.fmp.demand) + 1)
+        return gym.spaces.Discrete(
+            self.fmp.n_charging_station + len(self.fmp.demand) + 1
+        )
 
     def observe(self, agent):
-        '''
-        Observe should return the observation of the specified agent. 
-        '''
+        """
+        Observe should return the observation of the specified agent.
+        """
         return np.array(self.observations[agent])
 
     def _reset_info(self):
@@ -319,7 +328,8 @@ class FMPEnv(AECEnv):
                     "r": 0,
                     "l": 0,
                 }
-            } for agent in self.agents
+            }
+            for agent in self.agents
         }
 
     def reset(self):
@@ -336,32 +346,36 @@ class FMPEnv(AECEnv):
 
         Here it sets up the state dictionary which is used by step() and the observations dictionary which is used by step() and observe()
         """
+        self.num_moves = 0
         self.agents = self.possible_agents[:]
-        self.rewards = {agent: 0. for agent in self.agents}
-        self._cumulative_rewards = {agent: 0. for agent in self.agents}
+        self.rewards = {agent: 0.0 for agent in self.agents}
+        self._cumulative_rewards = {agent: 0.0 for agent in self.agents}
         self.dones = {agent: False for agent in self.agents}
         self._inner_dones = {agent: False for agent in self.agents}
-
-        self.states = {agent: FMPState() for agent in self.agents}
-        self.observations = {
-            agent: np.asarray([self.states[agent].location, self.states[agent].battery, 0., 0., 0.])
+        self.states = {
+            agent: FMPState(
+                location=self.fmp.departures[self.agent_name_mapping[agent]],
+                is_loading=Loading(-1, -1),
+                is_charging=Charging(-1, -1),
+                battery=self.fmp.electric_vehicles[
+                    self.agent_name_mapping[agent]
+                ].capacity,
+            )
             for agent in self.agents
         }
+        self.observations = {
+            agent: np.asarray(
+                [self.states[agent].location, self.states[agent].battery, 0.0, 0.0, 0.0]
+            )
+            for agent in self.agents
+        }
+        self.responded = set()
 
-        self.prev_locations = {agent: 0. for agent in self.agents}
+        self.prev_locations = {agent: 0.0 for agent in self.agents}
         self.prev_is_loading = {agent: NO_LOADING for agent in self.agents}
 
-        self.num_moves = 0
-        '''
-        Our agent_selector utility allows easy cyclic stepping through the agents list.
-        '''
         self._agent_selector = agent_selector(self.agents)
         self.agent_selection = self._agent_selector.next()
-
-        self.responded = set()
-        for agent in self.agents:
-            self.states[agent].location = self.fmp.departures[self.agent_name_mapping[agent]]
-            self.states[agent].battery = self.fmp.electric_vehicles[self.agent_name_mapping[agent]].capacity
 
         self.move_space: sumo_gym.spaces.grid.GridSpace = (
             sumo_gym.spaces.grid.GridSpace(
@@ -376,11 +390,15 @@ class FMPEnv(AECEnv):
             )
         )
         self.demand_dict_action_space = dict()
-        for i in range(self.fmp.n_charging_station, self.fmp.n_charging_station + len(self.fmp.demand), 1):
+        for i in range(
+            self.fmp.n_charging_station,
+            self.fmp.n_charging_station + len(self.fmp.demand),
+            1,
+        ):
             self.demand_dict_action_space[i] = i - self.fmp.n_charging_station
 
     def step(self, action):
-        '''
+        """
         step(action) takes in an action for the current agent (specified by
         agent_selection) and needs to update
         - rewards
@@ -389,24 +407,27 @@ class FMPEnv(AECEnv):
         - infos
         - agent_selection (to the next agent)
         And any internal state used by observe() or render()
-        '''
+        """
         agent = self.agent_selection
-
         if action is None:
             self.observations[agent] = np.asarray(
                 [
                     IDLE_LOCATION,
-                    0.,
-                    0.,
-                    0.,
+                    0.0,
+                    0.0,
+                    0.0,
                     False,
-                ], dtype=np.float64
+                ],
+                dtype=np.float64,
             )
-            print("Set DONE to true for agent: ", agent)
+            print("DONE for agent: ", agent)
             self._inner_dones[agent] = True
             self.infos[agent] = {}
 
-        take_action = self.states[agent].is_loading.target == NO_LOADING and self.states[agent].is_charging.target == NO_CHARGING
+        take_action = (
+            self.states[agent].is_loading.target == NO_LOADING
+            and self.states[agent].is_charging.target == NO_CHARGING
+        )
         if take_action == False:
             self._inner_step(agent)
             self.agent_selection = self._agent_selector.next()
@@ -426,9 +447,11 @@ class FMPEnv(AECEnv):
         self._cumulative_rewards[agent] = 0
 
         # stores action of current agent and update action space
-        self.states[self.agent_selection] = self._convert_discrete_action_to_move(action, agent)
+        self.states[self.agent_selection] = self._convert_discrete_action_to_move(
+            action, agent
+        )
         self._update_demand_space(action)
-        
+
         self.observations[agent] = self._get_obs_from_action(self.states[agent])
 
         # collect reward if it is the last agent to act
@@ -440,8 +463,12 @@ class FMPEnv(AECEnv):
                 for agent in self.agents
             }
 
-            if self.responded == set(range(len(self.fmp.demand))): # all demand satisfied, reset and network
-                print("===== All demand satisfied, reset and update the info buffer =====")
+            if self.responded == set(
+                range(len(self.fmp.demand))
+            ):  # all demand satisfied, reset and network
+                print(
+                    "===== All demand satisfied, reset and update the info buffer ====="
+                )
                 # update the agent rewards only when the whole network has been satisfied
                 # it will automatically be reset for each agent separatly in the next round
                 # when action is chosen by the model for each agent respectively
@@ -451,7 +478,8 @@ class FMPEnv(AECEnv):
                             "r": self.rewards[agent],
                             "l": self.num_moves,
                         }
-                    } for agent in self.agents
+                    }
+                    for agent in self.agents
                 }
                 self.reset()
                 return self.observations, self.rewards, self.dones, self.infos
@@ -486,7 +514,10 @@ class FMPEnv(AECEnv):
             self._inner_dones[agent] = True
             return
 
-        if self.prev_is_loading[agent] != -1 and self.states[agent].is_loading.current == -1:
+        if (
+            self.prev_is_loading[agent] != -1
+            and self.states[agent].is_loading.current == -1
+        ):
             self.responded.add(self.prev_is_loading[agent])
             reward += sumo_gym.utils.fmp_utils.get_hot_spot_weight(
                 self.fmp.vertices,
@@ -504,7 +535,9 @@ class FMPEnv(AECEnv):
 
     def _perform_one_move(self, agent):
         print("For agent: ", agent)
-        if self.states[agent].is_loading.current != NO_LOADING:  # is on the way to demand
+        if (
+            self.states[agent].is_loading.current != NO_LOADING
+        ):  # is on the way to demand
             print("----- In the way of demand:", self.states[agent].is_loading.current)
             loc = one_step_to_destination(
                 self.fmp.vertices,
@@ -524,7 +557,9 @@ class FMPEnv(AECEnv):
                     self.states[agent].is_loading.target,
                 )
             self.states[agent].location = loc
-        elif self.states[agent].is_loading.target != NO_LOADING:  # is to the way to demand
+        elif (
+            self.states[agent].is_loading.target != NO_LOADING
+        ):  # is to the way to demand
             print("----- In the way to respond:", self.states[agent].is_loading.target)
             loc = one_step_to_destination(
                 self.fmp.vertices,
@@ -549,7 +584,9 @@ class FMPEnv(AECEnv):
             ].location
             # TODO: assume one timestep can finish charging for now
             self.states[agent].is_charging = Charging(NO_CHARGING, NO_CHARGING)
-        elif self.states[agent].is_charging.target != NO_CHARGING:  # is on the way to charge
+        elif (
+            self.states[agent].is_charging.target != NO_CHARGING
+        ):  # is on the way to charge
             if (
                 self.states[agent].location
                 == self.fmp.charging_stations[
@@ -582,12 +619,18 @@ class FMPEnv(AECEnv):
                     self.states[agent].is_charging.target,
                 )
 
-        print("     updated status for agent",self.states[agent])
+        print("     updated status for agent", self.states[agent])
 
     def _update_demand_space(self, action):
         # when a demand is being responding or responded, remove it from action space for other agents
-        if not action < self.fmp.n_charging_station and action < self.fmp.n_charging_station + len(self.demand_dict_action_space):
-            action_space_new_len = self.fmp.n_charging_station + len(self.demand_dict_action_space) - 1
+        if (
+            not action < self.fmp.n_charging_station
+            and action
+            < self.fmp.n_charging_station + len(self.demand_dict_action_space)
+        ):
+            action_space_new_len = (
+                self.fmp.n_charging_station + len(self.demand_dict_action_space) - 1
+            )
             for i in range(action, action_space_new_len, 1):
                 self.demand_dict_action_space[i] = self.demand_dict_action_space[i + 1]
             del self.demand_dict_action_space[action_space_new_len]
@@ -596,20 +639,32 @@ class FMPEnv(AECEnv):
         # convert action space action to move space action
         if action < self.fmp.n_charging_station:
             converted_action = self.states[agent]
-            converted_action.is_loading, converted_action.is_charging = Loading(NO_LOADING, NO_LOADING), Charging(NO_CHARGING, action)
+            converted_action.is_loading, converted_action.is_charging = Loading(
+                NO_LOADING, NO_LOADING
+            ), Charging(NO_CHARGING, action)
             converted_action.location = one_step_to_destination(
-                self.fmp.vertices, self.fmp.edges, self.states[agent].location,
-                self.fmp.charging_stations[self.states[agent].is_charging.target].location
+                self.fmp.vertices,
+                self.fmp.edges,
+                self.states[agent].location,
+                self.fmp.charging_stations[
+                    self.states[agent].is_charging.target
+                ].location,
             )
-        elif action >= self.fmp.n_charging_station + len(self.demand_dict_action_space): # no move
+        elif action >= self.fmp.n_charging_station + len(
+            self.demand_dict_action_space
+        ):  # no move
             converted_action = self.states[agent]
             self.rewards[agent] -= 10
         else:
             demand_idx = self.demand_dict_action_space[action]
             converted_action = self.states[agent]
-            converted_action.is_loading, converted_action.is_charging = Loading(NO_LOADING, demand_idx), Charging(NO_CHARGING, NO_CHARGING)
+            converted_action.is_loading, converted_action.is_charging = Loading(
+                NO_LOADING, demand_idx
+            ), Charging(NO_CHARGING, NO_CHARGING)
             converted_action.location = one_step_to_destination(
-                self.fmp.vertices, self.fmp.edges, self.states[agent].location,
+                self.fmp.vertices,
+                self.fmp.edges,
+                self.states[agent].location,
                 self.fmp.demand[self.states[agent].is_loading.current].destination,
             )
 
@@ -637,20 +692,26 @@ class FMPEnv(AECEnv):
             )
 
     def _get_obs_from_action(self, action):
-        if action.is_loading.current == NO_LOADING and action.is_loading.target == NO_LOADING:
+        if (
+            action.is_loading.current == NO_LOADING
+            and action.is_loading.target == NO_LOADING
+        ):
             is_loading = 0
         elif action.is_loading.current == NO_LOADING:
             is_loading = action.is_loading.target + 1
         else:
             is_loading = 2 * action.is_loading.target + 1
 
-        if action.is_charging.current == NO_CHARGING and action.is_charging.target == NO_CHARGING:
+        if (
+            action.is_charging.current == NO_CHARGING
+            and action.is_charging.target == NO_CHARGING
+        ):
             is_charging = 0
         elif action.is_charging.current == NO_CHARGING:
             is_charging = action.is_charging.target + 1
         else:
             is_charging = 2 * action.is_charging.target + 1
-        
+
         return np.asarray(
             [
                 action.location,
@@ -658,7 +719,8 @@ class FMPEnv(AECEnv):
                 is_loading,
                 is_charging,
                 True if is_loading == 0 and is_charging == 0 else False,
-            ], dtype=np.float64
+            ],
+            dtype=np.float64,
         )
 
     def render(self, mode="human"):
