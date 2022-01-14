@@ -507,7 +507,7 @@ class FMPEnv(AECEnv):
             raise ValueError("Agent that not responding or charging should not move")
 
         self.observations[agent][:4] = self.states[agent][:4]
-        self.observations[agent][4] = self.fmp.n_charging_station + len(self.fmp.demand)
+        self.observations[agent][4] = 0
 
     def _state_transition(self, action):
         """
