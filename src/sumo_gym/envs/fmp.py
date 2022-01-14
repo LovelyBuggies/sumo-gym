@@ -405,7 +405,7 @@ class FMPEnv(AECEnv):
 
                 self.rewards[agent] -= 1000
 
-            print(self.observations[agent], self.rewards[agent], self.dones[agent], self.responded[agent])
+            print(self.observations[agent], self.rewards[agent], self.responded[agent])
             if self._agent_selector.is_last():
                 self.num_moves += 1
                 print("------------------------------")
@@ -453,7 +453,7 @@ class FMPEnv(AECEnv):
                         else 0
                     )
 
-                self.rewards[agent] = -1
+                self.rewards[agent] -= 1
             else:
                 dmd_idx = self.states[agent][2] - 1
                 dest_loc = self.fmp.demand[dmd_idx].departure
