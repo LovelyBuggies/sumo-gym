@@ -382,10 +382,6 @@ class FMPEnv(AECEnv):
             else:
                 self._state_transition(action)
 
-            if self._agent_selector.is_last():
-                self.num_moves += 1
-                print("------------------------------")
-
             # judge whether it's done
             self.dones[agent] = set(
                 [d for r in self.responded.values() for d in r]
@@ -409,8 +405,14 @@ class FMPEnv(AECEnv):
 
                 self.rewards[agent] -= 1000
 
-        self.agent_selection = self._agent_selector.next()
-        return self.observations, self.rewards, self.dones, self.infos
+            print(self.observations[agent], self.rewards[agent], self.dones[agent], self.responded[agent])
+            if self._agent_selector.is_last():
+                self.num_moves += 1
+                print("------------------------------")
+
+            self.agent_selection = self._agent_selector.next()
+
+            return self.observations, self.rewards, self.dones, self.infos
 
     def _state_move(self, agent):
         """
@@ -454,7 +456,7 @@ class FMPEnv(AECEnv):
                 self.rewards[agent] = -1
             else:
                 dmd_idx = self.states[agent][2] - 1
-                dest_loc = self.fmp.demand[dmd_idx].destination
+                dest_loc = self.fmp.demand[dmd_idx].departure
                 print("Move: ", agent, " is to respond demand ", dmd_idx)
 
                 self.states[agent][0] = one_step_to_destination(
@@ -498,7 +500,7 @@ class FMPEnv(AECEnv):
                 self.states[agent][1] -= 1
 
                 if self.states[agent][0] == dest_loc:
-                    self.states[agent][2] += self.fmp.n_charging_station
+                    self.states[agent][3] += self.fmp.n_charging_station
 
                 self.rewards[agent] = -1
 
@@ -519,19 +521,18 @@ class FMPEnv(AECEnv):
         agent = self.agent_selection
 
         if action == 0:
+            print("Trans: ", agent, "is taking moving action")
             pass
 
         # action to charge
         elif action <= self.fmp.n_charging_station:
             print("Trans: ", agent, "is to go to charge at ", action - 1)
-            self.states[agent][0] = one_step_to_destination(
+            self.states[agent] = [one_step_to_destination(
                 self.fmp.vertices,
                 self.fmp.edges,
                 self.states[agent][0],
                 self.fmp.charging_stations[action - 1].location,
-            )
-            self.states[agent][1] -= 1
-            self.states[agent][3] = action
+            ), self.states[agent][1] - 1, 0, action]
             self.rewards[agent] = -1
 
         # action to load
@@ -542,14 +543,12 @@ class FMPEnv(AECEnv):
                 " is to respond demand ",
                 action - self.fmp.n_charging_station - 1,
             )
-            self.states[agent][0] = one_step_to_destination(
+            self.states[agent] = [one_step_to_destination(
                 self.fmp.vertices,
                 self.fmp.edges,
                 self.states[agent][0],
                 self.fmp.demand[action - self.fmp.n_charging_station - 1].departure,
-            )
-            self.states[agent][1] -= 1
-            self.states[agent][2] = action - self.fmp.n_charging_station
+            ), self.states[agent][1] - 1, action - self.fmp.n_charging_station, 0]
             self.rewards[agent] = -1
             self.responded[agent].append(self.states[agent][2] - 1)
 
