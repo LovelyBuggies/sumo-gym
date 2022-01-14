@@ -1,23 +1,15 @@
 import operator
-import random
-import sys
 import os
-import numpy as np
-from typing import Type, Tuple, Dict, Any
 import sumo_gym.typing
 
 import gym
-from gym import error, spaces, utils
-from gym.utils import seeding
 import sumo_gym
 from sumo_gym.utils.sumo_utils import SumoRender
-from sumo_gym.utils.svg_uitls import vehicle_marker
 from sumo_gym.utils.fmp_utils import *
 
 import functools
 from pettingzoo import AECEnv
 from pettingzoo.utils import agent_selector
-from pettingzoo.utils import wrappers
 
 
 class FMP(object):
@@ -217,40 +209,14 @@ class FMPEnv(AECEnv):
     fmp = property(operator.attrgetter("_fmp"))
 
     def __init__(self, **kwargs):
+        """
+        Initialize FMPEnv.
+        1. Setup render variables
+        2. Setup FMP variables
+        3. Setup Petting-Zoo environment variables (same as reset)
+        """
 
-        # set up sumo related attributes
-        self._setup_fmp_attributes(**kwargs)
-
-        # set up AEC related attributes, should not be changed after initialization.
-        self.possible_agents = list(self.fmp.ev_dict.keys())
-        self.agent_name_mapping = self.fmp.ev_dict
-        self._action_spaces = {
-            agent: gym.spaces.Discrete(
-                self.fmp.n_charging_station + len(self.fmp.demand) + 1
-            )
-            for agent in self.possible_agents
-        }
-        self._observation_spaces = {
-            agent: gym.spaces.Box(
-                low=np.array([0.0, 0.0, 0.0, 0.0, 0.0]),
-                high=np.array(
-                    [
-                        self.fmp.n_vertex,
-                        self.fmp.electric_vehicles[0].capacity,
-                        2 * len(self.fmp.demand) + 1,
-                        2 * self.fmp.n_charging_station + 1,
-                        1.0,
-                    ]
-                ),
-                dtype=np.float64,
-            )
-            for agent in self.possible_agents
-        }
-
-        self.reset()
-        self._reset_info()
-
-    def _setup_fmp_attributes(self, **kwargs):
+        # setup render variables
         if "mode" not in kwargs:
             raise Exception("Need a mode to identify")
         elif kwargs["mode"] == "sumo_config":
@@ -278,7 +244,8 @@ class FMPEnv(AECEnv):
         else:
             raise Exception("Need a valid mode")
 
-        self._fmp = FMP(**kwargs)  # todo: make it "final"
+        # setup FMP variables
+        self._fmp = FMP(**kwargs)
         self.sumo = (
             SumoRender(
                 self.sumo_gui_path,
@@ -293,6 +260,49 @@ class FMPEnv(AECEnv):
             else None
         )
 
+        # setup Petting-Zoo environment variables
+        self.possible_agents = list(self.fmp.ev_dict.keys())
+        self.agent_name_mapping = self.fmp.ev_dict
+
+        self._action_spaces = {
+            agent: gym.spaces.Discrete(
+                self.fmp.n_charging_station + len(self.fmp.demand) + 1
+            )
+            for agent in self.possible_agents
+        }
+        self._observation_spaces = {
+            agent: gym.spaces.Box(
+                low=np.array([0.0, 0.0, 0.0, 0.0, 0.0]),
+                high=np.array(
+                    [
+                        self.fmp.n_vertex,
+                        self.fmp.electric_vehicles[0].capacity,
+                        2 * len(self.fmp.demand) + 1,
+                        2 * self.fmp.n_charging_station + 1,
+                        self.fmp.n_charging_station + len(self.fmp.demand) + 1,
+                    ]
+                ),
+                dtype=np.float64,
+            )
+            for agent in self.possible_agents
+        }
+
+        self.agents = self.possible_agents[:]
+        self.rewards = {agent: 0.0 for agent in self.agents}
+
+        self.dones = {agent: False for agent in self.agents}
+        self.responded = {agent: list() for agent in self.agents}
+
+        self.infos = {agent: dict() for agent in self.agents}
+
+        self.states = {agent: None for agent in self.agents}
+        self.observations = {agent: None for agent in self.agents}
+
+        self.num_moves = 0
+
+        self._agent_selector = agent_selector(self.agents)
+        self.agent_selection = self._agent_selector.next()
+
     @functools.lru_cache(maxsize=None)
     def observation_space(self, agent):
         return gym.spaces.Box(
@@ -303,7 +313,7 @@ class FMPEnv(AECEnv):
                     self.fmp.electric_vehicles[0].capacity,
                     2 * len(self.fmp.demand) + 1,
                     2 * self.fmp.n_charging_station + 1,
-                    1.0,
+                    self.fmp.n_charging_station + len(self.fmp.demand) + 1,
                 ]
             ),
             dtype=np.float64,
@@ -316,419 +326,242 @@ class FMPEnv(AECEnv):
         )
 
     def observe(self, agent):
-        """
-        Observe should return the observation of the specified agent.
-        """
         return np.array(self.observations[agent])
-
-    def _reset_info(self):
-        self.infos = {
-            agent: {
-                "episode": {
-                    "r": 0,
-                    "l": 0,
-                }
-            }
-            for agent in self.agents
-        }
 
     def reset(self):
         """
-        Reset needs to initialize the following attributes
-        - agents
-        - rewards
-        - _cumulative_rewards
-        - dones
-        - infos
-        - agent_selection
-        And must set up the environment so that render(), step(), and observe()
-        can be called without issues.
-
-        Here it sets up the state dictionary which is used by step() and the observations dictionary which is used by step() and observe()
+        Reset Petting-Zoo environment variables.
         """
-        self.num_moves = 0
         self.agents = self.possible_agents[:]
         self.rewards = {agent: 0.0 for agent in self.agents}
-        self._cumulative_rewards = {agent: 0.0 for agent in self.agents}
+
         self.dones = {agent: False for agent in self.agents}
-        self._inner_dones = {agent: False for agent in self.agents}
+        self.responded = {agent: list() for agent in self.agents}
+
+        self.infos = {agent: dict() for agent in self.agents}
+
         self.states = {
-            agent: FMPState(
-                location=self.fmp.departures[self.agent_name_mapping[agent]],
-                is_loading=Loading(-1, -1),
-                is_charging=Charging(-1, -1),
-                battery=self.fmp.electric_vehicles[
-                    self.agent_name_mapping[agent]
-                ].capacity,
-            )
+            agent: [
+                self.fmp.departures[self.agent_name_mapping[agent]],
+                self.fmp.electric_vehicles[self.agent_name_mapping[agent]].capacity,
+                0,
+                0,
+            ]
             for agent in self.agents
         }
         self.observations = {
-            agent: np.asarray(
-                [self.states[agent].location, self.states[agent].battery, 0.0, 0.0, 0.0]
-            )
-            for agent in self.agents
+            agent: self.states[agent][:4] + [None] for agent in self.agents
         }
-        self.responded = set()
 
-        self.prev_locations = {agent: 0.0 for agent in self.agents}
-        self.prev_is_loading = {agent: NO_LOADING for agent in self.agents}
+        self.num_moves = 0
 
         self._agent_selector = agent_selector(self.agents)
         self.agent_selection = self._agent_selector.next()
 
-        self.move_space: sumo_gym.spaces.grid.GridSpace = (
-            sumo_gym.spaces.grid.GridSpace(
-                self.fmp.vertices,
-                self.fmp.demand,
-                self.responded,
-                self.fmp.edges,
-                self.fmp.electric_vehicles,
-                self.fmp.charging_stations,
-                self.states,
-                self.sumo if hasattr(self, "sumo") else None,
-            )
-        )
-        self.demand_dict_action_space = dict()
-        for i in range(
-            self.fmp.n_charging_station,
-            self.fmp.n_charging_station + len(self.fmp.demand),
-            1,
-        ):
-            self.demand_dict_action_space[i] = i - self.fmp.n_charging_station
+        return self.observations
 
     def step(self, action):
         """
-        step(action) takes in an action for the current agent (specified by
-        agent_selection) and needs to update
-        - rewards
-        - _cumulative_rewards (accumulating the rewards)
-        - dones
-        - infos
-        - agent_selection (to the next agent)
-        And any internal state used by observe() or render()
+        Step takes an action for the current agent.
+        Update of state, normal reward, responded, observation are in state "move" and "transition".
+        Update of done, broken reward, broken responded and agent are in step.
         """
         agent = self.agent_selection
-        if action is None:
-            self.observations[agent] = np.asarray(
-                [
-                    IDLE_LOCATION,
-                    0.0,
-                    0.0,
-                    0.0,
-                    False,
-                ],
-                dtype=np.float64,
-            )
-            print("DONE for agent: ", agent)
-            self._inner_dones[agent] = True
-            self.infos[agent] = {}
 
-        take_action = (
-            self.states[agent].is_loading.target == NO_LOADING
-            and self.states[agent].is_charging.target == NO_CHARGING
-        )
-        if take_action == False:
-            self._inner_step(agent)
-            self.agent_selection = self._agent_selector.next()
+        if self.dones[agent]:
+            # if done, remove it
+            self._was_done_step(None)
+            self.observations[agent][4] = None
             return self.observations, self.rewards, self.dones, self.infos
 
-        if self._inner_dones[agent]:
-            # handles stepping an agent which is already done
-            # accepts a None action for the one agent, and moves the agent_selection to
-            # the next done agent, or if there are no more done agents, to the next live agent
-            action = None
-            self._was_done_step(action)
-            return self.observations, self.rewards, self.dones, self.infos
+        else:
+            # state move
+            if self.states[agent][2] != 0 or self.states[agent][3] != 0:
+                self._state_move(agent)
+            # state transition
+            else:
+                self._state_transition(action)
 
-        # the agent which stepped last had its _cumulative_rewards accounted for
-        # (because it was returned by last()), so the _cumulative_rewards for this
-        # agent should start again at 0
-        self._cumulative_rewards[agent] = 0
+            if self._agent_selector.is_last():
+                self.num_moves += 1
+                print("------------------------------")
 
-        # stores action of current agent and update action space
-        self.states[self.agent_selection] = self._convert_discrete_action_to_move(
-            action, agent
-        )
-        self._update_demand_space(action)
+            # judge whether it's done
+            self.dones[agent] = set(
+                [d for r in self.responded.values() for d in r]
+            ) == set(range(len(self.fmp.demand)))
 
-        self.observations[agent] = self._get_obs_from_action(self.states[agent])
+            # check whether is in negative battery
+            if self.states[agent][1] < 0:
+                self.dones[agent] = True
+                if self.states[agent][2] != 0:
+                    dmd_idx = (
+                        self.states[agent][2] - len(self.fmp.demand) - 1
+                        if self.states[agent][2] > len(self.fmp.demand)
+                        else self.states[agent][2] - 1
+                    )
+                    print(self.responded[agent], dmd_idx)
+                    del self.responded[agent][
+                        len(self.responded[agent])
+                        - self.responded[agent][::-1].index(dmd_idx)
+                        - 1
+                    ]
 
-        # collect reward if it is the last agent to act
-        if self._agent_selector.is_last():
-            self.num_moves += 1
-            # The dones dictionary must be updated for all players.
-            self.dones = {
-                agent: self.responded == set(range(len(self.fmp.demand)))
-                for agent in self.agents
-            }
+                self.rewards[agent] -= 1000
 
-            if self.responded == set(
-                range(len(self.fmp.demand))
-            ):  # all demand satisfied, reset and network
-                print(
-                    "===== All demand satisfied, reset and update the info buffer ====="
-                )
-                # update the agent rewards only when the whole network has been satisfied
-                # it will automatically be reset for each agent separatly in the next round
-                # when action is chosen by the model for each agent respectively
-                self.infos = {
-                    agent: {
-                        "episode": {
-                            "r": self.rewards[agent],
-                            "l": self.num_moves,
-                        }
-                    }
-                    for agent in self.agents
-                }
-                self.reset()
-                return self.observations, self.rewards, self.dones, self.infos
-
-        # selects the next agent.
         self.agent_selection = self._agent_selector.next()
-        # Adds .rewards to ._cumulative_rewards
-        self._accumulate_rewards()
-
-        self._update_previous_state(agent)
-
-        self.infos[agent] = {}
         return self.observations, self.rewards, self.dones, self.infos
 
-    def _inner_step(self, agent):
-        if not self._inner_dones[agent]:
-            self._perform_one_move(agent)
-            self._update_battery_for_agent(agent, self.states[agent])
-            self._calculate_reward(agent)
-            self.observations[agent] = self._get_obs_from_action(self.states[agent])
-            print("     observation for agent: ", agent, self.observations[agent])
-            self._update_previous_state(agent)
+    def _state_move(self, agent):
+        """
+        Deal with moving state:
+        1. Move the state
+        2. Update observation (force to change observations' action) and reward, accordingly
+        """
+        # if responding
+        if self.states[agent][2] != 0:
+            if self.states[agent][2] > len(self.fmp.demand):
+                dmd_idx = self.states[agent][2] - len(self.fmp.demand) - 1
+                dest_loc = self.fmp.demand[dmd_idx].destination
+                print("Move: ", agent, " is in responding demand ", dmd_idx)
 
-    def _update_previous_state(self, agent):
-        self.prev_locations[agent] = self.states[agent].location
-        self.prev_is_loading[agent] = self.states[agent].is_loading.current
-
-    def _calculate_reward(self, agent):
-        reward = 0
-        if self.states[agent].battery < 0:
-            reward -= 1000
-            self._inner_dones[agent] = True
-        else:
-            if self.prev_is_loading[agent] != -1 and self.states[agent].is_loading.current == -1:
-                self.responded.add(self.prev_is_loading[agent])
-                reward += sumo_gym.utils.fmp_utils.get_hot_spot_weight(
+                self.states[agent][0] = one_step_to_destination(
                     self.fmp.vertices,
                     self.fmp.edges,
-                    self.fmp.demand,
-                    self.fmp.demand[self.prev_is_loading[agent]].departure,
-                ) * sumo_gym.utils.fmp_utils.dist_between(
+                    self.states[agent][0],
+                    dest_loc,
+                )
+                self.states[agent][1] -= 1
+                if self.states[agent][0] == dest_loc:
+                    self.states[agent][2] = 0
+                    self.rewards[agent] += (
+                        sumo_gym.utils.fmp_utils.get_hot_spot_weight(
+                            self.fmp.vertices,
+                            self.fmp.edges,
+                            self.fmp.demand,
+                            self.fmp.demand[dmd_idx].departure,
+                        )
+                        * sumo_gym.utils.fmp_utils.dist_between(
+                            self.fmp.vertices,
+                            self.fmp.edges,
+                            self.fmp.demand[dmd_idx].departure,
+                            self.fmp.demand[dmd_idx].destination,
+                        )
+                        if self.responded[agent].count(dmd_idx) == 1
+                        else 0
+                    )
+
+                self.rewards[agent] = -1
+            else:
+                dmd_idx = self.states[agent][2] - 1
+                dest_loc = self.fmp.demand[dmd_idx].destination
+                print("Move: ", agent, " is to respond demand ", dmd_idx)
+
+                self.states[agent][0] = one_step_to_destination(
                     self.fmp.vertices,
                     self.fmp.edges,
-                    self.fmp.demand[self.prev_is_loading[agent]].departure,
-                    self.fmp.demand[self.prev_is_loading[agent]].destination,
+                    self.states[agent][0],
+                    dest_loc,
                 )
-                print("     added reward: ", reward)
+                self.states[agent][1] -= 1
+                if self.states[agent][0] == dest_loc:
+                    self.states[agent][2] += len(self.fmp.demand)
 
-        self.rewards[agent] += reward
+                self.rewards[agent] = -1
 
-    def _perform_one_move(self, agent):
-        print("For agent: ", agent)
-        if (
-            self.states[agent].is_loading.current != NO_LOADING
-        ):  # is on the way to demand
-            print("----- In the way of demand:", self.states[agent].is_loading.current)
-            loc = one_step_to_destination(
-                self.fmp.vertices,
-                self.fmp.edges,
-                self.states[agent].location,
-                self.fmp.demand[self.states[agent].is_loading.current].destination,
-            )
+        # if charging
+        elif self.states[agent][3] != 0:
+            if self.states[agent][3] > self.fmp.n_charging_station:
+                cs_idx = self.states[agent][3] - self.fmp.n_charging_station - 1
+                print("Move: ", agent, " is in charging at ", cs_idx)
+                self.states[agent][1] += self.fmp.charging_stations[
+                    cs_idx
+                ].charging_speed
+                if (
+                    self.states[agent][1]
+                    >= self.fmp.electric_vehicles[
+                        self.agent_name_mapping[agent]
+                    ].capacity
+                ):
+                    self.states[agent][3] = 0
+            else:
+                cs_idx = self.states[agent][3] - 1
+                dest_loc = self.fmp.charging_stations[cs_idx].location
+                print("Move: ", agent, "is to go to charge at ", cs_idx)
 
-            if (
-                self.states[agent].location
-                == self.fmp.demand[self.states[agent].is_loading.current].destination
-            ):
-                self.states[agent].is_loading = Loading(NO_LOADING, NO_LOADING)
-            else:
-                self.states[agent].is_loading = Loading(
-                    self.states[agent].is_loading.current,
-                    self.states[agent].is_loading.target,
-                )
-            self.states[agent].location = loc
-        elif (
-            self.states[agent].is_loading.target != NO_LOADING
-        ):  # is to the way to demand
-            print("----- In the way to respond:", self.states[agent].is_loading.target)
-            loc = one_step_to_destination(
-                self.fmp.vertices,
-                self.fmp.edges,
-                self.states[agent].location,
-                self.fmp.demand[self.states[agent].is_loading.target].departure,
-            )
-            self.states[agent].location = loc
-            if loc == self.fmp.demand[self.states[agent].is_loading.target].departure:
-                self.states[agent].is_loading = Loading(
-                    self.states[agent].is_loading.target,
-                    self.states[agent].is_loading.target,
-                )
-            else:
-                self.states[agent].is_loading = Loading(
-                    self.states[agent].is_loading.current,
-                    self.states[agent].is_loading.target,
-                )
-        elif self.states[agent].is_charging.current != NO_CHARGING:  # is charging
-            self.states[agent].location = self.fmp.charging_stations[
-                self.states[agent].is_charging.current
-            ].location
-            # TODO: assume one timestep can finish charging for now
-            self.states[agent].is_charging = Charging(NO_CHARGING, NO_CHARGING)
-        elif (
-            self.states[agent].is_charging.target != NO_CHARGING
-        ):  # is on the way to charge
-            if (
-                self.states[agent].location
-                == self.fmp.charging_stations[
-                    self.states[agent].is_charging.target
-                ].location
-            ):
-                print(
-                    "----- Arrived charging station:",
-                    self.states[agent].is_charging.target,
-                )
-                self.states[agent].is_charging = Charging(
-                    self.states[agent].is_charging.target,
-                    self.states[agent].is_charging.target,
-                )
-            else:
-                print(
-                    "----- In the way to charge:", self.states[agent].is_charging.target
-                )
-                loc = one_step_to_destination(
+                self.states[agent][0] = one_step_to_destination(
                     self.fmp.vertices,
                     self.fmp.edges,
-                    self.states[agent].location,
-                    self.fmp.charging_stations[
-                        self.states[agent].is_charging.target
-                    ].location,
+                    self.states[agent][0],
+                    dest_loc,
                 )
-                self.states[agent].location = loc
-                self.states[agent].is_charging = Charging(
-                    self.states[agent].is_charging.current,
-                    self.states[agent].is_charging.target,
-                )
+                self.states[agent][1] -= 1
 
-        print("     updated status for agent", self.states[agent])
+                if self.states[agent][0] == dest_loc:
+                    self.states[agent][2] += self.fmp.n_charging_station
 
-    def _update_demand_space(self, action):
-        # when a demand is being responding or responded, remove it from action space for other agents
-        if (
-            not action < self.fmp.n_charging_station
-            and action
-            < self.fmp.n_charging_station + len(self.demand_dict_action_space)
-        ):
-            action_space_new_len = (
-                self.fmp.n_charging_station + len(self.demand_dict_action_space) - 1
-            )
-            for i in range(action, action_space_new_len, 1):
-                self.demand_dict_action_space[i] = self.demand_dict_action_space[i + 1]
-            del self.demand_dict_action_space[action_space_new_len]
+                self.rewards[agent] = -1
 
-    def _convert_discrete_action_to_move(self, action, agent):
-        # convert action space action to move space action
-        if action < self.fmp.n_charging_station:
-            converted_action = self.states[agent]
-            converted_action.is_loading, converted_action.is_charging = Loading(
-                NO_LOADING, NO_LOADING
-            ), Charging(NO_CHARGING, action)
-            converted_action.location = one_step_to_destination(
+        # not charging and not loading should not be moving
+        else:
+            raise ValueError("Agent that not responding or charging should not move")
+
+        self.observations[agent][:4] = self.states[agent][:4]
+        self.observations[agent][4] = self.fmp.n_charging_station + len(self.fmp.demand)
+
+    def _state_transition(self, action):
+        """
+        Transit the state of current agent according to the action and update observation:
+        1. Update states (if "move" action for a state need to make decision, then no change)
+        2. Update responded if responding a new demand
+        3. Update observation and reward, accordingly
+        """
+        agent = self.agent_selection
+
+        if action == 0:
+            pass
+
+        # action to charge
+        elif action <= self.fmp.n_charging_station:
+            print("Trans: ", agent, "is to go to charge at ", action - 1)
+            self.states[agent][0] = one_step_to_destination(
                 self.fmp.vertices,
                 self.fmp.edges,
-                self.states[agent].location,
-                self.fmp.charging_stations[
-                    self.states[agent].is_charging.target
-                ].location,
+                self.states[agent][0],
+                self.fmp.charging_stations[action - 1].location,
             )
-        elif action >= self.fmp.n_charging_station + len(
-            self.demand_dict_action_space
-        ):  # no move
-            converted_action = self.states[agent]
-            self.rewards[agent] -= 10
+            self.states[agent][1] -= 1
+            self.states[agent][3] = action
+            self.rewards[agent] = -1
+
+        # action to load
         else:
-            demand_idx = self.demand_dict_action_space[action]
-            converted_action = self.states[agent]
-            converted_action.is_loading, converted_action.is_charging = Loading(
-                NO_LOADING, demand_idx
-            ), Charging(NO_CHARGING, NO_CHARGING)
-            converted_action.location = one_step_to_destination(
+            print(
+                "Trans: ",
+                agent,
+                " is to respond demand ",
+                action - self.fmp.n_charging_station - 1,
+            )
+            self.states[agent][0] = one_step_to_destination(
                 self.fmp.vertices,
                 self.fmp.edges,
-                self.states[agent].location,
-                self.fmp.demand[self.states[agent].is_loading.current].destination,
+                self.states[agent][0],
+                self.fmp.demand[action - self.fmp.n_charging_station - 1].departure,
             )
+            self.states[agent][1] -= 1
+            self.states[agent][2] = action - self.fmp.n_charging_station
+            self.rewards[agent] = -1
+            self.responded[agent].append(self.states[agent][2] - 1)
 
-        print("For agent: ", agent)
-        print("     #### Converted action ", converted_action)
-        return converted_action
-
-    def _update_battery_for_agent(self, agent, action):
-        self.states[agent].battery -= sumo_gym.utils.fmp_utils.dist_between(
-            self.fmp.vertices,
-            self.fmp.edges,
-            self.prev_locations[agent]
-            if action.location == IDLE_LOCATION
-            else action.location,
-            self.prev_locations[agent],
-        )
-
-        if self.states[agent].is_charging.current != NO_CHARGING:
-            self.states[agent].battery += self.fmp.charging_stations[
-                self.states[agent].is_charging.current
-            ].charging_speed
-            self.states[agent].battery = min(
-                self.fmp.electric_vehicles[self.agent_name_mapping[agent]].capacity,
-                self.states[agent].battery,
-            )
-
-    def _get_obs_from_action(self, action):
-        if (
-            action.is_loading.current == NO_LOADING
-            and action.is_loading.target == NO_LOADING
-        ):
-            is_loading = 0
-        elif action.is_loading.current == NO_LOADING:
-            is_loading = action.is_loading.target + 1
-        else:
-            is_loading = 2 * action.is_loading.target + 1
-
-        if (
-            action.is_charging.current == NO_CHARGING
-            and action.is_charging.target == NO_CHARGING
-        ):
-            is_charging = 0
-        elif action.is_charging.current == NO_CHARGING:
-            is_charging = action.is_charging.target + 1
-        else:
-            is_charging = 2 * action.is_charging.target + 1
-
-        return np.asarray(
-            [
-                action.location,
-                action.battery,
-                is_loading,
-                is_charging,
-                True if is_loading == 0 and is_charging == 0 else False,
-            ],
-            dtype=np.float64,
-        )
+        self.observations[agent][:4] = self.states[agent][:4]
 
     def render(self, mode="human"):
         if self.sumo_gui_path is None:
             raise EnvironmentError("Need sumo-gui path to render")
         elif self.sumo is not None:
-            # TODO: need sumo render modification here
-            # self.sumo.render()
+            # TODO: need sumo render here
             print("sumo render")
 
-    # TODO: need to add default behavior also
     def close(self):
         if hasattr(self, "sumo") and self.sumo is not None:
             self.sumo.close()
