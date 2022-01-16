@@ -531,13 +531,18 @@ class FMPEnv(AECEnv):
         # action to charge
         elif action <= self.fmp.n_charging_station:
             print("Trans: ", agent, "is to go to charge at ", action - 1)
-            self.states[agent] = [one_step_to_destination(
-                self.fmp.vertices,
-                self.fmp.edges,
-                self.states[agent][0],
-                self.fmp.charging_stations[action - 1].location,
-            ), self.states[agent][1] - 1, 0, action]
-            self.rewards[agent] -= 1
+            self.states[agent] = [
+                one_step_to_destination(
+                    self.fmp.vertices,
+                    self.fmp.edges,
+                    self.states[agent][0],
+                    self.fmp.charging_stations[action - 1].location,
+                ),
+                self.states[agent][1] - 1,
+                0,
+                action,
+            ]
+            self.rewards[agent] = -1
 
         # action to load
         else:
@@ -547,13 +552,18 @@ class FMPEnv(AECEnv):
                 " is to respond demand ",
                 action - self.fmp.n_charging_station - 1,
             )
-            self.states[agent] = [one_step_to_destination(
-                self.fmp.vertices,
-                self.fmp.edges,
-                self.states[agent][0],
-                self.fmp.demand[action - self.fmp.n_charging_station - 1].departure,
-            ), self.states[agent][1] - 1, action - self.fmp.n_charging_station, 0]
-            self.rewards[agent] -= 1
+            self.states[agent] = [
+                one_step_to_destination(
+                    self.fmp.vertices,
+                    self.fmp.edges,
+                    self.states[agent][0],
+                    self.fmp.demand[action - self.fmp.n_charging_station - 1].departure,
+                ),
+                self.states[agent][1] - 1,
+                action - self.fmp.n_charging_station,
+                0,
+            ]
+            self.rewards[agent] = -1
             self.responded[agent].append(self.states[agent][2] - 1)
 
         self.observations[agent][:4] = self.states[agent][:4]
