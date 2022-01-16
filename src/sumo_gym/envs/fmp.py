@@ -481,8 +481,16 @@ class FMPEnv(AECEnv):
 
         # if charging
         elif self.states[agent][2] > 2 * len(self.fmp.demand):
-            if self.states[agent][2] > 2 * len(self.fmp.demand) + self.fmp.n_charging_station:
-                cs_idx = self.states[agent][2] - 2 * len(self.fmp.demand) - self.fmp.n_charging_station - 1
+            if (
+                self.states[agent][2]
+                > 2 * len(self.fmp.demand) + self.fmp.n_charging_station
+            ):
+                cs_idx = (
+                    self.states[agent][2]
+                    - 2 * len(self.fmp.demand)
+                    - self.fmp.n_charging_station
+                    - 1
+                )
                 print("Move: ", agent, " is in charging at ", cs_idx)
                 self.states[agent][1] += self.fmp.charging_stations[
                     cs_idx
