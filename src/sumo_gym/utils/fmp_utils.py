@@ -1,7 +1,5 @@
 import sumo_gym.utils.network_utils as network_utils
 import numpy as np
-import numpy.typing as npt
-from typing import Tuple
 
 NO_LOADING = -1
 NO_CHARGING = -1
@@ -131,29 +129,6 @@ class GridAction(object):
 
     def __repr__(self):
         return f"({self.is_loading}, {self.is_charging}, location {self.location})"
-
-
-class FMPState(object):
-    def __init__(
-        self,
-        location=0,
-        is_loading=Loading(-1, -1),
-        is_charging=Charging(-1, -1),
-        battery=0,
-    ):
-        self.location = location
-        self.is_loading = is_loading
-        self.is_charging = is_charging
-        self.battery = battery
-        self.stopped = False  # arrive the assigned vertex
-
-    def __repr__(self):
-        return (
-            f"Location: {self.location}, "
-            + f"Is loading: {(self.is_loading.current, self.is_loading.target)},"
-            + f"Is charging: {(self.is_charging)} "
-            + f"Battery: {(self.battery)}"
-        )
 
 
 def convert_raw_vertices(raw_vertices):
@@ -315,29 +290,6 @@ def one_step_to_destination(vertices, edges, start_index, dest_index):
                 return curr
             elif not visited[v]:
                 bfs_queue.append(v)
-                visited[v] = False
-
-
-def nearest_charging_station_with_distance(
-    vertices, charging_stations, edges, start_index
-):
-    charging_station_vertices = [
-        charging_station.location for charging_station in charging_stations
-    ]
-    visited = [False] * len(vertices)
-
-    bfs_queue = [[start_index, 0]]
-    visited[start_index] = True
-
-    while bfs_queue:
-        curr, curr_depth = bfs_queue.pop(0)
-        adjacent_map = network_utils.get_adj_to_list(vertices, edges)
-
-        for v in adjacent_map[curr]:
-            if not visited[v] and v in charging_station_vertices:
-                return charging_station_vertices.index(v), curr_depth + 1
-            elif not visited[v]:
-                bfs_queue.append([v, curr_depth + 1])
                 visited[v] = False
 
 
