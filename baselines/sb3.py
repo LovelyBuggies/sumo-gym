@@ -1,7 +1,13 @@
 import numpy as np
 import gym
 import sumo_gym
-from sumo_gym.utils.fmp_utils import Vertex, Edge, Demand, ChargingStation, ElectricVehicles
+from sumo_gym.utils.fmp_utils import (
+    Vertex,
+    Edge,
+    Demand,
+    ChargingStation,
+    ElectricVehicles,
+)
 from pettingzoo.test import api_test
 from pettingzoo.utils import wrappers
 from pettingzoo.utils import to_parallel
@@ -232,8 +238,15 @@ raw_env = gym.make(
 )
 env = to_parallel(raw_env)
 env = ss.pettingzoo_env_to_vec_env_v1(env)
-env = ss.concat_vec_envs_v1(env, 8, num_cpus=1, base_class='stable_baselines3')
+env = ss.concat_vec_envs_v1(env, 8, num_cpus=1, base_class="stable_baselines3")
 
-model = A2C(MlpPolicy, env, verbose=1, tensorboard_log="./assets/tensorboards/fmpenv/numerical/a2c/",)
-model.learn(total_timesteps=1_500_000, tb_log_name="mlp_policy", reset_num_timesteps=False)
+model = A2C(
+    MlpPolicy,
+    env,
+    verbose=1,
+    tensorboard_log="./assets/tensorboards/fmpenv/numerical/a2c/",
+)
+model.learn(
+    total_timesteps=1_500_000, tb_log_name="mlp_policy", reset_num_timesteps=False
+)
 model.save("./assets/models/fmpenv/numerical/a2c")

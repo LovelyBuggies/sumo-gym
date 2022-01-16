@@ -23,6 +23,7 @@ __all__ = (
 def __dir__() -> Tuple[str, ...]:
     return __all__
 
+
 register(
     id="FMP-v0",
     entry_point="sumo_gym.envs:FMPEnv",

@@ -292,6 +292,7 @@ def one_step_to_destination(vertices, edges, start_index, dest_index):
                 bfs_queue.append(v)
                 visited[v] = False
 
+
 def dist_between(vertices, edges, start_index, dest_index):
     if start_index == dest_index:
         return 0

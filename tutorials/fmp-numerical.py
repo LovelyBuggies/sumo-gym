@@ -1,7 +1,13 @@
 import numpy as np
 import gym
 import sumo_gym
-from sumo_gym.utils.fmp_utils import Vertex, Edge, Demand, ChargingStation, ElectricVehicles
+from sumo_gym.utils.fmp_utils import (
+    Vertex,
+    Edge,
+    Demand,
+    ChargingStation,
+    ElectricVehicles,
+)
 from pettingzoo.test import api_test
 from pettingzoo.utils import wrappers
 
