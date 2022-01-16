@@ -289,6 +289,7 @@ class FMPEnv(AECEnv):
 
         self.agents = self.possible_agents[:]
         self.rewards = {agent: 0.0 for agent in self.agents}
+        self.cumulative_rewards = {agent: 0.0 for agent in self.agents}
 
         self.dones = {agent: False for agent in self.agents}
         self.responded = {agent: list() for agent in self.agents}
@@ -334,6 +335,7 @@ class FMPEnv(AECEnv):
         """
         self.agents = self.possible_agents[:]
         self.rewards = {agent: 0.0 for agent in self.agents}
+        self.cumulative_rewards = {agent: 0.0 for agent in self.agents}
 
         self.dones = {agent: False for agent in self.agents}
         self.responded = {agent: list() for agent in self.agents}
@@ -375,6 +377,7 @@ class FMPEnv(AECEnv):
             return self.observations, self.rewards, self.dones, self.infos
 
         else:
+            self.rewards[agent] = 0
             # state move
             if self.states[agent][2] != 0 or self.states[agent][3] != 0:
                 self._state_move(agent)
@@ -405,7 +408,8 @@ class FMPEnv(AECEnv):
 
                 self.rewards[agent] -= 1000
 
-            print(self.observations[agent], self.rewards[agent], self.responded[agent])
+            self.cumulative_rewards[agent] += self.rewards[agent]
+            print(self.observations[agent], self.rewards[agent], self.cumulative_rewards[agent], self.responded[agent])
             if self._agent_selector.is_last():
                 self.num_moves += 1
                 print("------------------------------")
@@ -469,7 +473,7 @@ class FMPEnv(AECEnv):
                 if self.states[agent][0] == dest_loc:
                     self.states[agent][2] += len(self.fmp.demand)
 
-                self.rewards[agent] = -1
+                self.rewards[agent] -= 1
 
         # if charging
         elif self.states[agent][3] != 0:
@@ -502,7 +506,7 @@ class FMPEnv(AECEnv):
                 if self.states[agent][0] == dest_loc:
                     self.states[agent][3] += self.fmp.n_charging_station
 
-                self.rewards[agent] = -1
+                self.rewards[agent] -= 1
 
         # not charging and not loading should not be moving
         else:
@@ -533,7 +537,7 @@ class FMPEnv(AECEnv):
                 self.states[agent][0],
                 self.fmp.charging_stations[action - 1].location,
             ), self.states[agent][1] - 1, 0, action]
-            self.rewards[agent] = -1
+            self.rewards[agent] -= 1
 
         # action to load
         else:
@@ -549,7 +553,7 @@ class FMPEnv(AECEnv):
                 self.states[agent][0],
                 self.fmp.demand[action - self.fmp.n_charging_station - 1].departure,
             ), self.states[agent][1] - 1, action - self.fmp.n_charging_station, 0]
-            self.rewards[agent] = -1
+            self.rewards[agent] -= 1
             self.responded[agent].append(self.states[agent][2] - 1)
 
         self.observations[agent][:4] = self.states[agent][:4]
