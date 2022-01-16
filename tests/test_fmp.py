@@ -2,6 +2,7 @@ import gym
 import sumo_gym
 from sumo_gym.utils.fmp_utils import *
 
+
 def test_fmp():
     vertices = np.asarray(
         [
@@ -189,7 +190,7 @@ def test_fmp():
             v
             for v in range(35)
             if v
-               not in (charging_station.location for charging_station in charging_stations)
+            not in (charging_station.location for charging_station in charging_stations)
         ]
     )
     departures = np.asarray([19, 15, 4])
