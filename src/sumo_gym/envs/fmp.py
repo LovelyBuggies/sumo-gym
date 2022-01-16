@@ -409,7 +409,12 @@ class FMPEnv(AECEnv):
                 self.rewards[agent] -= 1000
 
             self.cumulative_rewards[agent] += self.rewards[agent]
-            print(self.observations[agent], self.rewards[agent], self.cumulative_rewards[agent], self.responded[agent])
+            print(
+                self.observations[agent],
+                self.rewards[agent],
+                self.cumulative_rewards[agent],
+                self.responded[agent],
+            )
             if self._agent_selector.is_last():
                 self.num_moves += 1
                 print("------------------------------")
