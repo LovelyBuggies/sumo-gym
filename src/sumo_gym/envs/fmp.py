@@ -327,9 +327,7 @@ class FMPEnv(AECEnv):
 
     @functools.lru_cache(maxsize=None)
     def action_space(self, agent):
-        return gym.spaces.Discrete(
-            self.fmp.n_charging_station + self.fmp.n_demand + 1
-        )
+        return gym.spaces.Discrete(self.fmp.n_charging_station + self.fmp.n_demand + 1)
 
     def observe(self, agent):
         return np.array(self.observations[agent])
@@ -573,7 +571,9 @@ class FMPEnv(AECEnv):
                     self.fmp.vertices,
                     self.fmp.edges,
                     self.states[agent][0],
-                    self.fmp.demands[action - self.fmp.n_charging_station - 1].departure,
+                    self.fmp.demands[
+                        action - self.fmp.n_charging_station - 1
+                    ].departure,
                 ),
                 self.states[agent][1] - 1,
                 action - self.fmp.n_charging_station,
