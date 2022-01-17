@@ -214,7 +214,7 @@ def test_fmp():
         "FMP-v0",
         mode="numerical",
         n_vertex=n_vertex,
-        n_demands=n_demand,
+        n_demand=n_demand,
         n_edge=n_edge,
         n_vehicle=n_vehicle,
         n_electric_vehicle=n_electric_vehicle,
