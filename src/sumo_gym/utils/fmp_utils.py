@@ -67,7 +67,7 @@ class Demand(object):
 
 
 class ElectricVehicles(object):
-    def __init__(self, id, speed, indicator, capacity, location=-1, battery=-1, status=-1):
+    def __init__(self, id, speed, indicator, capacity, location=None, battery=None, status=None):
         self.id = id
         self.speed = speed
         self.indicator = indicator

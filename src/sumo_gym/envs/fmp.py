@@ -190,13 +190,13 @@ class FMP(object):
             or self.departures is None
         ):
             return False
-        if self.vertices.shape[0] != len(self.vertices):
+        if len(self.vertices) != len(self.vertices):
             return False
-        if self.edges.shape[0] != len(self.edges):
+        if len(self.edges) != len(self.edges):
             return False
-        if self.electric_vehicles.shape[0] != len(self.electric_vehicles):
+        if len(self.electric_vehicles) != len(self.electric_vehicles):
             return False
-        if self.charging_stations.shape[0] != len(self.charging_stations):
+        if len(self.charging_stations) != len(self.charging_stations):
             return False
         charging_station_locations = set([cs.location for cs in self.charging_stations])
         for d in self.demands:

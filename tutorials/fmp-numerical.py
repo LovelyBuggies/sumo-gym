@@ -11,8 +11,7 @@ from sumo_gym.utils.fmp_utils import (
 from pettingzoo.test import api_test
 from pettingzoo.utils import wrappers
 
-vertices = np.asarray(
-    [
+vertices = [
         Vertex(0.0, 0.0),
         Vertex(0.0, 1.0),
         Vertex(0.0, 2.0),
@@ -50,10 +49,9 @@ vertices = np.asarray(
         Vertex(5.0, 4.0),
         Vertex(5.0, 5.0),
     ]
-)
 
-edges = np.asarray(
-    [
+
+edges = [
         Edge(0, 1),
         Edge(1, 0),
         Edge(1, 2),
@@ -175,34 +173,27 @@ edges = np.asarray(
         Edge(34, 35),
         Edge(35, 34),
     ]
-)
 
 n_vertex = len(vertices)
 n_edge = len(edges)
 n_vehicle = 3
 n_electric_vehicle = 3
 n_charging_station = 3
-electric_vehicles = np.asarray(
-    [ElectricVehicles(i, 1, 220, 50) for i in range(n_electric_vehicle)],
-)
-charging_stations = np.asarray(
-    [
+electric_vehicles = [ElectricVehicles(i, 1, 220, 50) for i in range(n_electric_vehicle)]
+charging_stations = [
         ChargingStation(3, 220, 20),
         ChargingStation(33, 220, 20),
         ChargingStation(22, 220, 30),
     ]
-)
-available_vertices = np.asarray(
-    [
+available_vertices = [
         v
         for v in range(35)
         if v
         not in (charging_station.location for charging_station in charging_stations)
     ]
-)
-departures = np.asarray([19, 15, 4])
-demands = np.asarray(
-    [
+
+departures = [19, 15, 4]
+demands = [
         Demand(6, 4),
         Demand(5, 16),
         Demand(13, 20),
@@ -214,7 +205,7 @@ demands = np.asarray(
         Demand(19, 18),
         Demand(11, 32),
     ]
-)
+
 n_demand = len(demands)
 
 env = gym.make(
