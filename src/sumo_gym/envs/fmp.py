@@ -161,14 +161,14 @@ class FMP(object):
         demands = convert_raw_demand(raw_demand, self.vertex_dict)
 
         # set the FMP variables
-        self.vertices = np.asarray(vertices)
-        self.edges = np.asarray(edges)
-        self.charging_stations = np.asarray(charging_stations)
-        self.electric_vehicles = np.asarray(electric_vehicles)
-        self.departures = np.asarray(departures)
+        self.vertices = vertices
+        self.edges = edges
+        self.charging_stations = charging_stations
+        self.electric_vehicles = electric_vehicles
+        self.departures = departures
         self.departures = [int(x) for x in self.departures]
-        self.actual_departures = np.asarray(actual_departures)
-        self.demands = np.asarray(demands)
+        self.actual_departures = actual_departures
+        self.demands = demands
 
         self.n_vertex = len(self.vertices)
         self.n_edge = len(self.edges)
