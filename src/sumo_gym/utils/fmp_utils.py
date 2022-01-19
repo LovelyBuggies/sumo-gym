@@ -67,7 +67,9 @@ class Demand(object):
 
 
 class ElectricVehicles(object):
-    def __init__(self, id, speed, indicator, capacity, location=-1, battery=-1, status=-1):
+    def __init__(
+        self, id, speed, indicator, capacity, location=-1, battery=-1, status=-1
+    ):
         self.id = id
         self.speed = speed
         self.indicator = indicator
@@ -328,5 +330,3 @@ def get_hot_spot_weight(vertices, edges, demands, demand_start):
     local_demands = len([d for d in demands if d.departure in adjacent_vertices])
 
     return local_demands / len(demands) * 100
-
-
