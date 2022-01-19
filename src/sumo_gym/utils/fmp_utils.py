@@ -328,5 +328,3 @@ def get_hot_spot_weight(vertices, edges, demands, demand_start):
     local_demands = len([d for d in demands if d.departure in adjacent_vertices])
 
     return local_demands / len(demands) * 100
-
-
