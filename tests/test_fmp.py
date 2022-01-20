@@ -194,7 +194,7 @@ def test_fmp():
         ]
     )
     departures = np.asarray([19, 15, 4])
-    demand = np.asarray(
+    demands = np.asarray(
         [
             Demand(6, 4),
             Demand(5, 16),
@@ -208,17 +208,19 @@ def test_fmp():
             Demand(11, 32),
         ]
     )
+    n_demand = len(demands)
 
     env = gym.make(
         "FMP-v0",
         mode="numerical",
         n_vertex=n_vertex,
+        n_demand=n_demand,
         n_edge=n_edge,
         n_vehicle=n_vehicle,
         n_electric_vehicle=n_electric_vehicle,
         n_charging_station=n_charging_station,
         vertices=vertices,
-        demand=demand,
+        demands=demands,
         edges=edges,
         electric_vehicles=electric_vehicles,
         departures=departures,

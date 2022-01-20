@@ -1,5 +1,6 @@
 import sumo_gym.utils.network_utils as network_utils
 import numpy as np
+from bisect import bisect
 
 NO_LOADING = -1
 NO_CHARGING = -1
@@ -11,6 +12,7 @@ class Vertex(object):
     def __init__(self, x, y):
         self.x = x
         self.y = y
+        self.area = -1
 
     def __eq__(self, other):
         return (self.x, self.y) == (other.x, other.y)
@@ -65,23 +67,33 @@ class Demand(object):
 
 
 class ElectricVehicles(object):
-    def __init__(self, id, speed, indicator, capacity):
+    def __init__(
+        self, id, speed, indicator, capacity, location=None, battery=None, status=None
+    ):
         self.id = id
         self.speed = speed
         self.indicator = indicator
         self.capacity = capacity
+        self.thresholds = list(range(0, self.capacity, int(self.capacity / 5)))
+
+        self.location = location
+        self.battery = battery
+        self.status = status
 
     def __eq__(self, other):
-        return self.location == other.location
+        return self.id == other.id
 
     def __lt__(self, other):
-        return self.location < other.location
+        return self.id < other.id
 
     def __hash__(self):
         return hash(str(self))
 
     def __repr__(self):
         return f"ElectricVehicles ({self.id}, {self.speed}, {self.indicator}, {self.capacity})"
+
+    def get_battery_level(self):
+        return bisect(self.thresholds, self.battery) - 1
 
 
 class ChargingStation(object):
