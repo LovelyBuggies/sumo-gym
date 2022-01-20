@@ -337,6 +337,11 @@ class FMPEnv(AECEnv):
         Reset Petting-Zoo environment variables.
         """
         self.agents = self.possible_agents[:]
+        for i, ev in enumerate(self.fmp.electric_vehicles):
+            self.fmp.electric_vehicles[i].location = self.fmp.departures[i]
+            self.fmp.electric_vehicles[i].battery = ev.capacity
+            self.fmp.electric_vehicles[i].status = 0
+
         self.rewards = {agent: 0.0 for agent in self.agents}
         self.cumulative_rewards = {agent: 0.0 for agent in self.agents}
 
@@ -347,9 +352,9 @@ class FMPEnv(AECEnv):
 
         self.states = {
             agent: [
-                self.fmp.departures[self.agent_name_mapping[agent]],
-                self.fmp.electric_vehicles[self.agent_name_mapping[agent]].capacity,
-                0,
+                self.fmp.electric_vehicles[i].location,
+                self.fmp.electric_vehicles[i].get_battery_level(),
+                self.fmp.electric_vehicles[i].status,
             ]
             for agent in self.agents
         }
@@ -401,7 +406,6 @@ class FMPEnv(AECEnv):
                         if self.states[agent][2] > self.fmp.n_demand
                         else self.states[agent][2] - 1
                     )
-                    print(self.responded[agent], dmd_idx)
                     del self.responded[agent][
                         len(self.responded[agent])
                         - self.responded[agent][::-1].index(dmd_idx)
@@ -431,6 +435,8 @@ class FMPEnv(AECEnv):
         1. Move the state
         2. Update observation (force to change observations' action) and reward, accordingly
         """
+        agent_idx = self.agent_name_mapping[agent]
+
         # if responding
         if 0 < self.states[agent][2] <= 2 * self.fmp.n_demand:
             if self.states[agent][2] > self.fmp.n_demand:
@@ -438,15 +444,15 @@ class FMPEnv(AECEnv):
                 dest_loc = self.fmp.demands[dmd_idx].destination
                 print("Move: ", agent, " is in responding demand ", dmd_idx)
 
-                self.states[agent][0] = one_step_to_destination(
+                self.fmp.electric_vehicles[agent_idx].location = one_step_to_destination(
                     self.fmp.vertices,
                     self.fmp.edges,
-                    self.states[agent][0],
+                    self.fmp.electric_vehicles[agent_idx].location,
                     dest_loc,
                 )
-                self.states[agent][1] -= 1
-                if self.states[agent][0] == dest_loc:
-                    self.states[agent][2] = 0
+                self.fmp.electric_vehicles[agent_idx].battery -= 1
+                if self.fmp.electric_vehicles[agent_idx].location == dest_loc:
+                    self.fmp.electric_vehicles[agent_idx].status = 0
                     self.rewards[agent] += (
                         sumo_gym.utils.fmp_utils.get_hot_spot_weight(
                             self.fmp.vertices,
@@ -470,15 +476,15 @@ class FMPEnv(AECEnv):
                 dest_loc = self.fmp.demands[dmd_idx].departure
                 print("Move: ", agent, " is to respond demand ", dmd_idx)
 
-                self.states[agent][0] = one_step_to_destination(
+                self.fmp.electric_vehicles[agent_idx].location = one_step_to_destination(
                     self.fmp.vertices,
                     self.fmp.edges,
-                    self.states[agent][0],
+                    self.fmp.electric_vehicles[agent_idx].location,
                     dest_loc,
                 )
-                self.states[agent][1] -= 1
-                if self.states[agent][0] == dest_loc:
-                    self.states[agent][2] += self.fmp.n_demand
+                self.fmp.electric_vehicles[agent_idx].battery -= 1
+                if self.fmp.electric_vehicles[agent_idx].location == dest_loc:
+                    self.fmp.electric_vehicles[agent_idx].status += self.fmp.n_demand
 
                 self.rewards[agent] -= 1
 
@@ -495,31 +501,31 @@ class FMPEnv(AECEnv):
                     - 1
                 )
                 print("Move: ", agent, " is in charging at ", cs_idx)
-                self.states[agent][1] += self.fmp.charging_stations[
+                self.fmp.electric_vehicles[agent_idx].battery += self.fmp.charging_stations[
                     cs_idx
                 ].charging_speed
                 if (
-                    self.states[agent][1]
+                    self.fmp.electric_vehicles[agent_idx].battery
                     >= self.fmp.electric_vehicles[
                         self.agent_name_mapping[agent]
                     ].capacity
                 ):
-                    self.states[agent][2] = 0
+                    self.fmp.electric_vehicles[agent_idx].status = 0
             else:
                 cs_idx = self.states[agent][2] - 2 * self.fmp.n_demand - 1
                 dest_loc = self.fmp.charging_stations[cs_idx].location
                 print("Move: ", agent, "is to go to charge at ", cs_idx)
 
-                self.states[agent][0] = one_step_to_destination(
+                self.fmp.electric_vehicles[agent_idx].location = one_step_to_destination(
                     self.fmp.vertices,
                     self.fmp.edges,
-                    self.states[agent][0],
+                    self.fmp.electric_vehicles[agent_idx].location,
                     dest_loc,
                 )
-                self.states[agent][1] -= 1
+                self.fmp.electric_vehicles[agent_idx].battery -= 1
 
-                if self.states[agent][0] == dest_loc:
-                    self.states[agent][2] += self.fmp.n_charging_station
+                if self.fmp.electric_vehicles[agent_idx].location == dest_loc:
+                    self.fmp.electric_vehicles[agent_idx].status += self.fmp.n_charging_station
 
                 self.rewards[agent] -= 1
 
@@ -527,6 +533,11 @@ class FMPEnv(AECEnv):
         else:
             raise ValueError("Agent that not responding or charging should not move")
 
+        self.states[agent] = [
+            self.fmp.electric_vehicles[agent_idx].location,
+            self.fmp.electric_vehicles[agent_idx].get_battery_level(),
+            self.fmp.electric_vehicles[agent_idx].status,
+        ]
         self.observations[agent][:3] = self.states[agent][:3]
         self.observations[agent][3] = 0
 
@@ -538,6 +549,7 @@ class FMPEnv(AECEnv):
         3. Update observation and reward, accordingly
         """
         agent = self.agent_selection
+        agent_idx = self.agent_name_mapping[agent]
 
         if action == 0:
             print("Trans: ", agent, "is taking moving action")
@@ -546,16 +558,14 @@ class FMPEnv(AECEnv):
         # action to charge
         elif action <= self.fmp.n_charging_station:
             print("Trans: ", agent, "is to go to charge at ", action - 1)
-            self.states[agent] = [
-                one_step_to_destination(
+            self.fmp.electric_vehicles[agent_idx].location = one_step_to_destination(
                     self.fmp.vertices,
                     self.fmp.edges,
-                    self.states[agent][0],
+                    self.fmp.electric_vehicles[agent_idx].location,
                     self.fmp.charging_stations[action - 1].location,
-                ),
-                self.states[agent][1] - 1,
-                2 * self.fmp.n_demand + action,
-            ]
+                )
+            self.fmp.electric_vehicles[agent_idx].battery -= 1
+            self.fmp.electric_vehicles[agent_idx].status = 2 * self.fmp.n_demand + action
             self.rewards[agent] = -1
 
         # action to load
@@ -566,21 +576,25 @@ class FMPEnv(AECEnv):
                 " is to respond demand ",
                 action - self.fmp.n_charging_station - 1,
             )
-            self.states[agent] = [
-                one_step_to_destination(
+            self.fmp.electric_vehicles[agent_idx].location = one_step_to_destination(
                     self.fmp.vertices,
                     self.fmp.edges,
                     self.states[agent][0],
                     self.fmp.demands[
                         action - self.fmp.n_charging_station - 1
                     ].departure,
-                ),
-                self.states[agent][1] - 1,
-                action - self.fmp.n_charging_station,
-            ]
-            self.rewards[agent] = -1
-            self.responded[agent].append(self.states[agent][2] - 1)
+                )
+            self.fmp.electric_vehicles[agent_idx].battery -= 1
+            self.fmp.electric_vehicles[agent_idx].status = action - self.fmp.n_charging_station
 
+            self.rewards[agent] = -1
+            self.responded[agent].append(self.fmp.electric_vehicles[agent_idx].status - 1)
+
+        self.states[agent] = [
+            self.fmp.electric_vehicles[agent_idx].location,
+            self.fmp.electric_vehicles[agent_idx].get_battery_level(),
+            self.fmp.electric_vehicles[agent_idx].status,
+        ]
         self.observations[agent][:3] = self.states[agent][:3]
 
     def render(self, mode="human"):
