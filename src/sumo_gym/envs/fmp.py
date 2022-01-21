@@ -561,7 +561,7 @@ class FMPEnv(AECEnv):
 
         if action == 0:
             print("Trans: ", agent, "is taking moving action")
-            pass
+            self.rewards[agent] = -1
 
         # action to charge
         elif action <= self.fmp.n_charging_station:
