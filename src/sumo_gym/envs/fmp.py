@@ -477,7 +477,8 @@ class FMPEnv(AECEnv):
                         )
                         if list(
                             itertools.chain.from_iterable(self.responded.values())
-                        ).count(dmd_idx) == 1
+                        ).count(dmd_idx)
+                        == 1
                         else 0
                     )
 
