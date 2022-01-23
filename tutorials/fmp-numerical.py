@@ -179,7 +179,9 @@ n_vehicle = 3
 n_electric_vehicle = 3
 n_charging_station = 3
 # TODO: set battery to 50000, work around the low battery issue
-electric_vehicles = [ElectricVehicles(i, 1, 220, 50000) for i in range(n_electric_vehicle)]
+electric_vehicles = [
+    ElectricVehicles(i, 1, 220, 50000) for i in range(n_electric_vehicle)
+]
 charging_stations = [
     ChargingStation(3, 220, 20),
     ChargingStation(33, 220, 20),
