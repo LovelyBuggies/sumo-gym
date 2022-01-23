@@ -382,7 +382,11 @@ class FMPEnv(AECEnv):
             # if done, remove it
             self._was_done_step(None)
             self.observations[agent][3] = None
-            self.agent_selection = self._agent_selector.next() if self._agent_selector.agent_order else None
+            self.agent_selection = (
+                self._agent_selector.next()
+                if self._agent_selector.agent_order
+                else None
+            )
             return self.observations, self.rewards, self.dones, self.infos
 
         else:
