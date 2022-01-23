@@ -1,3 +1,4 @@
+import itertools
 import operator
 import os
 import sumo_gym.typing
@@ -468,7 +469,8 @@ class FMPEnv(AECEnv):
                             self.fmp.demands[dmd_idx].departure,
                             self.fmp.demands[dmd_idx].destination,
                         )
-                        if self.responded[agent].count(dmd_idx) == 1
+                        if self.responded[agent].count(dmd_idx) == 1 
+                        and list(itertools.chain.from_iterable(self.responded.values())).count(dmd_idx) == 1
                         else 0
                     )
 
