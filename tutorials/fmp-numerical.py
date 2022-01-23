@@ -178,10 +178,7 @@ n_edge = len(edges)
 n_vehicle = 3
 n_electric_vehicle = 3
 n_charging_station = 3
-# TODO: set battery to 50000, work around the low battery issue
-electric_vehicles = [
-    ElectricVehicles(i, 1, 220, 50000) for i in range(n_electric_vehicle)
-]
+electric_vehicles = [ElectricVehicles(i, 1, 220, 30) for i in range(n_electric_vehicle)]
 charging_stations = [
     ChargingStation(3, 220, 20),
     ChargingStation(33, 220, 20),
@@ -233,10 +230,9 @@ env = wrappers.OrderEnforcingWrapper(env)
 
 for _ in range(1):
     env.reset()
+    # will auto-complete and thus break the loop when self.dones are all True
     for agent in env.agent_iter():
         observation, reward, done, info = env.last()
-        if done:
-            break
         action = env.action_space(agent).sample()
         env.step(action)
 

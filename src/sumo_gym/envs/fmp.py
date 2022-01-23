@@ -295,7 +295,7 @@ class FMPEnv(AECEnv):
 
         self.agents = self.possible_agents[:]
         self.rewards = {agent: 0.0 for agent in self.agents}
-        self.cumulative_rewards = {agent: 0.0 for agent in self.agents}
+        self._cumulative_rewards = {agent: 0.0 for agent in self.agents}
 
         self.dones = {agent: False for agent in self.agents}
         self.responded = {agent: list() for agent in self.agents}
@@ -340,11 +340,11 @@ class FMPEnv(AECEnv):
         self.agents = self.possible_agents[:]
         for i, ev in enumerate(self.fmp.electric_vehicles):
             self.fmp.electric_vehicles[i].location = self.fmp.departures[i]
-            self.fmp.electric_vehicles[i].battery = ev.capacity
+            self.fmp.electric_vehicles[i].battery = ev.battery or ev.capacity
             self.fmp.electric_vehicles[i].status = 0
 
         self.rewards = {agent: 0.0 for agent in self.agents}
-        self.cumulative_rewards = {agent: 0.0 for agent in self.agents}
+        self._cumulative_rewards = {agent: 0.0 for agent in self.agents}
 
         self.dones = {agent: False for agent in self.agents}
         self.responded = {agent: list() for agent in self.agents}
@@ -382,6 +382,7 @@ class FMPEnv(AECEnv):
             # if done, remove it
             self._was_done_step(None)
             self.observations[agent][3] = None
+            self.agent_selection = self._agent_selector.next() if self._agent_selector.agent_order else None
             return self.observations, self.rewards, self.dones, self.infos
 
         else:
@@ -399,7 +400,7 @@ class FMPEnv(AECEnv):
             ) == set(range(self.fmp.n_demand))
 
             # check whether is in negative battery
-            if self.states[agent][1] < 0:
+            if self.fmp.electric_vehicles[self.agent_name_mapping[agent]].battery < 0:
                 self.dones[agent] = True
                 if 0 < self.states[agent][2] <= 2 * self.fmp.n_demand:
                     dmd_idx = (
@@ -415,11 +416,11 @@ class FMPEnv(AECEnv):
 
                 self.rewards[agent] -= 1000
 
-            self.cumulative_rewards[agent] += self.rewards[agent]
+            self._cumulative_rewards[agent] += self.rewards[agent]
             print(
                 self.observations[agent],
                 self.rewards[agent],
-                self.cumulative_rewards[agent],
+                self._cumulative_rewards[agent],
                 self.responded[agent],
             )
             if self._agent_selector.is_last():
