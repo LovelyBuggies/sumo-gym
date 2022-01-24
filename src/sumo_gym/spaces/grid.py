@@ -24,7 +24,7 @@ class GridSpace(gym.spaces.Space):
         self,
         vertices: sumo_gym.typing.VerticesType = None,
         demand: sumo_gym.utils.fmp_utils.Demand = None,
-        responded: set = None,
+        responded: dict = None,
         edges: sumo_gym.typing.EdgeType = None,
         electric_vehicles: sumo_gym.utils.fmp_utils.ElectricVehicles = None,
         charging_stations: sumo_gym.utils.fmp_utils.ChargingStation = None,
