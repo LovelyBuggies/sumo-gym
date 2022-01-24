@@ -174,6 +174,7 @@ edges = [
 ]
 
 n_vertex = len(vertices)
+n_area = 4
 n_edge = len(edges)
 n_vehicle = 3
 n_electric_vehicle = 3
@@ -210,6 +211,7 @@ env = gym.make(
     "FMP-v0",
     mode="numerical",
     n_vertex=n_vertex,
+    n_area=n_area,
     n_demand=n_demand,
     n_edge=n_edge,
     n_vehicle=n_vehicle,

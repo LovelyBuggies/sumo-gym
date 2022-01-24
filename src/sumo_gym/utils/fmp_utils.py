@@ -104,7 +104,7 @@ class ElectricVehicles(object):
         return hash(str(self))
 
     def __repr__(self):
-        return f"ElectricVehicles ({self.id}, {self.speed}, {self.indicator}, {self.capacity})"
+        return f"ElectricVehicles ({self.id}, {self.location}, {self.battery}, {self.responded})"
 
     def get_battery_level(self):
         return bisect(self.thresholds, self.battery) - 1
@@ -351,22 +351,21 @@ def get_hot_spot_weight(vertices, edges, demands, demand_start):
 
 
 # k as number of clusters, i.e., count of divided areas
-# assume to be a square number for ease
-def k_means(vertices, k):
+def cluster_as_area(vertices, k):
     vertices_loc = [[v.x, v.y] for v in vertices]
-
     kmeans = KMeans(
         n_clusters=k,
-        init=np.asarray(generate_initial_cluster(vertices_loc, k)),
+        init=np.asarray(_generate_initial_cluster(vertices_loc, k)),
         random_state=0,
     ).fit(vertices_loc)
-
     for i, v in enumerate(vertices):
         v.area = kmeans.labels_[i]
 
+    return vertices
+
 
 # roughly divide the map into a root x root grid map as initialization
-def generate_initial_cluster(vertices_loc, k):
+def _generate_initial_cluster(vertices_loc, k):
     initial_clusters = []
     root = int(math.sqrt(k))
 
