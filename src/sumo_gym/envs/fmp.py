@@ -1,4 +1,4 @@
-import itertools
+from itertools import chain
 import operator
 import os
 import sumo_gym.typing
@@ -299,9 +299,8 @@ class FMPEnv(AECEnv):
         self._cumulative_rewards = {agent: 0.0 for agent in self.agents}
 
         self.dones = {agent: False for agent in self.agents}
-        self.responded = {agent: list() for agent in self.agents}
 
-        self.infos = {agent: dict() for agent in self.agents}
+        self.infos = {agent: None for agent in self.agents}
 
         self.states = {agent: None for agent in self.agents}
         self.observations = {agent: None for agent in self.agents}
@@ -343,12 +342,18 @@ class FMPEnv(AECEnv):
             self.fmp.electric_vehicles[i].location = self.fmp.departures[i]
             self.fmp.electric_vehicles[i].battery = ev.battery or ev.capacity
             self.fmp.electric_vehicles[i].status = 0
+            self.fmp.electric_vehicles[i].responded = list()
+
+        for i, cs in enumerate(self.fmp.charging_stations):
+            self.fmp.charging_stations[i].n_slot = cs.n_slot or 1
+            self.fmp.charging_stations[i].charging_vehicle = (
+                cs.charging_vehicle or set()
+            )
 
         self.rewards = {agent: 0.0 for agent in self.agents}
         self._cumulative_rewards = {agent: 0.0 for agent in self.agents}
 
         self.dones = {agent: False for agent in self.agents}
-        self.responded = {agent: list() for agent in self.agents}
 
         self.infos = {agent: dict() for agent in self.agents}
 
@@ -378,9 +383,9 @@ class FMPEnv(AECEnv):
         Update of done, broken reward, broken responded and agent are in step.
         """
         agent = self.agent_selection
+        agent_idx = self.agent_name_mapping[agent]
 
         if self.dones[agent]:
-            # if done, remove it
             self._was_done_step(None)
             self.observations[agent][3] = None
             self.agent_selection = (
@@ -401,11 +406,11 @@ class FMPEnv(AECEnv):
 
             # judge whether it's done
             self.dones[agent] = set(
-                [d for r in self.responded.values() for d in r]
+                chain.from_iterable([ev.responded for ev in self.fmp.electric_vehicles])
             ) == set(range(self.fmp.n_demand))
 
             # check whether is in negative battery
-            if self.fmp.electric_vehicles[self.agent_name_mapping[agent]].battery < 0:
+            if self.states[agent][1] < 0:
                 self.dones[agent] = True
                 if 0 < self.states[agent][2] <= 2 * self.fmp.n_demand:
                     dmd_idx = (
@@ -413,9 +418,11 @@ class FMPEnv(AECEnv):
                         if self.states[agent][2] > self.fmp.n_demand
                         else self.states[agent][2] - 1
                     )
-                    del self.responded[agent][
-                        len(self.responded[agent])
-                        - self.responded[agent][::-1].index(dmd_idx)
+                    del self.fmp.electric_vehicles[agent_idx].responded[
+                        len(self.fmp.electric_vehicles[agent_idx].responded)
+                        - self.fmp.electric_vehicles[agent_idx]
+                        .responded[::-1]
+                        .index(dmd_idx)
                         - 1
                     ]
 
@@ -426,7 +433,7 @@ class FMPEnv(AECEnv):
                 self.observations[agent],
                 self.rewards[agent],
                 self._cumulative_rewards[agent],
-                self.responded[agent],
+                self.fmp.electric_vehicles[agent_idx].responded,
             )
             if self._agent_selector.is_last():
                 self.num_moves += 1
@@ -476,13 +483,14 @@ class FMPEnv(AECEnv):
                             self.fmp.demands[dmd_idx].destination,
                         )
                         if list(
-                            itertools.chain.from_iterable(self.responded.values())
+                            chain.from_iterable(
+                                [ev.responded for ev in self.fmp.electric_vehicles]
+                            )
                         ).count(dmd_idx)
                         == 1
                         else 0
                     )
 
-                self.rewards[agent] -= 1
             else:
                 dmd_idx = self.states[agent][2] - 1
                 dest_loc = self.fmp.demands[dmd_idx].departure
@@ -500,8 +508,6 @@ class FMPEnv(AECEnv):
                 if self.fmp.electric_vehicles[agent_idx].location == dest_loc:
                     self.fmp.electric_vehicles[agent_idx].status += self.fmp.n_demand
 
-                self.rewards[agent] -= 1
-
         # if charging
         elif self.states[agent][2] > 2 * self.fmp.n_demand:
             if (
@@ -515,16 +521,26 @@ class FMPEnv(AECEnv):
                     - 1
                 )
                 print("Move: ", agent, " is in charging at ", cs_idx)
-                self.fmp.electric_vehicles[
-                    agent_idx
-                ].battery += self.fmp.charging_stations[cs_idx].charging_speed
+                self.fmp.electric_vehicles[agent_idx].battery = (
+                    min(
+                        self.fmp.electric_vehicles[agent_idx].battery
+                        + self.fmp.charging_stations[cs_idx].charging_speed,
+                        self.fmp.electric_vehicles[agent_idx].capacity,
+                    )
+                    if len(
+                        self.fmp.charging_stations[cs_idx].charging_vehicle - {agent}
+                    )
+                    < self.fmp.charging_stations[cs_idx].n_slot
+                    else self.fmp.electric_vehicles[agent_idx].battery
+                )
                 if (
                     self.fmp.electric_vehicles[agent_idx].battery
-                    >= self.fmp.electric_vehicles[
+                    == self.fmp.electric_vehicles[
                         self.agent_name_mapping[agent]
                     ].capacity
                 ):
                     self.fmp.electric_vehicles[agent_idx].status = 0
+                    self.fmp.charging_stations[cs_idx].charging_vehicle -= {agent}
             else:
                 cs_idx = self.states[agent][2] - 2 * self.fmp.n_demand - 1
                 dest_loc = self.fmp.charging_stations[cs_idx].location
@@ -544,13 +560,13 @@ class FMPEnv(AECEnv):
                     self.fmp.electric_vehicles[
                         agent_idx
                     ].status += self.fmp.n_charging_station
-
-                self.rewards[agent] -= 1
+                    self.fmp.charging_stations[cs_idx].charging_vehicle |= {agent}
 
         # not charging and not loading should not be moving
         else:
             raise ValueError("Agent that not responding or charging should not move")
 
+        self.rewards[agent] -= 1
         self.states[agent] = [
             self.fmp.electric_vehicles[agent_idx].location,
             self.fmp.electric_vehicles[agent_idx].get_battery_level(),
@@ -571,7 +587,6 @@ class FMPEnv(AECEnv):
 
         if action == 0:
             print("Trans: ", agent, "is taking moving action")
-            self.rewards[agent] = -1
 
         # action to charge
         elif action <= self.fmp.n_charging_station:
@@ -586,7 +601,6 @@ class FMPEnv(AECEnv):
             self.fmp.electric_vehicles[agent_idx].status = (
                 2 * self.fmp.n_demand + action
             )
-            self.rewards[agent] = -1
 
         # action to load
         else:
@@ -607,11 +621,11 @@ class FMPEnv(AECEnv):
                 action - self.fmp.n_charging_station
             )
 
-            self.rewards[agent] = -1
-            self.responded[agent].append(
+            self.fmp.electric_vehicles[agent_idx].responded.append(
                 self.fmp.electric_vehicles[agent_idx].status - 1
             )
 
+        self.rewards[agent] = -1
         self.states[agent] = [
             self.fmp.electric_vehicles[agent_idx].location,
             self.fmp.electric_vehicles[agent_idx].get_battery_level(),
