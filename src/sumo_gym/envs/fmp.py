@@ -95,7 +95,9 @@ class FMP(object):
 
         # vehicles
         self.electric_vehicles = electric_vehicles
-        self.ev_name_idx_mapping = {f"v{i}": i for i, _ in enumerate(self.electric_vehicles)}
+        self.ev_name_idx_mapping = {
+            f"v{i}": i for i, _ in enumerate(self.electric_vehicles)
+        }
         self.departures = departures
         self.charging_stations = charging_stations
 
@@ -361,8 +363,14 @@ class FMPEnv(AECEnv):
 
         self.states = {
             agent: [
-                self.fmp.vertex_idx_area_mapping[self.fmp.electric_vehicles[self.agent_name_idx_mapping[agent]].location],
-                self.fmp.electric_vehicles[self.agent_name_idx_mapping[agent]].get_battery_level(),
+                self.fmp.vertex_idx_area_mapping[
+                    self.fmp.electric_vehicles[
+                        self.agent_name_idx_mapping[agent]
+                    ].location
+                ],
+                self.fmp.electric_vehicles[
+                    self.agent_name_idx_mapping[agent]
+                ].get_battery_level(),
                 self.fmp.electric_vehicles[self.agent_name_idx_mapping[agent]].status,
             ]
             for agent in self.agents
@@ -432,10 +440,10 @@ class FMPEnv(AECEnv):
 
             self._cumulative_rewards[agent] += self.rewards[agent]
             print(
-                f"Obs: {self.observations[agent]}; " +
-                f"Rew: {self.rewards[agent]}; " +
-                f"Cum_rew: {self._cumulative_rewards[agent]}; " +
-                f"EV: {self.fmp.electric_vehicles[agent_idx]}."
+                f"Obs: {self.observations[agent]}; "
+                + f"Rew: {self.rewards[agent]}; "
+                + f"Cum_rew: {self._cumulative_rewards[agent]}; "
+                + f"EV: {self.fmp.electric_vehicles[agent_idx]}."
             )
             if self._agent_selector.is_last():
                 self.num_moves += 1
@@ -529,7 +537,8 @@ class FMPEnv(AECEnv):
                         + self.fmp.charging_stations[cs_idx].charging_speed,
                         self.fmp.electric_vehicles[agent_idx].capacity,
                     )
-                    if self.fmp.charging_stations[cs_idx].charging_vehicle.index(agent) < self.fmp.charging_stations[cs_idx].n_slot
+                    if self.fmp.charging_stations[cs_idx].charging_vehicle.index(agent)
+                    < self.fmp.charging_stations[cs_idx].n_slot
                     else self.fmp.electric_vehicles[agent_idx].battery
                 )
                 if (
@@ -566,7 +575,9 @@ class FMPEnv(AECEnv):
 
         self.rewards[agent] -= 1
         self.states[agent] = [
-            self.fmp.vertex_idx_area_mapping[self.fmp.electric_vehicles[agent_idx].location],
+            self.fmp.vertex_idx_area_mapping[
+                self.fmp.electric_vehicles[agent_idx].location
+            ],
             self.fmp.electric_vehicles[agent_idx].get_battery_level(),
             self.fmp.electric_vehicles[agent_idx].status,
         ]
@@ -625,7 +636,9 @@ class FMPEnv(AECEnv):
 
         self.rewards[agent] = -1
         self.states[agent] = [
-            self.fmp.vertex_idx_area_mapping[self.fmp.electric_vehicles[agent_idx].location],
+            self.fmp.vertex_idx_area_mapping[
+                self.fmp.electric_vehicles[agent_idx].location
+            ],
             self.fmp.electric_vehicles[agent_idx].get_battery_level(),
             self.fmp.electric_vehicles[agent_idx].status,
         ]
