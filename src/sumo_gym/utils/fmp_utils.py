@@ -346,7 +346,7 @@ def k_means(vertices, k):
     kmeans = KMeans(
         n_clusters=k,
         init=np.asarray(generate_initial_cluster(vertices_loc, k)),
-        random_state=0
+        random_state=0,
     ).fit(vertices_loc)
 
     for i, v in enumerate(vertices):
@@ -360,13 +360,15 @@ def generate_initial_cluster(vertices_loc, k):
 
     x_sorted = sorted(vertices_loc, key=lambda x: x[0])
     x_start = x_sorted[0][0]
-    x_step = (x_sorted[-1][0] - x_sorted[0][0]) / (root+1)
+    x_step = (x_sorted[-1][0] - x_sorted[0][0]) / (root + 1)
 
     y_sorted = sorted(vertices_loc, key=lambda x: x[1])
     y_start = y_sorted[0][1]
-    y_step = (y_sorted[-1][1] - y_sorted[0][1]) / (root+1)
+    y_step = (y_sorted[-1][1] - y_sorted[0][1]) / (root + 1)
     for i in range(root):
         for j in range(root):
-            initial_clusters.append([x_start + (i+1) * x_step, y_start + (j+1) * y_step])
+            initial_clusters.append(
+                [x_start + (i + 1) * x_step, y_start + (j + 1) * y_step]
+            )
 
     return initial_clusters
