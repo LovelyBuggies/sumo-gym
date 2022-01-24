@@ -73,7 +73,15 @@ class Demand(object):
 
 class ElectricVehicles(object):
     def __init__(
-        self, id, speed, indicator, capacity, location=None, battery=None, status=None, responded=None
+        self,
+        id,
+        speed,
+        indicator,
+        capacity,
+        location=None,
+        battery=None,
+        status=None,
+        responded=None,
     ):
         self.id = id
         self.speed = speed
@@ -103,7 +111,9 @@ class ElectricVehicles(object):
 
 
 class ChargingStation(object):
-    def __init__(self, location, indicator, charging_speed, n_slot=None, charging_vehicle=None):
+    def __init__(
+        self, location, indicator, charging_speed, n_slot=None, charging_vehicle=None
+    ):
         self.location = location
         self.indicator = indicator
         self.charging_speed = charging_speed

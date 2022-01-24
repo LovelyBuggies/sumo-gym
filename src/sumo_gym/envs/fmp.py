@@ -346,7 +346,9 @@ class FMPEnv(AECEnv):
 
         for i, cs in enumerate(self.fmp.charging_stations):
             self.fmp.charging_stations[i].n_slot = cs.n_slot or 1
-            self.fmp.charging_stations[i].charging_vehicle = cs.charging_vehicle or set()
+            self.fmp.charging_stations[i].charging_vehicle = (
+                cs.charging_vehicle or set()
+            )
 
         self.rewards = {agent: 0.0 for agent in self.agents}
         self._cumulative_rewards = {agent: 0.0 for agent in self.agents}
@@ -418,7 +420,9 @@ class FMPEnv(AECEnv):
                     )
                     del self.fmp.electric_vehicles[agent_idx].responded[
                         len(self.fmp.electric_vehicles[agent_idx].responded)
-                        - self.fmp.electric_vehicles[agent_idx].responded[::-1].index(dmd_idx)
+                        - self.fmp.electric_vehicles[agent_idx]
+                        .responded[::-1]
+                        .index(dmd_idx)
                         - 1
                     ]
 
@@ -478,7 +482,11 @@ class FMPEnv(AECEnv):
                             self.fmp.demands[dmd_idx].departure,
                             self.fmp.demands[dmd_idx].destination,
                         )
-                        if list(chain.from_iterable([ev.responded for ev in self.fmp.electric_vehicles])).count(dmd_idx)
+                        if list(
+                            chain.from_iterable(
+                                [ev.responded for ev in self.fmp.electric_vehicles]
+                            )
+                        ).count(dmd_idx)
                         == 1
                         else 0
                     )
@@ -519,7 +527,9 @@ class FMPEnv(AECEnv):
                         + self.fmp.charging_stations[cs_idx].charging_speed,
                         self.fmp.electric_vehicles[agent_idx].capacity,
                     )
-                    if len(self.fmp.charging_stations[cs_idx].charging_vehicle - {agent})
+                    if len(
+                        self.fmp.charging_stations[cs_idx].charging_vehicle - {agent}
+                    )
                     < self.fmp.charging_stations[cs_idx].n_slot
                     else self.fmp.electric_vehicles[agent_idx].battery
                 )
