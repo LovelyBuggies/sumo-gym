@@ -1,3 +1,7 @@
+from sklearn.cluster import KMeans
+import math
+import numpy as np
+
 import sumo_gym.utils.network_utils as network_utils
 import numpy as np
 from bisect import bisect
@@ -6,6 +10,8 @@ NO_LOADING = -1
 NO_CHARGING = -1
 CHARGING_STATION_LENGTH = 5
 IDLE_LOCATION = -1
+
+K_MEANS_ITERATION = 10
 
 
 class Vertex(object):
@@ -24,7 +30,7 @@ class Vertex(object):
         return hash(str(self))
 
     def __repr__(self):
-        return f"vertex ({self.x}, {self.y})"
+        return f"vertex ({self.x}, {self.y}, {self.area})"
 
 
 class Edge(object):
@@ -330,3 +336,37 @@ def get_hot_spot_weight(vertices, edges, demands, demand_start):
     local_demands = len([d for d in demands if d.departure in adjacent_vertices])
 
     return local_demands / len(demands) * 100
+
+
+# k as number of clusters, i.e., count of divided areas
+# assume to be a square number for ease
+def k_means(vertices, k):
+    vertices_loc = [[v.x, v.y] for v in vertices]
+
+    kmeans = KMeans(
+        n_clusters=k,
+        init=np.asarray(generate_initial_cluster(vertices_loc, k)),
+        random_state=0
+    ).fit(vertices_loc)
+
+    for i, v in enumerate(vertices):
+        v.area = kmeans.labels_[i]
+
+
+# roughly divide the map into a root x root grid map as initialization
+def generate_initial_cluster(vertices_loc, k):
+    initial_clusters = []
+    root = int(math.sqrt(k))
+
+    x_sorted = sorted(vertices_loc, key=lambda x: x[0])
+    x_start = x_sorted[0][0]
+    x_step = (x_sorted[-1][0] - x_sorted[0][0]) / (root+1)
+
+    y_sorted = sorted(vertices_loc, key=lambda x: x[1])
+    y_start = y_sorted[0][1]
+    y_step = (y_sorted[-1][1] - y_sorted[0][1]) / (root+1)
+    for i in range(root):
+        for j in range(root):
+            initial_clusters.append([x_start + (i+1) * x_step, y_start + (j+1) * y_step])
+
+    return initial_clusters
