@@ -225,6 +225,7 @@ raw_env = gym.make(
     "FMP-v0",
     mode="numerical",
     n_vertex=n_vertex,
+    n_area=4,
     n_edge=n_edge,
     n_vehicle=n_vehicle,
     n_electric_vehicle=n_electric_vehicle,
