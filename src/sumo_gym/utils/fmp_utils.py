@@ -1,6 +1,5 @@
 from sklearn.cluster import KMeans
 import math
-import numpy as np
 
 import sumo_gym.utils.network_utils as network_utils
 import numpy as np
