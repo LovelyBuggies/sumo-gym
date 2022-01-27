@@ -237,10 +237,8 @@ env = ss.concat_vec_envs_v1(env, 8, num_cpus=1, base_class="stable_baselines3")
 model = dqn.DQN(
     MlpPolicy,
     env,
-    verbose=1,
-    tensorboard_log="./assets/tensorboards/fmpenv/numerical/a2c/",
+    verbose=1
 )
 model.learn(
     total_timesteps=1_500_000, tb_log_name="mlp_policy", reset_num_timesteps=False
 )
-model.save("./assets/models/fmpenv/numerical/a2c")

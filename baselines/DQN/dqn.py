@@ -99,7 +99,6 @@ class OffPolicyAlgorithm(BaseAlgorithm):
         self._setup_lr_schedule()
         self.set_random_seed(self.seed)
 
-        # Use DictReplayBuffer if needed
         if self.replay_buffer_class is None:
             if isinstance(self.observation_space, gym.spaces.Dict):
                 self.replay_buffer_class = DictReplayBuffer
