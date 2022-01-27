@@ -415,9 +415,15 @@ class FMPEnv(AECEnv):
                 self._state_transition(action)
 
             # judge whether it's done
-            self.dones[agent] = set(
-                chain.from_iterable([ev.responded for ev in self.fmp.electric_vehicles])
-            ) == set(range(self.fmp.n_demand))
+            self.dones[agent] = (
+                set(
+                    chain.from_iterable(
+                        [ev.responded for ev in self.fmp.electric_vehicles]
+                    )
+                )
+                == set(range(self.fmp.n_demand))
+                and self.states[agent][2] == 0
+            )
 
             # check whether is in negative battery
             if self.states[agent][1] < 0:
