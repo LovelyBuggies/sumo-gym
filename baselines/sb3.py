@@ -1,20 +1,14 @@
 import numpy as np
 import gym
-import sumo_gym
-from sumo_gym.utils.fmp_utils import (
+import sumQ_gym
+from sumQ_gym.utils.fmp_utils import (
     Vertex,
     Edge,
     Demand,
     ChargingStation,
     ElectricVehicles,
 )
-from pettingzoo.test import api_test
-from pettingzoo.utils import wrappers
-from pettingzoo.utils import to_parallel
-
-from DQN import dqn
-from stable_baselines3.a2c import MlpPolicy
-import supersuit as ss
+from .DQN.dqn import QNetwork, ReplayBuffer, run_target_update
 
 vertices = [
     Vertex(0.0, 0.0),
@@ -54,7 +48,6 @@ vertices = [
     Vertex(5.0, 4.0),
     Vertex(5.0, 5.0),
 ]
-
 
 edges = [
     Edge(0, 1),
@@ -210,10 +203,8 @@ demands = [
     Demand(19, 18),
     Demand(11, 32),
 ]
-
 n_demand = len(demands)
-
-raw_env = gym.make(
+env = gym.make(
     "FMP-v0",
     mode="numerical",
     n_vertex=n_vertex,
@@ -230,15 +221,82 @@ raw_env = gym.make(
     departures=departures,
     charging_stations=charging_stations,
 )
-env = to_parallel(raw_env)
-env = ss.pettingzoo_env_to_vec_env_v1(env)
-env = ss.concat_vec_envs_v1(env, 8, num_cpus=1, base_class="stable_baselines3")
 
-model = dqn.DQN(
-    MlpPolicy,
-    env,
-    verbose=1
-)
-model.learn(
-    total_timesteps=1_500_000, tb_log_name="mlp_policy", reset_num_timesteps=False
-)
+"""
+DQN
+"""
+lr = 0.0003
+batch_size = 128
+maxlength = 2000
+tau = 100
+episodes = 500
+initial_size = 500
+gamma = 0.95
+epsilon = 0.9
+
+decayRate = 0.95
+min_epsilon = 0.01
+
+Q_principal = QNetwork(env.observation_space.low.size, env.action_space.n, lr)
+Q_target = QNetwork(env.observation_space.low.size, env.action_space.n, lr)
+buffer = ReplayBuffer(maxlength)
+
+r_record = []
+total_step = 0
+for episode in range(episodes):
+    env.reset()
+    done = False
+    r_sum = 0
+
+    if episode % 25 == 24:
+        epsilon = epsilon * decayRate
+        epsilon = max(min_epsilon, epsilon)
+
+    while not done:
+        prob = np.random.rand(1)
+        if prob > epsilon:
+            action = Q_principal.compute_argmaxQ(np.expand_dims(obs, 0))
+        else:
+            action = env.action_space.sample()
+
+        new_obs, r, done, _ = env.step(action)
+        done_ = 1 if done else 0
+
+        buffer.append((obs, action, r, done_, new_obs))
+        while buffer.number > maxlength:
+            buffer.pop()
+
+        if total_step % 10 == 0 and total_step > initial_size:
+            states = []
+            actions = []
+            rewards = []
+            new_states = []
+
+            samples = buffer.sample(batch_size)
+
+            for j in range(batch_size):
+                states.append(samples[j][0])
+                rewards.append(samples[j][2])
+                new_states.append(samples[j][4])
+
+            targets = rewards + gamma * Q_target.compute_maxQvalues(new_states)
+
+            for j in range(batch_size):
+                if samples[j][3] == 1:
+                    targets[j] = rewards[j]
+
+            Q_principal.train(states, actions, targets)
+
+        if total_step % tau == 0:
+            run_target_update(Q_principal, Q_target)
+
+        total_step += 1
+        r_sum += r
+        obs = new_obs
+
+    r_record.append(r_sum)
+
+    fixedWindow = 100
+    movingAverage = 0
+    if len(r_record) >= fixedWindow:
+        movingAverage = np.mean(r_record[len(r_record) - fixedWindow:len(r_record) - 1])
