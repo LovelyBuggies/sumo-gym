@@ -19,32 +19,8 @@ class ReplayBuffer(object):
         return len(self.memory)
 
 
-class MLPNetwork(torch.nn.Module):
-    def __init__(self, input_size, hidden_size):
-        super(MLPNetwork, self).__init__()
-        self.input_size = input_size
-        self.hidden_size = hidden_size
-        self.fc1 = torch.nn.Linear(self.input_size, self.hidden_size)
-        self.relu = torch.nn.ReLU()
-        self.fc2 = torch.nn.Linear(self.hidden_size, 1)
-        self.sigmoid = torch.nn.Sigmoid()
-
-    def forward(self, x):
-        hidden = self.fc1(x)
-        relu = self.relu(hidden)
-        output = self.fc2(relu)
-        output = self.sigmoid(output)
-        return output
-
-
 class QNetwork(object):
     def __init__(self, obs_size, act_size, lr):
-        """
-        obs_size: dimension of state space
-        act_size: dimension of action space
-        sess: sess to execute this DQN
-        optimizer:
-        """
         self.obs_size = obs_size
         self.act_size = act_size
         self.model = torch.nn.Sequential(
