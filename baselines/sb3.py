@@ -252,7 +252,7 @@ class DQN(object):
         self.Q_target = QNetwork(
             env.observation_space(agent).low.size, env.action_space(agent).n, self.lr
         )
-        self.buffer = ReplayBuffer(max_length)
+        self.buffer = ReplayBuffer()
 
     def train(self):
         r_record = []
