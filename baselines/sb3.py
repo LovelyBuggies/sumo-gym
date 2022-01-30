@@ -233,25 +233,24 @@ class DQN(object):
         agent,
         lr=0.0003,
         batch_size=128,
-        maxlength=2000,
+        max_length=2000,
         tau=100,
         episodes=500,
         initial_size=500,
         gamma=0.95,
         epsilon=0.9,
-        decayRate=0.95,
+        decay_rate=0.95,
         min_epsilon=0.01,
     ):
         self.lr = lr
         self.batch_size = batch_size
-        self.maxlength = maxlength
+        self.max_length = max_length
         self.tau = tau
         self.episodes = episodes
         self.initial_size = initial_size
         self.gamma = gamma
         self.epsilon = epsilon
-
-        self.decayRate = decayRate
+        self.decay_rate = decay_rate
         self.min_epsilon = min_epsilon
 
         self.Q_principal = QNetwork(
@@ -260,7 +259,7 @@ class DQN(object):
         self.Q_target = QNetwork(
             env.observation_space(agent).low.size, env.action_space(agent).n, self.lr
         )
-        self.buffer = ReplayBuffer(maxlength)
+        self.buffer = ReplayBuffer(max_length)
 
         r_record = []
         total_step = 0
@@ -270,7 +269,7 @@ class DQN(object):
             r_sum = 0
 
             if episode % 25 == 24:
-                epsilon = epsilon * decayRate
+                epsilon = epsilon * decay_rate
                 epsilon = max(min_epsilon, epsilon)
 
             while not done:
@@ -284,7 +283,7 @@ class DQN(object):
                 done_ = 1 if done else 0
 
                 buffer.append((obs, action, r, done_, new_obs))
-                while buffer.number > maxlength:
+                while buffer.number > max_length:
                     buffer.pop()
 
                 if total_step % 10 == 0 and total_step > initial_size:
