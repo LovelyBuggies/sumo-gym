@@ -273,16 +273,16 @@ class DQN(object):
             while not done:
                 prob = np.random.rand(1)
                 if prob > epsilon:
-                    action = Q_principal.compute_argmaxQ(np.expand_dims(obs, 0))
+                    action = self.Q_principal.compute_argmaxQ(np.expand_dims(obs, 0))
                 else:
                     action = env.action_space.sample()
 
                 new_obs, r, done, _ = env.step(action)
                 done_ = 1 if done else 0
 
-                buffer.append((obs, action, r, done_, new_obs))
-                while buffer.number > max_length:
-                    buffer.pop()
+                self.buffer.append((obs, action, r, done_, new_obs))
+                while self.buffer.number > max_length:
+                    self.buffer.pop()
 
                 if total_step % 10 == 0 and total_step > initial_size:
                     states = []
@@ -290,23 +290,23 @@ class DQN(object):
                     rewards = []
                     new_states = []
 
-                    samples = buffer.sample(batch_size)
+                    samples = self.buffer.sample(batch_size)
 
                     for j in range(batch_size):
                         states.append(samples[j][0])
                         rewards.append(samples[j][2])
                         new_states.append(samples[j][4])
 
-                    targets = rewards + gamma * Q_target.compute_maxQvalues(new_states)
+                    targets = rewards + gamma * self.Q_target.compute_maxQvalues(new_states)
 
                     for j in range(batch_size):
                         if samples[j][3] == 1:
                             targets[j] = rewards[j]
 
-                    Q_principal.train(states, actions, targets)
+                    self.Q_principal.train(states, actions, targets)
 
                 if total_step % tau == 0:
-                    run_target_update(Q_principal, Q_target)
+                    run_target_update(self.Q_principal, self.Q_target)
 
                 total_step += 1
                 r_sum += r
