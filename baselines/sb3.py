@@ -222,15 +222,11 @@ env = gym.make(
     charging_stations=charging_stations,
 )
 
-"""
-DQN
-"""
 class DQN(object):
     def __init__(
         self,
         agent,
         lr=0.0003,
-        batch_size=128,
         max_length=2000,
         tau=100,
         episodes=500,
@@ -241,7 +237,6 @@ class DQN(object):
         min_epsilon=0.01,
     ):
         self.lr = lr
-        self.batch_size = batch_size
         self.max_length = max_length
         self.tau = tau
         self.episodes = episodes
@@ -259,20 +254,21 @@ class DQN(object):
         )
         self.buffer = ReplayBuffer(max_length)
 
+    def train(self):
         r_record = []
         total_step = 0
-        for episode in range(episodes):
+        for episode in range(self.episodes):
             env.reset()
             done = False
             r_sum = 0
 
             if episode % 25 == 24:
-                epsilon = epsilon * decay_rate
-                epsilon = max(min_epsilon, epsilon)
+                self.epsilon *= self.decay_rate
+                self.epsilon = max(self.min_epsilon, self.epsilon)
 
             while not done:
                 prob = np.random.rand(1)
-                if prob > epsilon:
+                if prob > self.epsilon:
                     action = self.Q_principal.compute_argmaxQ(np.expand_dims(obs, 0))
                 else:
                     action = env.action_space.sample()
@@ -281,31 +277,33 @@ class DQN(object):
                 done_ = 1 if done else 0
 
                 self.buffer.append((obs, action, r, done_, new_obs))
-                while self.buffer.number > max_length:
+                while self.buffer.number > self.max_length:
                     self.buffer.pop()
 
-                if total_step % 10 == 0 and total_step > initial_size:
+                if total_step % 10 == 0 and total_step > self.initial_size:
                     states = []
                     actions = []
                     rewards = []
                     new_states = []
 
-                    samples = self.buffer.sample(batch_size)
+                    samples = self.buffer.sample()
 
-                    for j in range(batch_size):
+                    for j in range(len(samples)):
                         states.append(samples[j][0])
                         rewards.append(samples[j][2])
                         new_states.append(samples[j][4])
 
-                    targets = rewards + gamma * self.Q_target.compute_maxQvalues(new_states)
+                    targets = rewards + self.gamma * self.Q_target.compute_maxQvalues(
+                        new_states
+                    )
 
-                    for j in range(batch_size):
+                    for j in range(len(samples)):
                         if samples[j][3] == 1:
                             targets[j] = rewards[j]
 
                     self.Q_principal.train(states, actions, targets)
 
-                if total_step % tau == 0:
+                if total_step % self.tau == 0:
                     run_target_update(self.Q_principal, self.Q_target)
 
                 total_step += 1
