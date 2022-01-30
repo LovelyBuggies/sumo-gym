@@ -1,7 +1,7 @@
 import numpy as np
 import gym
-import sumQ_gym
-from sumQ_gym.utils.fmp_utils import (
+import sumo_gym
+from sumo_gym.utils.fmp_utils import (
     Vertex,
     Edge,
     Demand,
