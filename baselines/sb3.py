@@ -222,10 +222,11 @@ env = gym.make(
     charging_stations=charging_stations,
 )
 
-class DQN(object):
+
+class MADQN(object):
     def __init__(
         self,
-        agent,
+        env,
         lr=0.0003,
         max_length=2000,
         tau=100,
@@ -236,6 +237,7 @@ class DQN(object):
         decay_rate=0.95,
         min_epsilon=0.01,
     ):
+        self.env = env
         self.lr = lr
         self.max_length = max_length
         self.tau = tau
@@ -246,13 +248,26 @@ class DQN(object):
         self.decay_rate = decay_rate
         self.min_epsilon = min_epsilon
 
-        self.Q_principal = QNetwork(
-            env.observation_space(agent).low.size, env.action_space(agent).n, self.lr
-        )
-        self.Q_target = QNetwork(
-            env.observation_space(agent).low.size, env.action_space(agent).n, self.lr
-        )
-        self.buffer = ReplayBuffer()
+        self.Q_principal = {
+            agent: QNetwork(
+                env.observation_space(agent).low.size,
+                env.action_space(agent).n,
+                self.lr,
+            )
+            for agent in self.env.agents
+        }
+        self.Q_target = {
+            agent: QNetwork(
+                env.observation_space(agent).low.size,
+                env.action_space(agent).n,
+                self.lr,
+            )
+            for agent in self.env.agents
+        }
+        self.buffer = {
+            agent: ReplayBuffer()
+            for agent in self.env.agents
+        }
 
     def train(self):
         r_record = []
