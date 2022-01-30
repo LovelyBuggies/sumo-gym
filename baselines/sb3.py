@@ -225,8 +225,6 @@ env = gym.make(
 """
 DQN
 """
-
-
 class DQN(object):
     def __init__(
         self,

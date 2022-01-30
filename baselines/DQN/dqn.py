@@ -24,13 +24,13 @@ class QNetwork(object):
         self.obs_size = obs_size
         self.act_size = act_size
         self.model = torch.nn.Sequential(
-            torch.nn.Linear(obs_size, 288),
+            torch.nn.Linear(obs_size, 28),
             torch.nn.ReLU(),
-            torch.nn.Linear(288, 144),
+            torch.nn.Linear(28, 14),
             torch.nn.ReLU(),
-            torch.nn.Linear(144, 48),
+            torch.nn.Linear(14, 4),
             torch.nn.ReLU(),
-            torch.nn.Linear(48, act_size)
+            torch.nn.Linear(4, act_size)
         )
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=lr)
 
