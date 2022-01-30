@@ -254,13 +254,13 @@ class DQN(object):
         self.decayRate = decayRate
         self.min_epsilon = min_epsilon
 
-        Q_principal = QNetwork(
-            env.observation_space(agent).low.size, env.action_space(agent).n, lr
+        self.Q_principal = QNetwork(
+            env.observation_space(agent).low.size, env.action_space(agent).n, self.lr
         )
-        Q_target = QNetwork(
-            env.observation_space(agent).low.size, env.action_space(agent).n, lr
+        self.Q_target = QNetwork(
+            env.observation_space(agent).low.size, env.action_space(agent).n, self.lr
         )
-        buffer = ReplayBuffer(maxlength)
+        self.buffer = ReplayBuffer(maxlength)
 
         r_record = []
         total_step = 0
