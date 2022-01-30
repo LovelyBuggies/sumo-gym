@@ -225,21 +225,41 @@ env = gym.make(
 """
 DQN
 """
-class DQN(object):
-    def __init__(self, agent):
-        lr = 0.0003
-        batch_size = 128
-        maxlength = 2000
-        tau = 100
-        episodes = 500
-        initial_size = 500
-        gamma = 0.95
-        epsilon = 0.9
 
-        decayRate = 0.95
-        min_epsilon = 0.01
-        Q_principal = QNetwork(env.observation_space(agent).low.size, env.action_space(agent).n, lr)
-        Q_target = QNetwork(env.observation_space(agent).low.size, env.action_space(agent).n, lr)
+
+class DQN(object):
+    def __init__(
+        self,
+        agent,
+        lr=0.0003,
+        batch_size=128,
+        maxlength=2000,
+        tau=100,
+        episodes=500,
+        initial_size=500,
+        gamma=0.95,
+        epsilon=0.9,
+        decayRate=0.95,
+        min_epsilon=0.01,
+    ):
+        self.lr = lr
+        self.batch_size = batch_size
+        self.maxlength = maxlength
+        self.tau = tau
+        self.episodes = episodes
+        self.initial_size = initial_size
+        self.gamma = gamma
+        self.epsilon = epsilon
+
+        self.decayRate = decayRate
+        self.min_epsilon = min_epsilon
+
+        Q_principal = QNetwork(
+            env.observation_space(agent).low.size, env.action_space(agent).n, lr
+        )
+        Q_target = QNetwork(
+            env.observation_space(agent).low.size, env.action_space(agent).n, lr
+        )
         buffer = ReplayBuffer(maxlength)
 
         r_record = []
@@ -300,4 +320,6 @@ class DQN(object):
             fixedWindow = 100
             movingAverage = 0
             if len(r_record) >= fixedWindow:
-                movingAverage = np.mean(r_record[len(r_record) - fixedWindow:len(r_record) - 1])
+                movingAverage = np.mean(
+                    r_record[len(r_record) - fixedWindow : len(r_record) - 1]
+                )
