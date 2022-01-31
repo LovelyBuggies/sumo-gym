@@ -233,6 +233,7 @@ class FMPEnv(AECEnv):
         # setup render variables
         if "mode" not in kwargs:
             raise Exception("Need a mode to identify")
+
         elif kwargs["mode"] == "sumo_config":
             if "SUMO_GUI_PATH" in os.environ:
                 self.sumo_gui_path = os.environ["SUMO_GUI_PATH"]
@@ -257,6 +258,12 @@ class FMPEnv(AECEnv):
 
         else:
             raise Exception("Need a valid mode")
+
+        if "verbose" in kwargs:
+            self.verbose = kwargs["verbose"]
+            del kwargs["verbose"]
+        else:
+            self.verbose = False
 
         # setup FMP variables
         self._fmp = FMP(**kwargs)
@@ -443,15 +450,17 @@ class FMPEnv(AECEnv):
                 self.rewards[agent] -= 1000
 
             self._cumulative_rewards[agent] += self.rewards[agent]
-            print(
-                f"Obs: {self.observations[agent]}; "
-                + f"Rew: {self.rewards[agent]}; "
-                + f"Cum_rew: {self._cumulative_rewards[agent]}; "
-                + f"EV: {self.fmp.electric_vehicles[agent_idx]}."
-            )
+            if self.verbose:
+                print(
+                    f"Obs: {self.observations[agent]}; "
+                    + f"Rew: {self.rewards[agent]}; "
+                    + f"Cum_rew: {self._cumulative_rewards[agent]}; "
+                    + f"EV: {self.fmp.electric_vehicles[agent_idx]}."
+                )
             if self._agent_selector.is_last():
                 self.num_moves += 1
-                print("------------------------------")
+                if self.verbose:
+                    print("------------------------------")
 
             self.agent_selection = self._agent_selector.next()
 
@@ -470,7 +479,8 @@ class FMPEnv(AECEnv):
             if self.states[agent][2] > self.fmp.n_demand:
                 dmd_idx = self.states[agent][2] - self.fmp.n_demand - 1
                 dest_loc = self.fmp.demands[dmd_idx].destination
-                print("Move: ", agent, " is in responding demand ", dmd_idx)
+                if self.verbose:
+                    print("Move: ", agent, " is in responding demand ", dmd_idx)
 
                 self.fmp.electric_vehicles[
                     agent_idx
@@ -508,7 +518,8 @@ class FMPEnv(AECEnv):
             else:
                 dmd_idx = self.states[agent][2] - 1
                 dest_loc = self.fmp.demands[dmd_idx].departure
-                print("Move: ", agent, " is to respond demand ", dmd_idx)
+                if self.verbose:
+                    print("Move: ", agent, " is to respond demand ", dmd_idx)
 
                 self.fmp.electric_vehicles[
                     agent_idx
@@ -534,7 +545,8 @@ class FMPEnv(AECEnv):
                     - self.fmp.n_charging_station
                     - 1
                 )
-                print("Move: ", agent, " is in charging at ", cs_idx)
+                if self.verbose:
+                    print("Move: ", agent, " is in charging at ", cs_idx)
                 self.fmp.electric_vehicles[agent_idx].battery = (
                     min(
                         self.fmp.electric_vehicles[agent_idx].battery
@@ -556,7 +568,8 @@ class FMPEnv(AECEnv):
             else:
                 cs_idx = self.states[agent][2] - 2 * self.fmp.n_demand - 1
                 dest_loc = self.fmp.charging_stations[cs_idx].location
-                print("Move: ", agent, "is to go to charge at ", cs_idx)
+                if self.verbose:
+                    print("Move: ", agent, "is to go to charge at ", cs_idx)
                 self.fmp.electric_vehicles[
                     agent_idx
                 ].location = one_step_to_destination(
@@ -599,11 +612,13 @@ class FMPEnv(AECEnv):
         agent_idx = self.agent_name_idx_mapping[agent]
 
         if action == 0:
-            print("Trans: ", agent, "is taking moving action")
+            if self.verbose:
+                print("Trans: ", agent, "is taking moving action")
 
         # action to charge
         elif action <= self.fmp.n_charging_station:
-            print("Trans: ", agent, "is to go to charge at ", action - 1)
+            if self.verbose:
+                print("Trans: ", agent, "is to go to charge at ", action - 1)
             self.fmp.electric_vehicles[agent_idx].location = one_step_to_destination(
                 self.fmp.vertices,
                 self.fmp.edges,
@@ -617,12 +632,13 @@ class FMPEnv(AECEnv):
 
         # action to load
         else:
-            print(
-                "Trans: ",
-                agent,
-                " is to respond demand ",
-                action - self.fmp.n_charging_station - 1,
-            )
+            if self.verbose:
+                print(
+                    "Trans: ",
+                    agent,
+                    " is to respond demand ",
+                    action - self.fmp.n_charging_station - 1,
+                )
             self.fmp.electric_vehicles[agent_idx].location = one_step_to_destination(
                 self.fmp.vertices,
                 self.fmp.edges,

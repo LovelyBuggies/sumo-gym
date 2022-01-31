@@ -210,6 +210,7 @@ n_demand = len(demands)
 env = gym.make(
     "FMP-v0",
     mode="numerical",
+    verbose=1,
     n_vertex=n_vertex,
     n_area=n_area,
     n_demand=n_demand,
