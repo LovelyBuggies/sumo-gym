@@ -229,6 +229,7 @@ class MADQN(object):
         self,
         env,
         lr=0.0003,
+        batch_size=64,
         tau=100,
         episodes=5,
         gamma=0.95,
@@ -236,10 +237,11 @@ class MADQN(object):
         decay_period=25,
         decay_rate=0.95,
         min_epsilon=0.01,
-        initial_size=500,
+        initial_step=500,
     ):
         self.env = env
         self.lr = lr
+        self.batch_size = batch_size
         self.tau = tau
         self.episodes = episodes
         self.gamma = gamma
@@ -247,7 +249,7 @@ class MADQN(object):
         self.decay_period = decay_period
         self.decay_rate = decay_rate
         self.min_epsilon = min_epsilon
-        self.initial_size = initial_size
+        self.initial_step = initial_step
 
         self.q_principal = {
             agent: QNetwork(
@@ -266,6 +268,7 @@ class MADQN(object):
             for agent in self.env.agents
         }
         self.replay_buffer = {agent: ReplayBuffer() for agent in self.env.possible_agents}
+        self.total_step = {agent: 0 for agent in self.env.possible_agents}
 
     def train(self):
         for episode in range(self.episodes):
@@ -293,9 +296,13 @@ class MADQN(object):
                 if np.random.rand(1) < self.epsilon:
                     action = env.action_space(agent).sample()
                 else:
-                    action = env.action_space(agent).sample()
-                    # self.q_principal[agent].compute_argmax_q(np.expand_dims(obs,0))
+                    action = self.q_principal[agent].compute_argmax_q(observation)
+
                 env.step(action)
+
+                if self.total_step[agent] % 10 == 0 and self.total_step[agent] > self.initial_step:
+                    samples = self.replay_buffer.sample(self.batch_size)
+                    rewards + gamma * Qtarget.compute_maxQvalues(new_states)
 
         print(self.replay_buffer)
 
