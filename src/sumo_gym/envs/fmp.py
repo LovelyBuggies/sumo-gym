@@ -286,13 +286,12 @@ class FMPEnv(AECEnv):
         }
         self._observation_spaces = {
             agent: gym.spaces.Box(
-                low=np.array([0.0, 0.0, 0.0, 0.0, 0.0]),
+                low=np.array([0.0, 0.0, 0.0, 0.0]),
                 high=np.array(
                     [
                         self.fmp.n_vertex,
                         self.fmp.electric_vehicles[0].capacity,
-                        2 * self.fmp.n_demand + 1,
-                        2 * self.fmp.n_charging_station + 1,
+                        2 * self.fmp.n_demand + 2 * self.fmp.n_charging_station + 1,
                         self.fmp.n_charging_station + self.fmp.n_demand + 1,
                     ]
                 ),
@@ -319,13 +318,12 @@ class FMPEnv(AECEnv):
     @functools.lru_cache(maxsize=None)
     def observation_space(self, agent):
         return gym.spaces.Box(
-            low=np.array([0.0, 0.0, 0.0, 0.0, 0.0]),
+            low=np.array([0.0, 0.0, 0.0, 0.0]),
             high=np.array(
                 [
                     self.fmp.n_vertex,
                     self.fmp.electric_vehicles[0].capacity,
-                    2 * self.fmp.n_demand + 1,
-                    2 * self.fmp.n_charging_station + 1,
+                    2 * self.fmp.n_demand + 2 * self.fmp.n_charging_station + 1,
                     self.fmp.n_charging_station + self.fmp.n_demand + 1,
                 ]
             ),
