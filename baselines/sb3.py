@@ -285,5 +285,11 @@ class MADQN(object):
                 action = env.action_space(agent).sample()
                 env.step(action)
 
-            for agent, agent_traj in trajectory.items:
+            for agent, agent_traj in trajectory.items():
                 self.replay_buffer[agent].push(agent_traj)
+
+            print(self.replay_buffer)
+
+
+madqn = MADQN(env=env)
+madqn.train()
