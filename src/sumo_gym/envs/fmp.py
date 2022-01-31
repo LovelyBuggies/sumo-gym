@@ -638,7 +638,7 @@ class FMPEnv(AECEnv):
                 self.fmp.electric_vehicles[agent_idx].status - 1
             )
 
-        self.rewards[agent] = -1
+        self.rewards[agent] -= 1
         self.states[agent] = [
             self.fmp.vertex_idx_area_mapping[
                 self.fmp.electric_vehicles[agent_idx].location
@@ -647,6 +647,11 @@ class FMPEnv(AECEnv):
             self.fmp.electric_vehicles[agent_idx].status,
         ]
         self.observations[agent][:3] = self.states[agent][:3]
+
+    def last(self, observe=True):
+        agent = self.agent_selection
+        observation = self.observe(agent) if observe else None
+        return observation, self.rewards[agent], self.dones[agent], self.infos[agent]
 
     def render(self, mode="human"):
         if self.sumo_gui_path is None:

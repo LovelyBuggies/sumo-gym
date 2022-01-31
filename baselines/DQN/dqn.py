@@ -17,6 +17,12 @@ class ReplayBuffer(object):
     def __repr__(self):
         return str(self.memory)
 
+    def __len__(self):
+        return len(self.memory)
+
+    def __getitem__(self, item):
+        return self.memory[item]
+
 
 class QNetwork(object):
     def __init__(self, obs_size, act_size, lr):
