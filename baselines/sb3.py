@@ -274,7 +274,7 @@ class MADQN(object):
                         if len(trajectory[agent]) == 0
                         else trajectory[agent][-1][2],
                         observation[-1],
-                        observation[:3],
+                        observation[:3].tolist(),
                         reward,
                     )
                 )
