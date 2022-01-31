@@ -260,18 +260,19 @@ class MADQN(object):
             )
             for agent in self.env.agents
         }
-        self.replay_buffer = {agent: ReplayBuffer() for agent in self.env.agents}
+        self.replay_buffer = {agent: ReplayBuffer() for agent in self.env.possible_agents}
 
-    def train(self):
+    def replay(self):
         for episode in range(self.episodes):
             env.reset()
+            trajectory = {agent: list() for agent in self.env.possible_agents}
             for agent in env.agent_iter():
                 observation, reward, done, info = env.last()
-                self.replay_buffer[agent].push(
+                trajectory[agent].append(
                     (
                         None
-                        if len(self.replay_buffer[agent]) == 0
-                        else self.replay_buffer[agent][-1][2],
+                        if len(trajectory[agent]) == 0
+                        else trajectory[agent][-1][2],
                         observation[-1],
                         observation[:3].tolist(),
                         reward,
@@ -280,21 +281,29 @@ class MADQN(object):
                 action = env.action_space(agent).sample()
                 env.step(action)
 
+            for agent, agent_traj in trajectory.items():
+                self.replay_buffer[agent].push(agent_traj)
+
         self.replay_buffer = self._prune_trajectory(self.replay_buffer)
-        print(self.replay_buffer)
+
+    def train(self):
+        pass
 
     def _prune_trajectory(self, replay_buffer):
-        pruned_replay_buffer = {agent: ReplayBuffer() for agent in replay_buffer.keys()}
-        reward = 0
-        for agent, trajectory in replay_buffer.items():
-            for transition in trajectory:
-                reward += transition[3]
-                if transition[0] != transition[2]:
-                    pruned_replay_buffer[agent].push(tuple(list(transition[:3]) + [reward]))
-                    reward = 0
+        pruned_replay_buffer = {agent: ReplayBuffer() for agent in self.env.possible_agents}
+        for agent, agent_traj in replay_buffer.items():
+            for trajectory in agent_traj:
+                pruned_trajectory, reward = list(), 0
+                for transition in trajectory:
+                    reward += transition[3]
+                    if transition[0] != transition[2]:
+                        pruned_trajectory.append(tuple(list(transition[:3]) + [reward]))
+                        reward = 0
+
+                pruned_replay_buffer[agent].push(pruned_trajectory)
 
         return pruned_replay_buffer
 
 
 madqn = MADQN(env=env)
-madqn.train()
+madqn.replay()
