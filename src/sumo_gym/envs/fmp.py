@@ -343,7 +343,7 @@ class FMPEnv(AECEnv):
         """
         for i, ev in enumerate(self.fmp.electric_vehicles):
             self.fmp.electric_vehicles[i].location = self.fmp.departures[i]
-            self.fmp.electric_vehicles[i].battery = ev.battery or ev.capacity
+            self.fmp.electric_vehicles[i].battery = ev.capacity
             self.fmp.electric_vehicles[i].status = 0
             self.fmp.electric_vehicles[i].responded = list()
         for i, cs in enumerate(self.fmp.charging_stations):
