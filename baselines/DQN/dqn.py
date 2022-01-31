@@ -19,9 +19,9 @@ class ReplayBuffer(object):
         self.memory.append(transition)
         self.sample_w.append(np.power(abs(transition[3]), 1 / 10))
 
-    def sample(self):
+    def sample(self, batch_size):
         sum_w = sum(self.sample_w)
-        return np.choice(self.memory, p=[w / sum_w for w in self.sample_w])
+        return np.choice(self.memory, batch_size, p=[w / sum_w for w in self.sample_w])
 
     def __repr__(self):
         return str(self.memory)

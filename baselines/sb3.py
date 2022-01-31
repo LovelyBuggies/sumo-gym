@@ -232,9 +232,11 @@ class MADQN(object):
         tau=100,
         episodes=5,
         gamma=0.95,
-        epsilon=0.9,
+        epsilon=1.,
+        decay_period=25,
         decay_rate=0.95,
         min_epsilon=0.01,
+        initial_size=500,
     ):
         self.env = env
         self.lr = lr
@@ -242,8 +244,10 @@ class MADQN(object):
         self.episodes = episodes
         self.gamma = gamma
         self.epsilon = epsilon
+        self.decay_period = decay_period
         self.decay_rate = decay_rate
         self.min_epsilon = min_epsilon
+        self.initial_size = initial_size
 
         self.q_principal = {
             agent: QNetwork(
@@ -266,23 +270,26 @@ class MADQN(object):
     def train(self):
         for episode in range(self.episodes):
             env.reset()
-            if episode % 15 == 14:
+            if episode % self.decay_period == 0:
                 self.epsilon *= self.decay_rate
                 self.epsilon = max(self.min_epsilon, self.epsilon)
 
             cum_reward = {agent: 0 for agent in self.env.possible_agents}
             for agent in env.agent_iter():
                 observation, reward, done, info = env.last()
-                self.replay_buffer[agent].push(
-                    (
-                        None
-                        if len(self.replay_buffer[agent]) == 0
-                        else self.replay_buffer[agent][-1][2],
-                        observation[-1],
-                        observation[:3].tolist(),
-                        reward,
+                prev_state = None if len(self.replay_buffer[agent]) == 0 else self.replay_buffer[agent][-1][2]
+                cum_reward[agent] += reward
+                if prev_state != observation[:3].tolist():
+                    self.replay_buffer[agent].push(
+                        (
+                            prev_state,
+                            observation[-1],
+                            observation[:3].tolist(),
+                            cum_reward[agent],
+                        )
                     )
-                )
+                    cum_reward[agent] = 0
+
                 if np.random.rand(1) < self.epsilon:
                     action = env.action_space(agent).sample()
                 else:
@@ -290,20 +297,7 @@ class MADQN(object):
                     # self.q_principal[agent].compute_argmax_q(np.expand_dims(obs,0))
                 env.step(action)
 
-        self.replay_buffer = self._prune_trajectory(self.replay_buffer)
         print(self.replay_buffer)
-
-    def _prune_trajectory(self, replay_buffer):
-        pruned_replay_buffer = {agent: ReplayBuffer() for agent in self.env.possible_agents}
-        for agent, trajectory in replay_buffer.items():
-            reward = 0
-            for transition in trajectory:
-                reward += transition[3]
-                if transition[0] != transition[2]:
-                    pruned_replay_buffer[agent].push(tuple(list(transition[:3]) + [reward]))
-                    reward = 0
-
-        return pruned_replay_buffer
 
 
 madqn = MADQN(env=env)
