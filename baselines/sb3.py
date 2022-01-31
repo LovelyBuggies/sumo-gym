@@ -272,11 +272,14 @@ class MADQN(object):
     def train(self):
         for episode in range(self.episodes):
             env.reset()
-            trajectory = list()
+            trajectory = {
+                agent: list()
+            }
             for agent in env.agent_iter():
                 observation, reward, done, info = env.last()
-                trajectory.append((..., observation[-1], observation[:3], reward))
+                trajectory[agent].append((None if len(trajectory[agent]) == 0 else trajectory[agent][-1][2], observation[-1], observation[:3], reward))
                 action = env.action_space(agent).sample()
                 env.step(action)
 
-            self.replay_buffer[agent].push()
+            for agent, agent_traj in trajectory.items:
+                self.replay_buffer[agent].push(agent_traj)
