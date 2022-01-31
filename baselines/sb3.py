@@ -228,10 +228,8 @@ class MADQN(object):
         self,
         env,
         lr=0.0003,
-        max_length=2000,
         tau=100,
-        episodes=500,
-        initial_size=500,
+        episodes=5,
         gamma=0.95,
         epsilon=0.9,
         decay_rate=0.95,
@@ -239,10 +237,8 @@ class MADQN(object):
     ):
         self.env = env
         self.lr = lr
-        self.max_length = max_length
         self.tau = tau
         self.episodes = episodes
-        self.initial_size = initial_size
         self.gamma = gamma
         self.epsilon = epsilon
         self.decay_rate = decay_rate

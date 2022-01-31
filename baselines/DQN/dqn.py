@@ -14,6 +14,9 @@ class ReplayBuffer(object):
     def sample(self):
         return random.sample(self.memory, 1)
 
+    def __repr__(self):
+        return str(self.memory)
+
 
 class QNetwork(object):
     def __init__(self, obs_size, act_size, lr):
