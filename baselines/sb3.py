@@ -245,7 +245,7 @@ class MADQN(object):
         self.decay_rate = decay_rate
         self.min_epsilon = min_epsilon
 
-        self.Q_principal = {
+        self.q_principal = {
             agent: QNetwork(
                 env.observation_space(agent).low.size,
                 env.action_space(agent).n,
@@ -253,7 +253,7 @@ class MADQN(object):
             )
             for agent in self.env.agents
         }
-        self.Q_target = {
+        self.q_target = {
             agent: QNetwork(
                 env.observation_space(agent).low.size,
                 env.action_space(agent).n,
@@ -263,48 +263,48 @@ class MADQN(object):
         }
         self.replay_buffer = {agent: ReplayBuffer() for agent in self.env.possible_agents}
 
-    def replay(self):
+    def train(self):
         for episode in range(self.episodes):
             env.reset()
-            trajectory = {agent: list() for agent in self.env.possible_agents}
+            if episode % 15 == 14:
+                self.epsilon *= self.decay_rate
+                self.epsilon = max(self.min_epsilon, self.epsilon)
+
+            cum_reward = {agent: 0 for agent in self.env.possible_agents}
             for agent in env.agent_iter():
                 observation, reward, done, info = env.last()
-                trajectory[agent].append(
+                self.replay_buffer[agent].push(
                     (
                         None
-                        if len(trajectory[agent]) == 0
-                        else trajectory[agent][-1][2],
+                        if len(self.replay_buffer[agent]) == 0
+                        else self.replay_buffer[agent][-1][2],
                         observation[-1],
                         observation[:3].tolist(),
                         reward,
                     )
                 )
-                action = env.action_space(agent).sample()
+                if np.random.rand(1) < self.epsilon:
+                    action = env.action_space(agent).sample()
+                else:
+                    action = env.action_space(agent).sample()
+                    # self.q_principal[agent].compute_argmax_q(np.expand_dims(obs,0))
                 env.step(action)
 
-            for agent, agent_traj in trajectory.items():
-                self.replay_buffer[agent].push(agent_traj)
-
         self.replay_buffer = self._prune_trajectory(self.replay_buffer)
-
-    def train(self):
-        pass
+        print(self.replay_buffer)
 
     def _prune_trajectory(self, replay_buffer):
         pruned_replay_buffer = {agent: ReplayBuffer() for agent in self.env.possible_agents}
-        for agent, agent_traj in replay_buffer.items():
-            for trajectory in agent_traj:
-                pruned_trajectory, reward = list(), 0
-                for transition in trajectory:
-                    reward += transition[3]
-                    if transition[0] != transition[2]:
-                        pruned_trajectory.append(tuple(list(transition[:3]) + [reward]))
-                        reward = 0
-
-                pruned_replay_buffer[agent].push(pruned_trajectory)
+        for agent, trajectory in replay_buffer.items():
+            reward = 0
+            for transition in trajectory:
+                reward += transition[3]
+                if transition[0] != transition[2]:
+                    pruned_replay_buffer[agent].push(tuple(list(transition[:3]) + [reward]))
+                    reward = 0
 
         return pruned_replay_buffer
 
 
 madqn = MADQN(env=env)
-madqn.replay()
+madqn.train()
