@@ -547,7 +547,7 @@ class FMPEnv(AECEnv):
                 )
                 if (
                     self.fmp.electric_vehicles[agent_idx].battery
-                    == self.fmp.electric_vehicles[
+                    >= self.fmp.electric_vehicles[
                         self.agent_name_idx_mapping[agent]
                     ].capacity
                 ):
