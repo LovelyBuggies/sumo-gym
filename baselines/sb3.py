@@ -231,7 +231,7 @@ class MADQN(object):
         lr=0.0003,
         batch_size=64,
         tau=100,
-        episodes=5,
+        episodes=500,
         gamma=0.95,
         epsilon=1.,
         decay_period=25,
@@ -271,8 +271,10 @@ class MADQN(object):
         self.total_step = {agent: 0 for agent in self.env.possible_agents}
 
     def train(self):
+        reward_record = list()
         for episode in range(self.episodes):
             env.reset()
+            reward_sum = {agent: 0 for agent in env.possible_agents}
             if episode % self.decay_period == 0:
                 self.epsilon *= self.decay_rate
                 self.epsilon = max(self.min_epsilon, self.epsilon)
@@ -302,10 +304,21 @@ class MADQN(object):
 
                 if self.total_step[agent] % 10 == 0 and self.total_step[agent] > self.initial_step:
                     samples = self.replay_buffer.sample(self.batch_size)
-                    rewards + gamma * Qtarget.compute_maxQvalues(new_states)
+                    states, actions, targets = list(), list(), list()
+                    for transition in samples:
+                        states.append(transition[0])
+                        actions.append(transition[1])
+                        targets.append(transition[3] + self.gamma * self.q_target.compute_max_q(transition[2]))
 
-        print(self.replay_buffer)
+                    self.q_principal.train(states, actions, targets)
 
+                if self.total_step[agent] % self.tau == 0:
+                    run_target_update(self.q_principal, self.q_target)
+
+                self.total_step[agent] += 1
+                reward_sum[agent] += reward
+
+        reward_record.append(reward_sum)
 
 madqn = MADQN(env=env)
 madqn.train()
