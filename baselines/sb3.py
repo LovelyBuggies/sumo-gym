@@ -319,6 +319,7 @@ class MADQN(object):
                 reward_sum[agent] += reward
 
         reward_record.append(reward_sum)
+        print(f"Training episode {episode} with reward {reward_sum}")
 
 madqn = MADQN(env=env)
 madqn.train()

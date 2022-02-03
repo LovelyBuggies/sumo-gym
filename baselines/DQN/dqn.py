@@ -34,19 +34,20 @@ class ReplayBuffer(object):
 
 
 class QNetwork(object):
-    def __init__(self, observation_size, action_size, lr):
+    def __init__(self, observation_size, n_action, lr):
         self.observation_size = observation_size
-        self.action_size = action_size
+        self.n_action = n_action
+        self.lr = lr
         self.model = torch.nn.Sequential(
-            torch.nn.Linear(observation_size, 28),
+            torch.nn.Linear(self.observation_size, 12),
             torch.nn.ReLU(),
-            torch.nn.Linear(28, 14),
+            torch.nn.Linear(12, 26),
             torch.nn.ReLU(),
-            torch.nn.Linear(14, 4),
+            torch.nn.Linear(26, 20),
             torch.nn.ReLU(),
-            torch.nn.Linear(4, action_size),
+            torch.nn.Linear(20, self.n_action),
         )
-        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=lr)
+        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.lr)
 
     def to_one_hot(self, y, num_classes):
         scatter_dim = len(y.size())
@@ -57,7 +58,7 @@ class QNetwork(object):
     def compute_q(self, states, actions):
         states = torch.FloatTensor(states)
         q_preds = self.model(states)
-        action_onehot = self.to_one_hot(actions, self.action_size)
+        action_onehot = self.to_one_hot(actions, self.n_action)
         q_preds_selected = torch.sum(q_preds * action_onehot, axis=-1)
         return q_preds_selected
 
@@ -77,7 +78,7 @@ class QNetwork(object):
         states = torch.FloatTensor(states)
         actions = torch.LongTensor(actions)
         targets = torch.FloatTensor(targets)
-        q_pred_selected = self.compute_qvalues(states, actions)
+        q_pred_selected = self.compute_q(states, actions)
         loss = torch.mean((q_pred_selected - targets) ** 2)
         self.optimizer.zero_grad()
         loss.backward()
