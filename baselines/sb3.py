@@ -304,12 +304,14 @@ class MADQN(object):
 
                 if self.total_step[agent] % 10 == 0 and self.total_step[agent] > self.initial_step:
                     samples = self.replay_buffer[agent].sample(self.batch_size)
-                    states, actions, targets = list(), list(), list()
+                    states, actions, new_states, rewards = list(), list(), list(), list()
                     for transition in samples:
                         states.append(transition[0])
                         actions.append(transition[1])
-                        targets.append(transition[3] + self.gamma * self.q_target[agent].compute_max_q(transition[2]))
+                        new_states.append(transition[2])
+                        rewards.append(transition[3])
 
+                    targets = rewards + self.gamma * self.q_target[agent].compute_max_q(new_states)
                     self.q_principal[agent].train(states, actions, targets)
 
                 if self.total_step[agent] % self.tau == 0:
