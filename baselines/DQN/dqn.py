@@ -21,7 +21,7 @@ class ReplayBuffer(object):
 
     def sample(self, batch_size):
         sum_w = sum(self.sample_w)
-        return np.random.choice(len(self.memory[0]), batch_size, p=[w / sum_w for w in self.sample_w])
+        return np.random.choice(len(self.memory[0]), batch_size, p=[w / sum_w for w in self.sample_w]).tolist()
 
     def __repr__(self):
         return str(self.memory)
