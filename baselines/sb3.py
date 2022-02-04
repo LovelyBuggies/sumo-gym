@@ -231,7 +231,7 @@ class MADQN(object):
         lr=0.0003,
         batch_size=64,
         tau=100,
-        episodes=500,
+        episodes=1000,
         gamma=0.95,
         epsilon=1.,
         decay_period=25,
@@ -314,8 +314,8 @@ class MADQN(object):
                     targets = rewards + self.gamma * self.q_target[agent].compute_max_q(new_states)
                     self.q_principal[agent].train(states, actions, targets)
 
-                if self.total_step[agent] % self.tau == 0:
-                    run_target_update(self.q_principal[agent], self.q_target[agent])
+                    if self.total_step[agent] % self.tau == 0:
+                        run_target_update(self.q_principal[agent], self.q_target[agent])
 
                 self.total_step[agent] += 1
                 reward_sum[agent] += reward
