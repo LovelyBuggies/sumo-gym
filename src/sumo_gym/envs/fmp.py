@@ -663,6 +663,7 @@ class FMPEnv(AECEnv):
             self.fmp.electric_vehicles[agent_idx].status,
         ]
         self.observations[agent][:3] = self.states[agent][:3]
+        self.observations[agent][3] = action
 
     def last(self, observe=True):
         agent = self.agent_selection
