@@ -284,7 +284,7 @@ class MADQN(object):
                 observation, reward, done, info = env.last()
                 prev_state = None if len(self.replay_buffer[agent]) == 0 else self.replay_buffer[agent][-1][2]
                 cum_reward[agent] += reward
-                if prev_state != observation[:3] and observation[-1] != None and prev_state != None:
+                if prev_state != observation[:3]:
                     self.replay_buffer[agent].push(
                         (
                             prev_state,
