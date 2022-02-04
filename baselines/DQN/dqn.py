@@ -69,7 +69,6 @@ class QNetwork(object):
         return q_pred_greedy
 
     def compute_argmax_q(self, state):
-        print("------ ", state)
         state = torch.FloatTensor(state)
         qvalue = self.model(state).cpu().data.numpy()
         greedy_action = np.argmax(qvalue.flatten())
