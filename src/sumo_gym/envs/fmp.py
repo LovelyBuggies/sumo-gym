@@ -342,7 +342,7 @@ class FMPEnv(AECEnv):
         return gym.spaces.Discrete(self.fmp.n_charging_station + self.fmp.n_demand + 1)
 
     def observe(self, agent):
-        return np.array(self.observations[agent])
+        return self.observations[agent]
 
     def reset(self):
         """
