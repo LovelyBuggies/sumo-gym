@@ -253,7 +253,7 @@ class MADQN(object):
 
         self.q_principal = {
             agent: QNetwork(
-                env.observation_space(agent).low.size,
+                env.observation_space(agent).low.size - 1,
                 env.action_space(agent).n,
                 self.lr,
             )
@@ -261,7 +261,7 @@ class MADQN(object):
         }
         self.q_target = {
             agent: QNetwork(
-                env.observation_space(agent).low.size,
+                env.observation_space(agent).low.size - 1,
                 env.action_space(agent).n,
                 self.lr,
             )
@@ -298,28 +298,28 @@ class MADQN(object):
                 if np.random.rand(1) < self.epsilon:
                     action = env.action_space(agent).sample()
                 else:
-                    action = self.q_principal[agent].compute_argmax_q(observation)
+                    action = self.q_principal[agent].compute_argmax_q(observation[:3])
 
                 env.step(action)
 
                 if self.total_step[agent] % 10 == 0 and self.total_step[agent] > self.initial_step:
-                    samples = self.replay_buffer.sample(self.batch_size)
+                    samples = self.replay_buffer[agent].sample(self.batch_size)
                     states, actions, targets = list(), list(), list()
                     for transition in samples:
                         states.append(transition[0])
                         actions.append(transition[1])
-                        targets.append(transition[3] + self.gamma * self.q_target.compute_max_q(transition[2]))
+                        targets.append(transition[3] + self.gamma * self.q_target[agent].compute_max_q(transition[2]))
 
-                    self.q_principal.train(states, actions, targets)
+                    self.q_principal[agent].train(states, actions, targets)
 
                 if self.total_step[agent] % self.tau == 0:
-                    run_target_update(self.q_principal, self.q_target)
+                    run_target_update(self.q_principal[agent], self.q_target[agent])
 
                 self.total_step[agent] += 1
                 reward_sum[agent] += reward
-
         reward_record.append(reward_sum)
         print(f"Training episode {episode} with reward {reward_sum}")
+
 
 madqn = MADQN(env=env)
 madqn.train()

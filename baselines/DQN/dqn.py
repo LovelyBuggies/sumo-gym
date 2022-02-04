@@ -21,7 +21,7 @@ class ReplayBuffer(object):
 
     def sample(self, batch_size):
         sum_w = sum(self.sample_w)
-        return np.choice(self.memory, batch_size, p=[w / sum_w for w in self.sample_w])
+        return np.random.choice(len(self.memory[0]), batch_size, p=[w / sum_w for w in self.sample_w])
 
     def __repr__(self):
         return str(self.memory)
@@ -69,6 +69,7 @@ class QNetwork(object):
         return q_pred_greedy
 
     def compute_argmax_q(self, state):
+        print("------ ", state)
         state = torch.FloatTensor(state)
         qvalue = self.model(state).cpu().data.numpy()
         greedy_action = np.argmax(qvalue.flatten())
