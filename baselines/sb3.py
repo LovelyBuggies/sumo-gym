@@ -1,4 +1,5 @@
 import numpy as np
+import json
 import gym
 import sumo_gym
 from sumo_gym.utils.fmp_utils import (
@@ -231,7 +232,7 @@ class MADQN(object):
         lr=0.0003,
         batch_size=4,
         tau=100,
-        episodes=800,
+        episodes=10,
         gamma=0.95,
         epsilon=1.,
         decay_period=15,
@@ -271,7 +272,7 @@ class MADQN(object):
         self.total_step = {agent: 0 for agent in self.env.possible_agents}
 
     def train(self):
-        reward_record = list()
+        reward_record = {}
         for episode in range(self.episodes):
             env.reset()
             reward_sum = {agent: 0 for agent in env.possible_agents}
@@ -322,8 +323,11 @@ class MADQN(object):
                 self.total_step[agent] += 1
                 reward_sum[agent] += reward
 
-        reward_record.append(reward_sum)
-        print(f"Training episode {episode} with reward {reward_sum}")
+            reward_record[episode] = reward_sum
+            print(f"Training episode {episode} with reward {reward_sum}")
+
+        with open("reward.json", "w") as out_file:
+            json.dump(reward_record, out_file)
 
 
 madqn = MADQN(env=env)
