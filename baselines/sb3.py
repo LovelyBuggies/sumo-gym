@@ -231,15 +231,15 @@ class MADQN(object):
         self,
         env,
         lr=0.0003,
-        batch_size=4,
+        batch_size=64,
         tau=100,
-        episodes=100,
+        episodes=20_000,
         gamma=0.95,
         epsilon=1.,
         decay_period=15,
         decay_rate=0.95,
         min_epsilon=0.01,
-        initial_step=50,
+        initial_step=500,
     ):
         self.env = env
         self.lr = lr
@@ -328,7 +328,7 @@ class MADQN(object):
 
             reward_record[episode] = reward_sum
             loss_mean_record[episode] = {agent: mean(loss) if len(loss) > 0 else None for agent, loss in loss_in_episode.items()}
-            print(f"Training episode {episode} with reward {reward_sum} and loss {loss_in_episode}")
+            print(f"Training episode {episode} with reward {reward_sum}.")
 
         with open("reward.json", "w") as out_file:
             json.dump(reward_record, out_file)
