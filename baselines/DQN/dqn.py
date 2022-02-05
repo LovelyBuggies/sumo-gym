@@ -86,7 +86,7 @@ class QNetwork(object):
         self.optimizer.zero_grad()
         loss.backward()
         self.optimizer.step()
-        return loss.detach().cpu().data.numpy()
+        return loss.detach().cpu().data.item()
 
 
 def run_target_update(q_principal, q_target):

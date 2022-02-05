@@ -10,6 +10,7 @@ from sumo_gym.utils.fmp_utils import (
     ElectricVehicles,
 )
 from DQN.dqn import QNetwork, ReplayBuffer, run_target_update
+from statistics import mean
 
 vertices = [
     Vertex(0.0, 0.0),
@@ -232,7 +233,7 @@ class MADQN(object):
         lr=0.0003,
         batch_size=4,
         tau=100,
-        episodes=10,
+        episodes=100,
         gamma=0.95,
         epsilon=1.,
         decay_period=15,
@@ -273,9 +274,11 @@ class MADQN(object):
 
     def train(self):
         reward_record = {}
+        loss_mean_record = {}
         for episode in range(self.episodes):
             env.reset()
             reward_sum = {agent: 0 for agent in env.possible_agents}
+            loss_in_episode = {agent: list() for agent in env.possible_agents}
             if episode % self.decay_period == 0:
                 self.epsilon *= self.decay_rate
                 self.epsilon = max(self.min_epsilon, self.epsilon)
@@ -315,7 +318,7 @@ class MADQN(object):
                         rewards.append(transition[3])
 
                     targets = rewards + self.gamma * self.q_target[agent].compute_max_q(new_states)
-                    self.q_principal[agent].train(states, actions, targets)
+                    loss_in_episode[agent].append(self.q_principal[agent].train(states, actions, targets))
 
                     if self.total_step[agent] % self.tau == 0:
                         run_target_update(self.q_principal[agent], self.q_target[agent])
@@ -324,10 +327,14 @@ class MADQN(object):
                 reward_sum[agent] += reward
 
             reward_record[episode] = reward_sum
-            print(f"Training episode {episode} with reward {reward_sum}")
+            loss_mean_record[episode] = {agent: mean(loss) if len(loss) > 0 else None for agent, loss in loss_in_episode.items()}
+            print(f"Training episode {episode} with reward {reward_sum} and loss {loss_in_episode}")
 
         with open("reward.json", "w") as out_file:
             json.dump(reward_record, out_file)
+
+        with open("loss.json", "w") as out_file:
+            json.dump(loss_mean_record, out_file)
 
 
 madqn = MADQN(env=env)
