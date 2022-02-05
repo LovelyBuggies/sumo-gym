@@ -391,6 +391,50 @@ class FMPEnv(AECEnv):
 
         return self.observations
 
+    def _was_done_step(self, action):
+        if action is not None:
+            raise ValueError("when an agent is done, the only valid action is None")
+
+        # removes done agent
+        agent = self.agent_selection
+        assert self.dones[agent], "an agent that was not done as attempted to be removed"
+        del self.dones[agent]
+        del self.rewards[agent]
+        del self._cumulative_rewards[agent]
+        del self.infos[agent]
+        self.agents.remove(agent)
+
+        # finds next done agent or loads next live agent (Stored in _skip_agent_selection)
+        _dones_order = [agent for agent in self.agents if self.dones[agent]]
+        if _dones_order:
+            if getattr(self, '_skip_agent_selection', None) is None:
+                self._skip_agent_selection = self.agent_selection
+            self.agent_selection = _dones_order[0]
+        else:
+            if getattr(self, '_skip_agent_selection', None) is not None:
+                self.agent_selection = self._skip_agent_selection
+            self._skip_agent_selection = None
+        self._clear_rewards()
+
+
+        if self.states[agent][2] > 2 * self.fmp.n_demand:
+            if (
+                    self.states[agent][2]
+                    > 2 * self.fmp.n_demand + self.fmp.n_charging_station
+            ):
+                cs_idx = (
+                    self.states[agent][2]
+                    - 2 * self.fmp.n_demand
+                    - self.fmp.n_charging_station
+                    - 1
+                )
+            else:
+                cs_idx = self.states[agent][2] - 2 * self.fmp.n_demand - 1
+
+            if agent in self.fmp.charging_stations[cs_idx].charging_vehicle:
+                self.fmp.charging_stations[cs_idx].charging_vehicle.remove(agent)
+
+
     def step(self, action):
         """
         Step takes an action for the current agent.

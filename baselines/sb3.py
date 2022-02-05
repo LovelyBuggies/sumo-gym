@@ -231,7 +231,7 @@ class MADQN(object):
         lr=0.0003,
         batch_size=4,
         tau=100,
-        episodes=100,
+        episodes=800,
         gamma=0.95,
         epsilon=1.,
         decay_period=15,
@@ -281,6 +281,7 @@ class MADQN(object):
 
             cum_reward = {agent: 0 for agent in self.env.possible_agents}
             for agent in env.agent_iter():
+                
                 observation, reward, done, info = env.last()
                 prev_state = None if len(self.replay_buffer[agent]) == 0 else self.replay_buffer[agent][-1][2]
                 cum_reward[agent] += reward
@@ -296,6 +297,7 @@ class MADQN(object):
                     cum_reward[agent] = 0
 
                 if np.random.rand(1) < self.epsilon:
+                    
                     action = env.action_space(agent).sample()
                 else:
                     action = self.q_principal[agent].compute_argmax_q(observation[:3])
