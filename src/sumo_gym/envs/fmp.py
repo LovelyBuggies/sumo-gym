@@ -1,6 +1,8 @@
 from itertools import chain
 import operator
 import os
+
+from black import prev_siblings_are
 import sumo_gym.typing
 
 import gym
@@ -312,7 +314,10 @@ class FMPEnv(AECEnv):
         self._cumulative_rewards = {agent: 0.0 for agent in self.agents}
 
         self.dones = {agent: False for agent in self.agents}
-        self.infos = {agent: None for agent in self.agents}
+
+        # treat self.infos as network variable, i.e., it keeps information for the whole network
+        # instead of single agent
+        self.infos = Metrics()
 
         self.states = {agent: None for agent in self.agents}
         self.observations = {agent: None for agent in self.agents}
@@ -364,7 +369,7 @@ class FMPEnv(AECEnv):
         self._cumulative_rewards = {agent: 0.0 for agent in self.agents}
 
         self.dones = {agent: False for agent in self.agents}
-        self.infos = {agent: dict() for agent in self.agents}
+        self.infos = Metrics()
 
         self.states = {
             agent: [
@@ -401,7 +406,6 @@ class FMPEnv(AECEnv):
         del self.dones[agent]
         del self.rewards[agent]
         del self._cumulative_rewards[agent]
-        del self.infos[agent]
         self.agents.remove(agent)
 
         # finds next done agent or loads next live agent (Stored in _skip_agent_selection)
@@ -503,6 +507,14 @@ class FMPEnv(AECEnv):
                 )
             if self._agent_selector.is_last():
                 self.num_moves += 1
+
+                self.infos.task_finish_time = self.num_moves
+                self.infos.respond_failing_time += self.fmp.n_demand - len(set(
+                    chain.from_iterable(
+                        [ev.responded for ev in self.fmp.electric_vehicles]
+                    )
+                ))
+
                 if self.verbose:
                     print("------------------------------")
 
@@ -591,16 +603,23 @@ class FMPEnv(AECEnv):
                 )
                 if self.verbose:
                     print("Move: ", agent, " is in charging at ", cs_idx)
-                self.fmp.electric_vehicles[agent_idx].battery = (
-                    min(
+                    
+                prev_battery = self.fmp.electric_vehicles[agent_idx].battery
+
+                if (
+                    self.fmp.charging_stations[cs_idx].charging_vehicle.index(agent)
+                    < self.fmp.charging_stations[cs_idx].n_slot
+                ):
+                    self.fmp.electric_vehicles[agent_idx].battery = min(
                         self.fmp.electric_vehicles[agent_idx].battery
                         + self.fmp.charging_stations[cs_idx].charging_speed,
                         self.fmp.electric_vehicles[agent_idx].capacity,
                     )
-                    if self.fmp.charging_stations[cs_idx].charging_vehicle.index(agent)
-                    < self.fmp.charging_stations[cs_idx].n_slot
-                    else self.fmp.electric_vehicles[agent_idx].battery
-                )
+                else:
+                    self.infos.charge_waiting_time += 1
+
+                self.rewards[agent] += (self.fmp.electric_vehicles[agent_idx].battery - prev_battery) ** 2
+
                 if (
                     self.fmp.electric_vehicles[agent_idx].battery
                     >= self.fmp.electric_vehicles[
@@ -712,7 +731,7 @@ class FMPEnv(AECEnv):
     def last(self, observe=True):
         agent = self.agent_selection
         observation = self.observe(agent) if observe else None
-        return observation, self.rewards[agent], self.dones[agent], self.infos[agent]
+        return observation, self.rewards[agent], self.dones[agent], self.infos
 
     def render(self, mode="human"):
         if self.sumo_gui_path is None:

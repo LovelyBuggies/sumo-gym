@@ -161,6 +161,15 @@ class GridAction(object):
         return f"({self.is_loading}, {self.is_charging}, location {self.location})"
 
 
+class Metrics(object):
+    def __init__(self):
+        self.task_finish_time = 0
+        self.charge_waiting_time = 0
+        self.respond_failing_time = 0
+
+    def __repr__(self):
+        return f"(tft {self.task_finish_time}, cwt {self.charge_waiting_time}, rft {self.respond_failing_time})"
+
 def convert_raw_vertices(raw_vertices):
     """
     Each raw vertex is [id (str), x_coord (float), y_coord (float)]
