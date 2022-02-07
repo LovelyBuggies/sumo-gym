@@ -514,6 +514,7 @@ class FMPEnv(AECEnv):
                         [ev.responded for ev in self.fmp.electric_vehicles]
                     )
                 ))
+                self.infos.total_battery_consume += len(self.agents)
 
                 if self.verbose:
                     print("------------------------------")

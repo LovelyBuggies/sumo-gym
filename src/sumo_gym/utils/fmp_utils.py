@@ -164,11 +164,12 @@ class GridAction(object):
 class Metrics(object):
     def __init__(self):
         self.task_finish_time = 0
+        self.total_battery_consume = 0
         self.charge_waiting_time = 0
         self.respond_failing_time = 0
 
     def __repr__(self):
-        return f"(tft {self.task_finish_time}, cwt {self.charge_waiting_time}, rft {self.respond_failing_time})"
+        return f"(tft {self.task_finish_time}, tbc {self.total_battery_consume}, cwt {self.charge_waiting_time}, rft {self.respond_failing_time})"
 
 def convert_raw_vertices(raw_vertices):
     """
