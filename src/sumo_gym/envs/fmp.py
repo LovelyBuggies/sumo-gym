@@ -495,7 +495,7 @@ class FMPEnv(AECEnv):
                         - 1
                     ]
 
-                self.rewards[agent] -= 1000
+                self.rewards[agent] -= 0
 
             self._cumulative_rewards[agent] += self.rewards[agent]
             if self.verbose:
