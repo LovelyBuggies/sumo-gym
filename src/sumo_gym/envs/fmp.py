@@ -357,6 +357,7 @@ class FMPEnv(AECEnv):
             self.fmp.electric_vehicles[i].location = self.fmp.departures[i]
             self.fmp.electric_vehicles[i].battery = ev.capacity
             self.fmp.electric_vehicles[i].status = 0
+            self.fmp.electric_vehicles[i].bonus = 0
             self.fmp.electric_vehicles[i].responded = list()
         for i, cs in enumerate(self.fmp.charging_stations):
             self.fmp.charging_stations[i].n_slot = cs.n_slot or 1
@@ -725,6 +726,7 @@ class FMPEnv(AECEnv):
                     [ev.responded for ev in self.fmp.electric_vehicles]
                 )
             ).count(self.fmp.electric_vehicles[agent_idx].status - 1) == 1 else 1)
+            print(status_indicator)
             safe_indicator = is_safe(
                 self.fmp.vertex_idx_area_mapping[
                     self.fmp.electric_vehicles[agent_idx].location
@@ -748,6 +750,7 @@ class FMPEnv(AECEnv):
                 action - self.fmp.n_charging_station
             )
             self.fmp.electric_vehicles[agent_idx].bonus = hot_spot_weight * travel_distance / total_travel_distance if status_indicator == 2 else 0
+            print(self.fmp.electric_vehicles[agent_idx].bonus)
             self.fmp.electric_vehicles[agent_idx].responded.append(
                 self.fmp.electric_vehicles[agent_idx].status - 1
             )
