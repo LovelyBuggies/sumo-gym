@@ -375,8 +375,7 @@ def cluster_as_area(vertices, k):
     return vertices
 
 
-def is_safe(cur_loc, battery, status, demands, vertices, edges, charging_stations):
-    demand_i = status - 1
+def is_safe(cur_loc, battery, demand_i, demands, vertices, edges, charging_stations):
     _, dist_to_nearest_cs = _nearest_charging_station_with_distance(
         vertices, edges, charging_stations, demands[demand_i].destination
     )
