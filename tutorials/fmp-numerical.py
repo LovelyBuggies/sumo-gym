@@ -225,9 +225,6 @@ env = gym.make(
     departures=departures,
     charging_stations=charging_stations,
 )
-env = wrappers.CaptureStdoutWrapper(env)
-env = wrappers.AssertOutOfBoundsWrapper(env)
-env = wrappers.OrderEnforcingWrapper(env)
 
 # api_test(env, num_cycles=10, verbose_progress=False)
 
