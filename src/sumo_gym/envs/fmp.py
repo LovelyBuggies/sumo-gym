@@ -631,7 +631,7 @@ class FMPEnv(AECEnv):
         else:
             raise ValueError("Agent that not responding or charging should not move")
 
-        self.rewards[agent] = self.rewards[agent] - 1 + + self.fmp.electric_vehicles[agent_idx].bonus
+        self.rewards[agent] = self.rewards[agent] - 1 + self.fmp.electric_vehicles[agent_idx].bonus
         self.states[agent] = [
             self.fmp.electric_vehicles[agent_idx].get_battery_level(),
             self.states[agent][1],
