@@ -374,6 +374,38 @@ def cluster_as_area(vertices, k):
     return vertices
 
 
+def is_safe(cur_loc, battery, status, demands, vertices, edges, charging_stations):
+    _, dist_to_nearest_cs = _nearest_charging_station_with_distance(vertices, edges, charging_stations, demands[demand_i].destination)
+    total_dist = dist_between(vertices, edges, cur_loc, demands[demand_i].departure) \
+                + dist_between(vertices, edges, demands[demand_i].departure, demands[demand_i].destination) \
+                + dist_to_nearest_cs
+
+    return battery > total_dist
+
+
+def _nearest_charging_station_with_distance(
+    vertices, edges, charging_stations, start_index
+):
+    charging_station_vertices = [
+        charging_station.location for charging_station in charging_stations
+    ]
+    visited = [False] * len(vertices)
+
+    bfs_queue = [[start_index, 0]]
+    visited[start_index] = True
+
+    while bfs_queue:
+        curr, curr_depth = bfs_queue.pop(0)
+        adjacent_map = network_utils.get_adj_list(vertices, edges)
+
+        for v in adjacent_map[curr]:
+            if not visited[v] and v in charging_station_vertices:
+                return charging_station_vertices.index(v), curr_depth + 1
+            elif not visited[v]:
+                bfs_queue.append([v, curr_depth + 1])
+                visited[v] = False
+
+
 # roughly divide the map into a root x root grid map as initialization
 def _generate_initial_cluster(vertices_loc, k):
     initial_clusters = []
@@ -393,3 +425,4 @@ def _generate_initial_cluster(vertices_loc, k):
             )
 
     return initial_clusters
+

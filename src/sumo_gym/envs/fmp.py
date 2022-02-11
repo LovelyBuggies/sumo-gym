@@ -674,6 +674,7 @@ class FMPEnv(AECEnv):
         """
         agent = self.agent_selection
         agent_idx = self.agent_name_idx_mapping[agent]
+        safe_indicator = self.states[agent][3]
 
         if action == 0:
             if self.verbose:
@@ -717,6 +718,18 @@ class FMPEnv(AECEnv):
             self.fmp.electric_vehicles[agent_idx].responded.append(
                 self.fmp.electric_vehicles[agent_idx].status - 1
             )
+            safe_indicator = is_safe(
+                self.fmp.vertex_idx_area_mapping[
+                    self.fmp.electric_vehicles[agent_idx].location
+                ],
+                self.fmp.electric_vehicles[agent_idx].battery,
+                self.fmp.electric_vehicles[agent_idx].status,
+                self.fmp.demands,
+                self.fmp.vertices,
+                self.fmp.edges,
+                self.fmp.charging_stations
+                )
+           
 
         self.rewards[agent] -= 1
         self.states[agent] = [
@@ -725,6 +738,7 @@ class FMPEnv(AECEnv):
             ],
             self.fmp.electric_vehicles[agent_idx].get_battery_level(),
             self.fmp.electric_vehicles[agent_idx].status,
+            safe_indicator
         ]
         self.observations[agent][:3] = self.states[agent][:3]
         self.observations[agent][3] = action
