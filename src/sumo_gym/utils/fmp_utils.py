@@ -375,12 +375,14 @@ def cluster_as_area(vertices, k):
 
 
 def is_safe(cur_loc, battery, status, demands, vertices, edges, charging_stations):
+    demand_i = status - 1
     _, dist_to_nearest_cs = _nearest_charging_station_with_distance(vertices, edges, charging_stations, demands[demand_i].destination)
+    
     total_dist = dist_between(vertices, edges, cur_loc, demands[demand_i].departure) \
                 + dist_between(vertices, edges, demands[demand_i].departure, demands[demand_i].destination) \
                 + dist_to_nearest_cs
 
-    return battery > total_dist
+    return 1 if battery > total_dist else 0
 
 
 def _nearest_charging_station_with_distance(
@@ -396,7 +398,7 @@ def _nearest_charging_station_with_distance(
 
     while bfs_queue:
         curr, curr_depth = bfs_queue.pop(0)
-        adjacent_map = network_utils.get_adj_list(vertices, edges)
+        adjacent_map = network_utils.get_adj_to_list(vertices, edges)
 
         for v in adjacent_map[curr]:
             if not visited[v] and v in charging_station_vertices:

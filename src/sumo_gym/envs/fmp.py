@@ -382,6 +382,7 @@ class FMPEnv(AECEnv):
                     self.agent_name_idx_mapping[agent]
                 ].get_battery_level(),
                 self.fmp.electric_vehicles[self.agent_name_idx_mapping[agent]].status,
+                1
             ]
             for agent in self.agents
         }
@@ -661,6 +662,7 @@ class FMPEnv(AECEnv):
             ],
             self.fmp.electric_vehicles[agent_idx].get_battery_level(),
             self.fmp.electric_vehicles[agent_idx].status,
+            self.states[agent][3]
         ]
         self.observations[agent][:3] = self.states[agent][:3]
         self.observations[agent][3] = 0
@@ -728,8 +730,7 @@ class FMPEnv(AECEnv):
                 self.fmp.vertices,
                 self.fmp.edges,
                 self.fmp.charging_stations
-                )
-           
+                )           
 
         self.rewards[agent] -= 1
         self.states[agent] = [
