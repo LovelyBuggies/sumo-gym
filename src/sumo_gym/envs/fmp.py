@@ -725,8 +725,7 @@ class FMPEnv(AECEnv):
                 chain.from_iterable(
                     [ev.responded for ev in self.fmp.electric_vehicles]
                 )
-            ).count(self.fmp.electric_vehicles[agent_idx].status - 1) == 1 else 1)
-            print(status_indicator)
+            ).count(self.fmp.electric_vehicles[agent_idx].status - 1) == 0 else 1)
             safe_indicator = is_safe(
                 self.fmp.vertex_idx_area_mapping[
                     self.fmp.electric_vehicles[agent_idx].location
@@ -750,7 +749,6 @@ class FMPEnv(AECEnv):
                 action - self.fmp.n_charging_station
             )
             self.fmp.electric_vehicles[agent_idx].bonus = hot_spot_weight * travel_distance / total_travel_distance if status_indicator == 2 else 0
-            print(self.fmp.electric_vehicles[agent_idx].bonus)
             self.fmp.electric_vehicles[agent_idx].responded.append(
                 self.fmp.electric_vehicles[agent_idx].status - 1
             )
