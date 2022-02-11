@@ -81,6 +81,7 @@ class ElectricVehicles(object):
         location=None,
         battery=None,
         status=None,
+        bonus=None,
         responded=None,
     ):
         self.id = id
@@ -92,6 +93,7 @@ class ElectricVehicles(object):
         self.location = location
         self.battery = battery
         self.status = status
+        self.bonus = bonus
         self.responded = responded
 
     def __eq__(self, other):

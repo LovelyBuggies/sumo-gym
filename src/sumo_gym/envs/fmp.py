@@ -493,8 +493,6 @@ class FMPEnv(AECEnv):
                         - 1
                     ]
 
-                self.rewards[agent] -= 1000
-
             self._cumulative_rewards[agent] += self.rewards[agent]
             if self.verbose:
                 print(
@@ -550,27 +548,7 @@ class FMPEnv(AECEnv):
                 self.fmp.electric_vehicles[agent_idx].battery -= 1
                 if self.fmp.electric_vehicles[agent_idx].location == dest_loc:
                     self.fmp.electric_vehicles[agent_idx].status = 0
-                    self.rewards[agent] += (
-                        sumo_gym.utils.fmp_utils.get_hot_spot_weight(
-                            self.fmp.vertices,
-                            self.fmp.edges,
-                            self.fmp.demands,
-                            self.fmp.demands[dmd_idx].departure,
-                        )
-                        * sumo_gym.utils.fmp_utils.dist_between(
-                            self.fmp.vertices,
-                            self.fmp.edges,
-                            self.fmp.demands[dmd_idx].departure,
-                            self.fmp.demands[dmd_idx].destination,
-                        )
-                        if list(
-                            chain.from_iterable(
-                                [ev.responded for ev in self.fmp.electric_vehicles]
-                            )
-                        ).count(dmd_idx)
-                        == 1
-                        else 0
-                    )
+                    self.fmp.electric_vehicles[agent_idx].bonus = 0
 
             else:
                 dmd_idx = self.fmp.electric_vehicles[agent_idx].status - 1
@@ -619,10 +597,6 @@ class FMPEnv(AECEnv):
                 else:
                     self.infos.charge_waiting_time += 1
 
-                self.rewards[agent] += (
-                    self.fmp.electric_vehicles[agent_idx].battery - prev_battery
-                ) ** 2
-
                 if (
                     self.fmp.electric_vehicles[agent_idx].battery
                     >= self.fmp.electric_vehicles[
@@ -630,6 +604,7 @@ class FMPEnv(AECEnv):
                     ].capacity
                 ):
                     self.fmp.electric_vehicles[agent_idx].status = 0
+                    self.fmp.electric_vehicles[agent_idx].bonus = 0
                     self.fmp.charging_stations[cs_idx].charging_vehicle.pop(0)
             else:
                 cs_idx = self.fmp.electric_vehicles[agent_idx].status - 2 * self.fmp.n_demand - 1
@@ -656,7 +631,7 @@ class FMPEnv(AECEnv):
         else:
             raise ValueError("Agent that not responding or charging should not move")
 
-        self.rewards[agent] -= 1
+        self.rewards[agent] = self.rewards[agent] - 1 + + self.fmp.electric_vehicles[agent_idx].bonus
         self.states[agent] = [
             self.fmp.electric_vehicles[agent_idx].get_battery_level(),
             self.states[agent][1],
@@ -674,30 +649,46 @@ class FMPEnv(AECEnv):
         """
         agent = self.agent_selection
         agent_idx = self.agent_name_idx_mapping[agent]
-        safe_indicator = self.states[agent][2]
-        status_indicator = self.states[agent][1]
 
         if action == 0:
-            status_indicator = 0
             if self.verbose:
                 print("Trans: ", agent, "is taking moving action")
+
+            status_indicator = 0
+            safe_indicator = 1
 
         # action to charge
         elif action <= self.fmp.n_charging_station:
             if self.verbose:
                 print("Trans: ", agent, "is to go to charge at ", action - 1)
+
+            cs_idx = action - 1
+            total_travel_distance = sumo_gym.utils.fmp_utils.dist_between(
+                self.fmp.vertices,
+                self.fmp.edges,
+                self.fmp.electric_vehicles[agent_idx].location,
+                self.fmp.charging_stations[cs_idx].location,
+            )
+            battery_to_charge = self.fmp.electric_vehicles[agent_idx].capacity - self.fmp.electric_vehicles[agent_idx].battery
+            charging_time = battery_to_charge / self.fmp.charging_stations[cs_idx].charging_speed
+
+            status_indicator = 1
+            safe_indicator = 1
+
             self.fmp.electric_vehicles[agent_idx].location = one_step_to_destination(
                 self.fmp.vertices,
                 self.fmp.edges,
                 self.fmp.electric_vehicles[agent_idx].location,
-                self.fmp.charging_stations[action - 1].location,
+                self.fmp.charging_stations[cs_idx].location,
             )
             self.fmp.electric_vehicles[agent_idx].battery -= 1
             self.fmp.electric_vehicles[agent_idx].status = (
                 2 * self.fmp.n_demand + action
             )
-            status_indicator = 1
-            safe_indicator = 1
+            if battery_to_charge:
+                self.fmp.electric_vehicles[agent_idx].bonus = total_travel_distance * (battery_to_charge / self.fmp.electric_vehicles[agent_idx].capacity) / (total_travel_distance + charging_time)
+            else:
+                self.fmp.electric_vehicles[agent_idx].bonus = 0
 
         # action to load
         else:
@@ -708,20 +699,32 @@ class FMPEnv(AECEnv):
                     " is to respond demand ",
                     action - self.fmp.n_charging_station - 1,
                 )
-            self.fmp.electric_vehicles[agent_idx].location = one_step_to_destination(
+                
+            dmd_idx = action - self.fmp.n_charging_station - 1
+            travel_distance = sumo_gym.utils.fmp_utils.dist_between(
+                self.fmp.vertices,
+                self.fmp.edges,
+                self.fmp.demands[dmd_idx].departure,
+                self.fmp.demands[dmd_idx].destination,
+            )
+            total_travel_distance = sumo_gym.utils.fmp_utils.dist_between(
                 self.fmp.vertices,
                 self.fmp.edges,
                 self.fmp.electric_vehicles[agent_idx].location,
-                self.fmp.demands[action - self.fmp.n_charging_station - 1].departure,
-            )
-            self.fmp.electric_vehicles[agent_idx].battery -= 1
-            self.fmp.electric_vehicles[agent_idx].status = (
-                action - self.fmp.n_charging_station
+                self.fmp.demands[dmd_idx].departure,
+            ) + travel_distance
+            hot_spot_weight = sumo_gym.utils.fmp_utils.get_hot_spot_weight(
+                self.fmp.vertices,
+                self.fmp.edges,
+                self.fmp.demands,
+                self.fmp.demands[dmd_idx].departure,
             )
 
-            self.fmp.electric_vehicles[agent_idx].responded.append(
-                self.fmp.electric_vehicles[agent_idx].status - 1
-            )
+            status_indicator = 2 + (0 if list(
+                chain.from_iterable(
+                    [ev.responded for ev in self.fmp.electric_vehicles]
+                )
+            ).count(self.fmp.electric_vehicles[agent_idx].status - 1) == 1 else 1)
             safe_indicator = is_safe(
                 self.fmp.vertex_idx_area_mapping[
                     self.fmp.electric_vehicles[agent_idx].location
@@ -733,13 +736,23 @@ class FMPEnv(AECEnv):
                 self.fmp.edges,
                 self.fmp.charging_stations,
             )
-            status_indicator = 2 + (0 if list(
-                        chain.from_iterable(
-                            [ev.responded for ev in self.fmp.electric_vehicles]
-                        )
-                    ).count(self.fmp.electric_vehicles[agent_idx].status - 1) == 1 else 1)
 
-        self.rewards[agent] -= 1
+            self.fmp.electric_vehicles[agent_idx].location = one_step_to_destination(
+                self.fmp.vertices,
+                self.fmp.edges,
+                self.fmp.electric_vehicles[agent_idx].location,
+                self.fmp.demands[dmd_idx].departure,
+            )
+            self.fmp.electric_vehicles[agent_idx].battery -= 1
+            self.fmp.electric_vehicles[agent_idx].status = (
+                action - self.fmp.n_charging_station
+            )
+            self.fmp.electric_vehicles[agent_idx].bonus = hot_spot_weight * travel_distance / total_travel_distance if status_indicator == 2 else 0
+            self.fmp.electric_vehicles[agent_idx].responded.append(
+                self.fmp.electric_vehicles[agent_idx].status - 1
+            )
+
+        self.rewards[agent] = self.rewards[agent] - 1 + self.fmp.electric_vehicles[agent_idx].bonus
         self.states[agent] = [
             self.fmp.electric_vehicles[agent_idx].get_battery_level(),
             status_indicator,
