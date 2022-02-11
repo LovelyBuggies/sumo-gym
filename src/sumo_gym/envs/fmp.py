@@ -735,7 +735,6 @@ class FMPEnv(AECEnv):
             self.fmp.electric_vehicles[agent_idx].status,
             safe_indicator,
         ]
-        print("     --- state: ", self.states[agent])
         self.observations[agent][:3] = self.states[agent][:3]
         self.observations[agent][3] = action
 
