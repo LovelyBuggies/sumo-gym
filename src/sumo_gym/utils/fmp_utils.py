@@ -171,6 +171,7 @@ class Metrics(object):
     def __repr__(self):
         return f"(tft {self.task_finish_time}, tbc {self.total_battery_consume}, cwt {self.charge_waiting_time}, rft {self.respond_failing_time})"
 
+
 def convert_raw_vertices(raw_vertices):
     """
     Each raw vertex is [id (str), x_coord (float), y_coord (float)]

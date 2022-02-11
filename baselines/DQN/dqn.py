@@ -17,13 +17,19 @@ class ReplayBuffer(object):
             self.sample_w.popleft()
 
         self.memory.append(transition)
-        self.sample_w.append(np.power(abs(transition[3]), 1) if None not in transition else 0)
+        self.sample_w.append(
+            np.power(abs(transition[3]), 1) if None not in transition else 0
+        )
 
     def sample(self, batch_size):
         sum_w = sum(self.sample_w)
-        inx = np.random.choice(len(self.memory), batch_size, p=[w / sum_w for w in self.sample_w], replace=False)
+        inx = np.random.choice(
+            len(self.memory),
+            batch_size,
+            p=[w / sum_w for w in self.sample_w],
+            replace=False,
+        )
         return [self.memory[i] for i in inx]
-
 
     def __repr__(self):
         return str(self.memory)
