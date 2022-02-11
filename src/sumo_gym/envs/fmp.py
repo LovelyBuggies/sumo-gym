@@ -678,6 +678,7 @@ class FMPEnv(AECEnv):
         status_indicator = self.states[agent][1]
 
         if action == 0:
+            status_indicator = 0
             if self.verbose:
                 print("Trans: ", agent, "is taking moving action")
 
