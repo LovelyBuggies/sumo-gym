@@ -697,6 +697,7 @@ class FMPEnv(AECEnv):
                 2 * self.fmp.n_demand + action
             )
             status_indicator = 1
+            safe_indicator = 1
 
         # action to load
         else:
