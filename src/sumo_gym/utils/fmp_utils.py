@@ -171,6 +171,7 @@ class Metrics(object):
     def __repr__(self):
         return f"(tft {self.task_finish_time}, tbc {self.total_battery_consume}, cwt {self.charge_waiting_time}, rft {self.respond_failing_time})"
 
+
 def convert_raw_vertices(raw_vertices):
     """
     Each raw vertex is [id (str), x_coord (float), y_coord (float)]
@@ -376,11 +377,17 @@ def cluster_as_area(vertices, k):
 
 def is_safe(cur_loc, battery, status, demands, vertices, edges, charging_stations):
     demand_i = status - 1
-    _, dist_to_nearest_cs = _nearest_charging_station_with_distance(vertices, edges, charging_stations, demands[demand_i].destination)
-    
-    total_dist = dist_between(vertices, edges, cur_loc, demands[demand_i].departure) \
-                + dist_between(vertices, edges, demands[demand_i].departure, demands[demand_i].destination) \
-                + dist_to_nearest_cs
+    _, dist_to_nearest_cs = _nearest_charging_station_with_distance(
+        vertices, edges, charging_stations, demands[demand_i].destination
+    )
+
+    total_dist = (
+        dist_between(vertices, edges, cur_loc, demands[demand_i].departure)
+        + dist_between(
+            vertices, edges, demands[demand_i].departure, demands[demand_i].destination
+        )
+        + dist_to_nearest_cs
+    )
 
     return 1 if battery > total_dist else 0
 
@@ -427,4 +434,3 @@ def _generate_initial_cluster(vertices_loc, k):
             )
 
     return initial_clusters
-
