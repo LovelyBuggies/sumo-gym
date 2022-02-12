@@ -423,7 +423,6 @@ def is_safe_for_demand_action(cur_loc, battery, demand_i, demands, vertices, edg
         + dist_to_demand_dest
         + dist_to_furthest_cs
     )
-
     return 1 if battery > total_dist_nearest else 0, \
            1 if battery > total_dist_furthest else 0, \
            1 if battery > dist_to_nearest_cs_from_cur else 0

@@ -754,7 +754,7 @@ class FMPEnv(AECEnv):
                     self.fmp.electric_vehicles[agent_idx].location
                 ],
                 self.fmp.electric_vehicles[agent_idx].battery,
-                self.fmp.electric_vehicles[agent_idx].status - 1,
+                action - self.fmp.n_charging_station - 1,
                 self.fmp.demands,
                 self.fmp.vertices,
                 self.fmp.edges,
