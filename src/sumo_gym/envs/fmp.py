@@ -656,7 +656,15 @@ class FMPEnv(AECEnv):
                 print("Trans: ", agent, "is taking moving action")
 
             status_indicator = 0
-            safe_indicator = 1
+            _, _, safe_indicator = is_safe(
+                self.fmp.vertex_idx_area_mapping[
+                    self.fmp.electric_vehicles[agent_idx].location
+                ],
+                self.fmp.electric_vehicles[agent_idx].battery,
+                self.fmp.vertices,
+                self.fmp.edges,
+                self.fmp.charging_stations,
+            )
 
         # action to charge
         elif action <= self.fmp.n_charging_station:
@@ -674,7 +682,15 @@ class FMPEnv(AECEnv):
             charging_time = battery_to_charge / self.fmp.charging_stations[cs_idx].charging_speed
 
             status_indicator = 1
-            safe_indicator = 1
+            _, _, safe_indicator = is_safe(
+                self.fmp.vertex_idx_area_mapping[
+                    self.fmp.electric_vehicles[agent_idx].location
+                ],
+                self.fmp.electric_vehicles[agent_idx].battery,
+                self.fmp.vertices,
+                self.fmp.edges,
+                self.fmp.charging_stations,
+            )
 
             self.fmp.electric_vehicles[agent_idx].location = one_step_to_destination(
                 self.fmp.vertices,
@@ -726,7 +742,8 @@ class FMPEnv(AECEnv):
                     [ev.responded for ev in self.fmp.electric_vehicles]
                 )
             ).count(self.fmp.electric_vehicles[agent_idx].status - 1) == 0 else 1)
-            safe_indicator = is_safe(
+
+            nearest_safe, furthest_safe, zombie_safe = is_safe_for_demand_action(
                 self.fmp.vertex_idx_area_mapping[
                     self.fmp.electric_vehicles[agent_idx].location
                 ],
@@ -737,6 +754,7 @@ class FMPEnv(AECEnv):
                 self.fmp.edges,
                 self.fmp.charging_stations,
             )
+            safe_indicator = furthest_safe + nearest_safe + zombie_safe
 
             self.fmp.electric_vehicles[agent_idx].location = one_step_to_destination(
                 self.fmp.vertices,

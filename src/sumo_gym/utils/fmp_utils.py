@@ -12,6 +12,8 @@ IDLE_LOCATION = -1
 
 K_MEANS_ITERATION = 10
 
+NEAREST_CS = True
+FURTHEST_CS = False
 
 class Vertex(object):
     def __init__(self, x, y):
@@ -376,25 +378,59 @@ def cluster_as_area(vertices, k):
 
     return vertices
 
+# wrapper for is_safe_for_demand_action
+def is_safe(cur_loc, battery, vertices, edges, charging_stations, demand_i = None, demands = None):
+    if demand_i:
+        return is_safe_for_demand_action(cur_loc, battery, demand_i, demands, vertices, edges, charging_stations)
+    else:
+        _, dist_to_nearest_cs_from_cur = charging_station_with_distance(
+            vertices, edges, charging_stations, cur_loc, NEAREST_CS
+        )
+        return 0,  0, \
+               1 if battery > dist_to_nearest_cs_from_cur else 0
 
-def is_safe(cur_loc, battery, demand_i, demands, vertices, edges, charging_stations):
-    _, dist_to_nearest_cs = _nearest_charging_station_with_distance(
-        vertices, edges, charging_stations, demands[demand_i].destination
+# return 3-wise tuple(,): 
+#       first indicate if enough battery to go to the furthest cs after responding to the demand
+#       second indicate if enough battery to go to the nearest cs after responding to the demand
+#       third indicate if enough battery to go to the neartest cs from current loc
+def is_safe_for_demand_action(cur_loc, battery, demand_i, demands, vertices, edges, charging_stations):
+    _, dist_to_nearest_cs = charging_station_with_distance(
+        vertices, edges, charging_stations, demands[demand_i].destination, NEAREST_CS
+    )
+    _, dist_to_furthest_cs = charging_station_with_distance(
+        vertices, edges, charging_stations, demands[demand_i].destination, FURTHEST_CS
+    )
+    
+    _, dist_to_nearest_cs_from_cur = charging_station_with_distance(
+        vertices, edges, charging_stations, cur_loc, NEAREST_CS
     )
 
-    total_dist = (
-        dist_between(vertices, edges, cur_loc, demands[demand_i].departure)
-        + dist_between(
-            vertices, edges, demands[demand_i].departure, demands[demand_i].destination
-        )
+    dist_to_respond_demand = dist_between(
+        vertices, edges, cur_loc, demands[demand_i].departure
+    )
+    dist_to_demand_dest = dist_between(
+        vertices, edges, demands[demand_i].departure, demands[demand_i].destination
+    )
+
+    total_dist_nearest = (
+        dist_to_respond_demand
+        + dist_to_demand_dest
         + dist_to_nearest_cs
     )
 
-    return 1 if battery > total_dist else 0
+    total_dist_furthest = (
+        dist_to_respond_demand
+        + dist_to_demand_dest
+        + dist_to_furthest_cs
+    )
+
+    return 1 if battery > total_dist_nearest else 0, \
+           1 if battery > total_dist_furthest else 0, \
+           1 if battery > dist_to_nearest_cs_from_cur else 0
 
 
-def _nearest_charging_station_with_distance(
-    vertices, edges, charging_stations, start_index
+def charging_station_with_distance(
+    vertices, edges, charging_stations, start_index, nearest
 ):
     charging_station_vertices = [
         charging_station.location for charging_station in charging_stations
@@ -410,7 +446,10 @@ def _nearest_charging_station_with_distance(
 
         for v in adjacent_map[curr]:
             if not visited[v] and v in charging_station_vertices:
-                return charging_station_vertices.index(v), curr_depth + 1
+                if nearest or len(charging_station_vertices) == 1:
+                    return charging_station_vertices.index(v), curr_depth + 1
+                else:
+                    charging_station_vertices.remove(v)
             elif not visited[v]:
                 bfs_queue.append([v, curr_depth + 1])
                 visited[v] = False
