@@ -679,7 +679,6 @@ class FMPEnv(AECEnv):
                 self.fmp.charging_stations[cs_idx].location,
             )
             battery_to_charge = self.fmp.electric_vehicles[agent_idx].capacity - self.fmp.electric_vehicles[agent_idx].battery
-            charging_time = battery_to_charge / self.fmp.charging_stations[cs_idx].charging_speed
 
             status_indicator = 1
             _, _, safe_indicator = is_safe(
@@ -691,6 +690,7 @@ class FMPEnv(AECEnv):
                 self.fmp.edges,
                 self.fmp.charging_stations,
             )
+            print(safe_indicator)
 
             self.fmp.electric_vehicles[agent_idx].location = one_step_to_destination(
                 self.fmp.vertices,
@@ -703,7 +703,14 @@ class FMPEnv(AECEnv):
                 2 * self.fmp.n_demand + action
             )
             if battery_to_charge:
-                self.fmp.electric_vehicles[agent_idx].bonus = total_travel_distance * (battery_to_charge / self.fmp.electric_vehicles[agent_idx].capacity) / (total_travel_distance + charging_time)
+                if safe_indicator == 0:
+                    self.fmp.electric_vehicles[agent_idx].bonus = -100
+                elif safe_indicator == 1:
+                    self.fmp.electric_vehicles[agent_idx].bonus = 4 * math.sqrt(total_travel_distance) * (battery_to_charge - self.fmp.electric_vehicles[agent_idx].capacity / 2)
+                elif safe_indicator == 2:
+                    self.fmp.electric_vehicles[agent_idx].bonus = 2 * math.sqrt(total_travel_distance) * (battery_to_charge - self.fmp.electric_vehicles[agent_idx].capacity / 2)
+                else:
+                    self.fmp.electric_vehicles[agent_idx].bonus = (battery_to_charge - self.fmp.electric_vehicles[agent_idx].capacity / 2) / 2
             else:
                 self.fmp.electric_vehicles[agent_idx].bonus = 0
 
@@ -742,7 +749,6 @@ class FMPEnv(AECEnv):
                     [ev.responded for ev in self.fmp.electric_vehicles]
                 )
             ).count(self.fmp.electric_vehicles[agent_idx].status - 1) == 0 else 1)
-
             nearest_safe, furthest_safe, zombie_safe = is_safe_for_demand_action(
                 self.fmp.vertex_idx_area_mapping[
                     self.fmp.electric_vehicles[agent_idx].location
