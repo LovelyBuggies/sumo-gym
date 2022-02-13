@@ -222,7 +222,6 @@ class FMP(object):
 class FMPEnv(AECEnv):
     metadata = {"render.modes": ["human"]}
     fmp = property(operator.attrgetter("_fmp"))
-    cumulative_rewards = property(operator.attrgetter("_cumulative_rewards"))
 
     def __init__(self, **kwargs):
         """
@@ -288,30 +287,51 @@ class FMPEnv(AECEnv):
         self.agent_name_idx_mapping = self.fmp.ev_name_idx_mapping
 
         self._action_spaces = {
-            agent: gym.spaces.Discrete(
-                self.fmp.n_charging_station + self.fmp.n_demand + 1
-            )
+            agent: gym.spaces.Discrete(3)
             for agent in self.possible_agents
         }
         self._observation_spaces = {
-            agent: gym.spaces.Box(
-                low=np.array([0.0, 0.0, 0.0, 0.0]),
-                high=np.array(
-                    [
-                        self.fmp.n_vertex,
-                        self.fmp.electric_vehicles[0].capacity,
-                        2 * self.fmp.n_demand + 2 * self.fmp.n_charging_station + 1,
-                        self.fmp.n_charging_station + self.fmp.n_demand + 1,
-                    ]
-                ),
-                dtype=np.float64,
-            )
+            agent: gym.spaces.Discrete(3)
+            for agent in self.possible_agents
+        }
+        self._sub_action_spaces = {
+            agent: {
+                0: {
+                    agent: gym.spaces.Discrete(self.fmp.n_demand)
+                    for agent in self.possible_agents
+                },
+                1: {
+                    agent: gym.spaces.Discrete(self.fmp.n_charging_station)
+                    for agent in self.possible_agents
+                },
+            }
+            for agent in self.possible_agents
+        }
+        self._sub_observation_spaces = {
+            agent: {
+                0: {
+                    gym.spaces.Box(
+                        low=np.array([0.] * self.fmp.n_demand + [0.]),
+                        high=np.array([0.] * self.fmp.n_demand + [self.fmp.n_area]),
+                        dtype=np.float64,
+                    )
+                },
+                1: {
+                    gym.spaces.Box(
+                        low=np.array([0.] * self.fmp.n_charging_station + [0.]),
+                        high=np.array([0.] * self.fmp.n_charging_station + [self.fmp.n_area]),
+                        dtype=np.float64,
+                    )
+                },
+            }
             for agent in self.possible_agents
         }
 
         self.agents = self.possible_agents[:]
         self.rewards = {agent: 0.0 for agent in self.agents}
+        self.sub_rewards = {agent: 0.0 for agent in self.agents}
         self._cumulative_rewards = {agent: 0.0 for agent in self.agents}
+        self._sub_cumulative_rewards = {agent: 0.0 for agent in self.agents}
 
         self.dones = {agent: False for agent in self.agents}
 
@@ -320,7 +340,9 @@ class FMPEnv(AECEnv):
         self.infos = Metrics()
 
         self.states = {agent: None for agent in self.agents}
+        self.sub_states = {agent: None for agent in self.agents}
         self.observations = {agent: None for agent in self.agents}
+        self.sub_observations = {agent: None for agent in self.agents}
 
         self.num_moves = 0
 
@@ -329,25 +351,43 @@ class FMPEnv(AECEnv):
 
     @functools.lru_cache(maxsize=None)
     def observation_space(self, agent):
-        return gym.spaces.Box(
-            low=np.array([0.0, 0.0, 0.0, 0.0]),
-            high=np.array(
-                [
-                    self.fmp.n_vertex,
-                    self.fmp.electric_vehicles[0].capacity,
-                    2 * self.fmp.n_demand + 2 * self.fmp.n_charging_station + 1,
-                    self.fmp.n_charging_station + self.fmp.n_demand + 1,
-                ]
-            ),
-            dtype=np.float64,
-        )
+        return gym.spaces.Discrete(3)
 
     @functools.lru_cache(maxsize=None)
     def action_space(self, agent):
-        return gym.spaces.Discrete(self.fmp.n_charging_station + self.fmp.n_demand + 1)
+        return gym.spaces.Discrete(3)
+
+    @functools.lru_cache(maxsize=None)
+    def sub_observation_space(self, agent):
+        return {
+                0: {
+                    agent: gym.spaces.Discrete(self.fmp.n_demand)
+                    for agent in self.possible_agents
+                },
+                1: {
+                    agent: gym.spaces.Discrete(self.fmp.n_charging_station)
+                    for agent in self.possible_agents
+                },
+            }
+
+    @functools.lru_cache(maxsize=None)
+    def sub_action_space(self, agent):
+        return {
+                0: {
+                    agent: gym.spaces.Discrete(self.fmp.n_demand)
+                    for agent in self.possible_agents
+                },
+                1: {
+                    agent: gym.spaces.Discrete(self.fmp.n_charging_station)
+                    for agent in self.possible_agents
+                },
+            }
 
     def observe(self, agent):
         return self.observations[agent]
+
+    def sub_observe(self, agent):
+        return self.sub_observations[agent]
 
     def reset(self):
         """
@@ -367,19 +407,22 @@ class FMPEnv(AECEnv):
 
         self.agents = self.possible_agents[:]
         self.rewards = {agent: 0.0 for agent in self.agents}
+        self.sub_rewards = {agent: 0.0 for agent in self.agents}
         self._cumulative_rewards = {agent: 0.0 for agent in self.agents}
+        self._sub_cumulative_rewards = {agent: 0.0 for agent in self.agents}
 
         self.dones = {agent: False for agent in self.agents}
         self.infos = Metrics()
 
         self.states = {
-            agent: [
-                self.fmp.electric_vehicles[
-                    self.agent_name_idx_mapping[agent]
-                ].get_battery_level(),
-                0,
-                1,
-            ]
+            agent: [get_safe_indicator(
+                self.fmp.vertices,
+                self.fmp.edges,
+                self.fmp.demands,
+                self.fmp.charging_stations,
+                self.fmp.electric_vehicles[i].location,
+                self.fmp.electric_vehicles[i].battery
+            )]
             for agent in self.agents
         }
         self.observations = {

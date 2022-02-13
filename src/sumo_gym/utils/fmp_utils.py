@@ -378,80 +378,36 @@ def cluster_as_area(vertices, k):
 
     return vertices
 
-# wrapper for is_safe_for_demand_action
-def is_safe(cur_loc, battery, vertices, edges, charging_stations, demand_i = None, demands = None):
-    if demand_i:
-        return is_safe_for_demand_action(cur_loc, battery, demand_i, demands, vertices, edges, charging_stations)
+
+# get the current safe indicator
+def get_safe_indicator(vertices, edges, demands, charging_stations, location, battery):
+    dist_to_furthest_cs = max(get_dist_to_charging_stations(vertices, edges, charging_stations, location))
+    dist_to_finish_demands = get_dist_to_finish_demands(vertices, edges, demands, location)
+    if battery <= min(dist_to_finish_demands) + dist_to_furthest_cs:
+        return 0
+    elif battery <= max(dist_to_finish_demands) + dist_to_furthest_cs:
+        return 1
     else:
-        _, dist_to_nearest_cs_from_cur = charging_station_with_distance(
-            vertices, edges, charging_stations, cur_loc, NEAREST_CS
-        )
-        return 0,  0, \
-               1 if battery > dist_to_nearest_cs_from_cur else 0
-
-# return 3-wise tuple(,): 
-#       first indicate if enough battery to go to the furthest cs after responding to the demand
-#       second indicate if enough battery to go to the nearest cs after responding to the demand
-#       third indicate if enough battery to go to the neartest cs from current loc
-def is_safe_for_demand_action(cur_loc, battery, demand_i, demands, vertices, edges, charging_stations):
-    _, dist_to_nearest_cs = charging_station_with_distance(
-        vertices, edges, charging_stations, demands[demand_i].destination, NEAREST_CS
-    )
-    _, dist_to_furthest_cs = charging_station_with_distance(
-        vertices, edges, charging_stations, demands[demand_i].destination, FURTHEST_CS
-    )
-    
-    _, dist_to_nearest_cs_from_cur = charging_station_with_distance(
-        vertices, edges, charging_stations, cur_loc, NEAREST_CS
-    )
-
-    dist_to_respond_demand = dist_between(
-        vertices, edges, cur_loc, demands[demand_i].departure
-    )
-    dist_to_demand_dest = dist_between(
-        vertices, edges, demands[demand_i].departure, demands[demand_i].destination
-    )
-
-    total_dist_nearest = (
-        dist_to_respond_demand
-        + dist_to_demand_dest
-        + dist_to_nearest_cs
-    )
-
-    total_dist_furthest = (
-        dist_to_respond_demand
-        + dist_to_demand_dest
-        + dist_to_furthest_cs
-    )
-    return 1 if battery > total_dist_nearest else 0, \
-           1 if battery > total_dist_furthest else 0, \
-           1 if battery > dist_to_nearest_cs_from_cur else 0
+        return 2
 
 
-def charging_station_with_distance(
-    vertices, edges, charging_stations, start_index, nearest
-):
-    charging_station_vertices = [
-        charging_station.location for charging_station in charging_stations
+# get the dist to finish all demands from the current location
+def get_dist_to_finish_demands(vertices, edges, demands, start_index):
+    dist_of_demands = get_dist_of_demands(vertices, edges, demands)
+    return [
+        dist_of_demands[i] + dist_between(vertices, edges, start_index, d.departure)
+        for i, d in enumerate(demands)
     ]
-    visited = [False] * len(vertices)
 
-    bfs_queue = [[start_index, 0]]
-    visited[start_index] = True
 
-    while bfs_queue:
-        curr, curr_depth = bfs_queue.pop(0)
-        adjacent_map = network_utils.get_adj_to_list(vertices, edges)
+# get the travel dist of demand
+def get_dist_of_demands(vertices, edges, demands):
+    return [dist_between(vertices, edges, d.departure, d.destination) for d in demands]
 
-        for v in adjacent_map[curr]:
-            if not visited[v] and v in charging_station_vertices:
-                if nearest or len(charging_station_vertices) == 1:
-                    return charging_station_vertices.index(v), curr_depth + 1
-                else:
-                    charging_station_vertices.remove(v)
-            elif not visited[v]:
-                bfs_queue.append([v, curr_depth + 1])
-                visited[v] = False
+
+# get the dist to all cs from the current location
+def get_dist_to_charging_stations(vertices, edges, charging_stations, start_index):
+    return [dist_between(vertices, edges, start_index, cs.location) for cs in charging_stations]
 
 
 # roughly divide the map into a root x root grid map as initialization

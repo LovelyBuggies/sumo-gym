@@ -174,7 +174,7 @@ edges = [
 ]
 
 n_vertex = len(vertices)
-n_area = 4
+n_area = 9
 n_edge = len(edges)
 n_vehicle = 3
 n_electric_vehicle = 3
