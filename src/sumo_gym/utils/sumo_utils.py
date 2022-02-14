@@ -57,7 +57,10 @@ class SumoRender:
             self._initialize_route()
             self._park_vehicle_to_assigned_starting_pos()
         else:
+            print("In render...")
             self._update_route_with_stop()
+            vehicle_id = self._find_key_from_value(self.ev_dict, 0)
+            print("     route: ", traci.vehicle.getRoute(vehicle_id))
             traci.simulationStep()
             self._update_need_action_status()
 
@@ -91,16 +94,6 @@ class SumoRender:
             # there is no way to reassign it.
             self.routes.append(tuple([edge_id]))
 
-            traci.vehicle.setStop(
-                vehID=vehicle_id,
-                edgeID=edge_id,
-                pos=self.edge_length_dict[edge_id],
-                laneIndex=0,
-                duration=189999999999,
-                flags=0,
-                startPos=0,
-            )
-
             print("Step stop for vehicle: ", vehicle_id)
 
     def _park_vehicle_to_assigned_starting_pos(self):
@@ -119,6 +112,7 @@ class SumoRender:
         eligible_vehicle = traci.vehicle.getIDList()
         for i in range(self.n_vehicle):
             if self.need_action[i]:
+
 
                 if self.travel_info[i] is None: # location not changed 
                     continue
