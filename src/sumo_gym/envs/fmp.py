@@ -1,6 +1,7 @@
 from itertools import chain
 import operator
 import os
+import random
 
 from black import prev_siblings_are
 import sumo_gym.typing
@@ -621,29 +622,9 @@ class FMPEnv(AECEnv):
 
         # action to charge
         elif action == 1:
+            cs_idx = random.randint(self.fmp.n_charging_station)
             if self.verbose:
-                print("Trans: ", agent, "is to go to charge at ", action - 1)
-
-            cs_idx = action - 1
-            total_travel_distance = sumo_gym.utils.fmp_utils.dist_between(
-                self.fmp.vertices,
-                self.fmp.edges,
-                self.fmp.electric_vehicles[agent_idx].location,
-                self.fmp.charging_stations[cs_idx].location,
-            )
-            battery_to_charge = self.fmp.electric_vehicles[agent_idx].capacity - self.fmp.electric_vehicles[agent_idx].battery
-
-            status_indicator = 1
-            _, _, safe_indicator = is_safe(
-                self.fmp.vertex_idx_area_mapping[
-                    self.fmp.electric_vehicles[agent_idx].location
-                ],
-                self.fmp.electric_vehicles[agent_idx].battery,
-                self.fmp.vertices,
-                self.fmp.edges,
-                self.fmp.charging_stations,
-            )
-            print(safe_indicator)
+                print("Trans: ", agent, "is to go to charge at ", cs_idx)
 
             self.fmp.electric_vehicles[agent_idx].location = one_step_to_destination(
                 self.fmp.vertices,
@@ -652,57 +633,18 @@ class FMPEnv(AECEnv):
                 self.fmp.charging_stations[cs_idx].location,
             )
             self.fmp.electric_vehicles[agent_idx].battery -= 1
-            self.fmp.electric_vehicles[agent_idx].status = (
-                2 * self.fmp.n_demand + action
-            )
+            self.fmp.electric_vehicles[agent_idx].status = 2 * self.fmp.n_demand + cs_idx + 1
 
         # action to load
         else:
+            dmd_idx = random.randint(self.fmp.n_demand)
             if self.verbose:
                 print(
                     "Trans: ",
                     agent,
                     " is to respond demand ",
-                    action - self.fmp.n_charging_station - 1,
+                    dmd_idx,
                 )
-                
-            dmd_idx = action - self.fmp.n_charging_station - 1
-            travel_distance = sumo_gym.utils.fmp_utils.dist_between(
-                self.fmp.vertices,
-                self.fmp.edges,
-                self.fmp.demands[dmd_idx].departure,
-                self.fmp.demands[dmd_idx].destination,
-            )
-            total_travel_distance = sumo_gym.utils.fmp_utils.dist_between(
-                self.fmp.vertices,
-                self.fmp.edges,
-                self.fmp.electric_vehicles[agent_idx].location,
-                self.fmp.demands[dmd_idx].departure,
-            ) + travel_distance
-            hot_spot_weight = sumo_gym.utils.fmp_utils.get_hot_spot_weight(
-                self.fmp.vertices,
-                self.fmp.edges,
-                self.fmp.demands,
-                self.fmp.demands[dmd_idx].departure,
-            )
-
-            status_indicator = 2 + (0 if list(
-                chain.from_iterable(
-                    [ev.responded for ev in self.fmp.electric_vehicles]
-                )
-            ).count(self.fmp.electric_vehicles[agent_idx].status - 1) == 0 else 1)
-            nearest_safe, furthest_safe, zombie_safe = is_safe_for_demand_action(
-                self.fmp.vertex_idx_area_mapping[
-                    self.fmp.electric_vehicles[agent_idx].location
-                ],
-                self.fmp.electric_vehicles[agent_idx].battery,
-                action - self.fmp.n_charging_station - 1,
-                self.fmp.demands,
-                self.fmp.vertices,
-                self.fmp.edges,
-                self.fmp.charging_stations,
-            )
-            safe_indicator = furthest_safe + nearest_safe + zombie_safe
 
             self.fmp.electric_vehicles[agent_idx].location = one_step_to_destination(
                 self.fmp.vertices,
@@ -711,21 +653,19 @@ class FMPEnv(AECEnv):
                 self.fmp.demands[dmd_idx].departure,
             )
             self.fmp.electric_vehicles[agent_idx].battery -= 1
-            self.fmp.electric_vehicles[agent_idx].status = (
-                action - self.fmp.n_charging_station
-            )
-            self.fmp.electric_vehicles[agent_idx].responded.append(
-                self.fmp.electric_vehicles[agent_idx].status - 1
-            )
+            self.fmp.electric_vehicles[agent_idx].status = 1 + dmd_idx
+            self.fmp.electric_vehicles[agent_idx].responded.append(dmd_idx)
 
-        self.rewards[agent] = todo
-        self.states[agent] = [
-            self.fmp.electric_vehicles[agent_idx].get_battery_level(),
-            status_indicator,
-            safe_indicator,
-        ]
-        self.observations[agent][:3] = self.states[agent][:3]
-        self.observations[agent][3] = action
+        self.rewards[agent] = 0 # todo
+        self.states[agent] = get_safe_indicator(
+            self.fmp.vertices,
+            self.fmp.edges,
+            self.fmp.demands,
+            self.fmp.charging_stations,
+            self.fmp.electric_vehicles[agent_idx].location,
+            self.fmp.electric_vehicles[agent_idx].battery
+        )
+        self.observations[agent] = self.states[agent]
 
     def last(self, observe=True):
         agent = self.agent_selection
