@@ -15,6 +15,7 @@ K_MEANS_ITERATION = 10
 NEAREST_CS = True
 FURTHEST_CS = False
 
+
 class Vertex(object):
     def __init__(self, x, y):
         self.x = x
@@ -381,8 +382,12 @@ def cluster_as_area(vertices, k):
 
 # get the current safe indicator
 def get_safe_indicator(vertices, edges, demands, charging_stations, location, battery):
-    dist_to_furthest_cs = max(get_dist_to_charging_stations(vertices, edges, charging_stations, location))
-    dist_to_finish_demands = get_dist_to_finish_demands(vertices, edges, demands, location)
+    dist_to_furthest_cs = max(
+        get_dist_to_charging_stations(vertices, edges, charging_stations, location)
+    )
+    dist_to_finish_demands = get_dist_to_finish_demands(
+        vertices, edges, demands, location
+    )
     if battery <= min(dist_to_finish_demands) + dist_to_furthest_cs:
         return 0
     elif battery <= max(dist_to_finish_demands) + dist_to_furthest_cs:
@@ -407,7 +412,10 @@ def get_dist_of_demands(vertices, edges, demands):
 
 # get the dist to all cs from the current location
 def get_dist_to_charging_stations(vertices, edges, charging_stations, start_index):
-    return [dist_between(vertices, edges, start_index, cs.location) for cs in charging_stations]
+    return [
+        dist_between(vertices, edges, start_index, cs.location)
+        for cs in charging_stations
+    ]
 
 
 # roughly divide the map into a root x root grid map as initialization

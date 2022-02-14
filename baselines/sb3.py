@@ -235,7 +235,7 @@ class MADQN(object):
         tau=100,
         episodes=20_000,
         gamma=0.95,
-        epsilon=1.,
+        epsilon=1.0,
         decay_period=15,
         decay_rate=0.95,
         min_epsilon=0.01,
@@ -269,7 +269,9 @@ class MADQN(object):
             )
             for agent in self.env.agents
         }
-        self.replay_buffer = {agent: ReplayBuffer() for agent in self.env.possible_agents}
+        self.replay_buffer = {
+            agent: ReplayBuffer() for agent in self.env.possible_agents
+        }
         self.total_step = {agent: 0 for agent in self.env.possible_agents}
 
     def train(self):
@@ -285,9 +287,13 @@ class MADQN(object):
 
             cum_reward = {agent: 0 for agent in self.env.possible_agents}
             for agent in env.agent_iter():
-                
+
                 observation, reward, done, info = env.last()
-                prev_state = None if len(self.replay_buffer[agent]) == 0 else self.replay_buffer[agent][-1][2]
+                prev_state = (
+                    None
+                    if len(self.replay_buffer[agent]) == 0
+                    else self.replay_buffer[agent][-1][2]
+                )
                 cum_reward[agent] += reward
                 if prev_state != observation[:3]:
                     self.replay_buffer[agent].push(
@@ -301,24 +307,36 @@ class MADQN(object):
                     cum_reward[agent] = 0
 
                 if np.random.rand(1) < self.epsilon:
-                    
+
                     action = env.action_space(agent).sample()
                 else:
                     action = self.q_principal[agent].compute_argmax_q(observation[:3])
 
                 env.step(action)
 
-                if self.total_step[agent] % 10 == 0 and self.total_step[agent] > self.initial_step:
+                if (
+                    self.total_step[agent] % 10 == 0
+                    and self.total_step[agent] > self.initial_step
+                ):
                     samples = self.replay_buffer[agent].sample(self.batch_size)
-                    states, actions, new_states, rewards = list(), list(), list(), list()
+                    states, actions, new_states, rewards = (
+                        list(),
+                        list(),
+                        list(),
+                        list(),
+                    )
                     for transition in samples:
                         states.append(transition[0])
                         actions.append(transition[1])
                         new_states.append(transition[2])
                         rewards.append(transition[3])
 
-                    targets = rewards + self.gamma * self.q_target[agent].compute_max_q(new_states)
-                    loss_in_episode[agent].append(self.q_principal[agent].train(states, actions, targets))
+                    targets = rewards + self.gamma * self.q_target[agent].compute_max_q(
+                        new_states
+                    )
+                    loss_in_episode[agent].append(
+                        self.q_principal[agent].train(states, actions, targets)
+                    )
 
                     if self.total_step[agent] % self.tau == 0:
                         run_target_update(self.q_principal[agent], self.q_target[agent])
@@ -327,7 +345,10 @@ class MADQN(object):
                 reward_sum[agent] += reward
 
             reward_record[episode] = reward_sum
-            loss_mean_record[episode] = {agent: mean(loss) if len(loss) > 0 else None for agent, loss in loss_in_episode.items()}
+            loss_mean_record[episode] = {
+                agent: mean(loss) if len(loss) > 0 else None
+                for agent, loss in loss_in_episode.items()
+            }
             print(f"Training episode {episode} with reward {reward_sum}.")
 
         with open("reward.json", "w") as out_file:
