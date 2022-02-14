@@ -295,12 +295,10 @@ class FMPEnv(AECEnv):
         self.agent_name_idx_mapping = self.fmp.ev_name_idx_mapping
 
         self._action_spaces = {
-            agent: FMPActionSpace(3)
-            for agent in self.possible_agents
+            agent: FMPActionSpace(3) for agent in self.possible_agents
         }
         self._observation_spaces = {
-            agent: FMPActionSpace(3)
-            for agent in self.possible_agents
+            agent: FMPActionSpace(3) for agent in self.possible_agents
         }
 
         self.agents = self.possible_agents[:]
@@ -707,8 +705,8 @@ class FMPEnv(AECEnv):
                         self.fmp.vertices,
                         self.fmp.edges,
                         self.fmp.demands,
-                        self.fmp.electric_vehicles[agent_idx].location
-                    )[dmd_idx]
+                        self.fmp.electric_vehicles[agent_idx].location,
+                    )[dmd_idx],
                 )
                 self.rewards[agent] = -100 if next_state == 0 else 50
             elif action == 1:
