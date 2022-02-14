@@ -422,7 +422,7 @@ class FMPEnv(AECEnv):
 
         if self.dones[agent]:
             self._was_done_step(None)
-            self.observations[agent][1] = None
+            self.observations[agent] = None
             self.agent_selection = (
                 self._agent_selector.next()
                 if self._agent_selector.agent_order
@@ -622,7 +622,7 @@ class FMPEnv(AECEnv):
 
         # action to charge
         elif action == 1:
-            cs_idx = random.randint(self.fmp.n_charging_station)
+            cs_idx = random.randint(0, self.fmp.n_charging_station - 1)
             if self.verbose:
                 print("Trans: ", agent, "is to go to charge at ", cs_idx)
 
@@ -637,7 +637,7 @@ class FMPEnv(AECEnv):
 
         # action to load
         else:
-            dmd_idx = random.randint(self.fmp.n_demand)
+            dmd_idx = random.randint(0, self.fmp.n_demand - 1)
             if self.verbose:
                 print(
                     "Trans: ",
