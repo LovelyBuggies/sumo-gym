@@ -615,12 +615,12 @@ class FMPEnv(AECEnv):
         agent = self.agent_selection
         agent_idx = self.agent_name_idx_mapping[agent]
 
-        if action == 0:
+        if action == 2:
             if self.verbose:
                 print("Trans: ", agent, "is taking moving action")
 
         # action to charge
-        elif action <= self.fmp.n_charging_station:
+        elif action == 1:
             if self.verbose:
                 print("Trans: ", agent, "is to go to charge at ", action - 1)
 
