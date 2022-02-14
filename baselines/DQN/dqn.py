@@ -18,7 +18,7 @@ class ReplayBuffer(object):
 
         self.memory.append(transition)
         self.sample_w.append(
-            np.power(abs(transition[3]), 1 / 10) if None not in transition else 0
+            np.power(abs(transition[3]), 1) if None not in transition else 0
         )
 
     def sample(self, batch_size):

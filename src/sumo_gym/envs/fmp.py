@@ -221,6 +221,10 @@ class FMP(object):
 
 
 class FMPActionSpace(gym.spaces.Discrete):
+    def __init__(self, n):
+        self.n = int(n)
+        super(FMPActionSpace, self).__init__(n)
+
     def sample(self) -> int:
         p_to_respond = random.uniform(0.3, 0.4)
         p_to_charge = 0.9 - p_to_respond
@@ -719,6 +723,8 @@ class FMPEnv(AECEnv):
 
     def last(self, observe=True):
         agent = self.agent_selection
+        if agent == None:
+            return None, 0, True, {}
         observation = self.observe(agent) if observe else None
         return observation, self.rewards[agent], self.dones[agent], self.infos
 
