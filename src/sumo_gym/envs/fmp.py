@@ -181,6 +181,7 @@ class FMP(object):
         self.actual_departures = actual_departures
         self.demands = demands
 
+        self.n_demand = len(demands)
         self.n_vertex = len(self.vertices)
         self.n_edge = len(self.edges)
         self.n_vehicle = self.n_electric_vehicle = len(self.electric_vehicles)
@@ -277,11 +278,14 @@ class FMPEnv(AECEnv):
                 self.fmp.edge_length_dict,
                 self.fmp.ev_name_idx_mapping,
                 self.fmp.edges,
+                self.fmp.vertices,
+                self.fmp.vertex_dict,
                 self.fmp.n_electric_vehicle,
             )
             if hasattr(self, "render_env") and self.render_env is True
             else None
         )
+        self.travel_info = {i: None for i in range(self.fmp.n_electric_vehicle)}
 
         # setup Petting-Zoo environment variables
         self.possible_agents = list(self.fmp.ev_name_idx_mapping.keys())
@@ -360,6 +364,8 @@ class FMPEnv(AECEnv):
         self._agent_selector = agent_selector(self.agents)
         self.agent_selection = self._agent_selector.next()
 
+        self.travel_info = {i: None for i in range(self.fmp.n_electric_vehicle)}
+
         return self.observations
 
     def _was_done_step(self, action):
@@ -419,6 +425,9 @@ class FMPEnv(AECEnv):
         agent = self.agent_selection
         agent_idx = self.agent_name_idx_mapping[agent]
 
+        self.travel_info[agent_idx] = None
+        prev_loc = self.fmp.electric_vehicles[agent_idx].location
+
         if self.dones[agent]:
             self._was_done_step(None)
             self.observations[agent] = None
@@ -427,6 +436,7 @@ class FMPEnv(AECEnv):
                 if self._agent_selector.agent_order
                 else None
             )
+            self.travel_info[agent_idx] = (prev_loc, IDLE_LOCATION)
             return self.observations, self.rewards, self.dones, self.infos
 
         else:
@@ -437,6 +447,9 @@ class FMPEnv(AECEnv):
             # state transition
             else:
                 self._state_transition(action)
+
+            if prev_loc != self.fmp.electric_vehicles[agent_idx].location:
+                self.travel_info[agent_idx] = (prev_loc, self.fmp.electric_vehicles[agent_idx].location)
 
             # judge whether it's done
             self.dones[agent] = (
@@ -494,6 +507,10 @@ class FMPEnv(AECEnv):
                     )
                 )
                 self.infos.total_battery_consume += len(self.agents)
+
+                if self.sumo is not None:
+                    self.sumo.update_travel_vertex_info_for_vehicle(self.travel_info)
+                    self.render()
 
                 if self.verbose:
                     print("------------------------------")
@@ -690,8 +707,7 @@ class FMPEnv(AECEnv):
         if self.sumo_gui_path is None:
             raise EnvironmentError("Need sumo-gui path to render")
         elif self.sumo is not None:
-            # TODO: need sumo render here
-            print("sumo render")
+            self.sumo.render()
 
     def close(self):
         if hasattr(self, "sumo") and self.sumo is not None:
