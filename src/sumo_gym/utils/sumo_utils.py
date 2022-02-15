@@ -34,6 +34,7 @@ class SumoRender:
         self.need_action = [False] * n_vehicle
         self.n_vehicle = n_vehicle
         self.routes = []
+        self.last_edge = {i: None for i in range(n_vehicle)} # only used for setting stop if needed
 
         if "SUMO_HOME" in os.environ:
             tools = os.path.join(os.environ["SUMO_HOME"], "tools")
@@ -51,6 +52,7 @@ class SumoRender:
         print("UPDATE! ", self.travel_info)
 
     def render(self):
+        print("############# RENDER ###############")
         if not self.initialized:
             print("Initialize the first starting edge for vehicle...")
             self.initialized = True
@@ -62,6 +64,7 @@ class SumoRender:
             vehicle_id = self._find_key_from_value(self.ev_dict, 0)
             print("     route: ", traci.vehicle.getRoute(vehicle_id))
             traci.simulationStep()
+            print("      ")
             self._update_need_action_status()
 
     def close(self):
@@ -93,6 +96,7 @@ class SumoRender:
             # notice here each vehicle must finish traveling along it starting edge
             # there is no way to reassign it.
             self.routes.append(tuple([edge_id]))
+            self.last_edge[i] = edge_id
 
             print("Step stop for vehicle: ", vehicle_id)
 
@@ -111,21 +115,31 @@ class SumoRender:
         """
         eligible_vehicle = traci.vehicle.getIDList()
         for i in range(self.n_vehicle):
+            vehicle_id = self._find_key_from_value(self.ev_dict, i)
+
             if self.need_action[i]:
-
-
                 if self.travel_info[i] is None: # location not changed 
+                    print("!!!Set stop1!!!")
+                    traci.vehicle.setStop(
+                        vehID=vehicle_id,
+                        edgeID=self.last_edge[i],
+                        pos=self.edge_length_dict[self.last_edge[i]],
+                        laneIndex=0,
+                        duration=189999999999,
+                        flags=0,
+                        startPos=0,
+                    )
                     continue
 
                 if self.travel_info[i][1] == IDLE_LOCATION: # vehicle done, let it move to dest and disappear in network
                     print("Vehicle ", vehicle_id, " becomes idle, will disappear after finishing the trip.")
                 else:
+                    if len(traci.vehicle.getStops(vehID=vehicle_id, limit=1)) == 1:
+                        traci.vehicle.replaceStop(vehID=vehicle_id, nextStopIndex=0, edgeID="")
+
                     self.need_action[i] = False
-                    vehicle_id = self._find_key_from_value(self.ev_dict, i)
                     if vehicle_id not in eligible_vehicle:
                         continue
-
-                    # traci.vehicle.resume(vehicle_id)
 
                     via_edge = self.travel_info[i]
                     edge_id = self._find_key_from_value(
@@ -134,9 +148,11 @@ class SumoRender:
 
                     if "split" not in edge_id:
                         actual_edge_id = edge_id
-                    else:
+                    else: # next action is charging station, need stop
                         actual_edge_id = edge_id[7:]
+
                     self.routes[i] += tuple([actual_edge_id])
+                    self.last_edge[i] = edge_id
 
                     print(
                         "Vehicle ",
@@ -145,15 +161,21 @@ class SumoRender:
                         self.routes[i][-1],
                     )
 
-                    if (
-                        self.routes[i][-1] != self.routes[i][-2]
-                    ):  # handle the case for stopping at CS and then resume
+                    if self.routes[i][-1] != self.routes[i][-2]: # handle the case for stopping at CS and then resume
                         traci.vehicle.setRoute(
                             vehID=vehicle_id, edgeList=self.routes[i][-2:]
                         )
-                    else:
-                        edge_id = actual_edge_id
-
+                        if actual_edge_id != edge_id: # set stop for charging
+                            print("!!!Set stop2!!! ", edge_id)
+                            traci.vehicle.setStop(
+                                vehID=vehicle_id,
+                                edgeID=actual_edge_id,
+                                pos=self.edge_length_dict[edge_id],
+                                laneIndex=0,
+                                duration=189999999999,
+                                flags=0,
+                                startPos=0,
+                            )
 
     def _update_need_action_status(self):
         eligible_vehicle = traci.vehicle.getIDList()
