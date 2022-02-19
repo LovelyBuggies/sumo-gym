@@ -285,15 +285,16 @@ class MADQN(object):
                 self.epsilon *= self.decay_rate
                 self.epsilon = max(self.min_epsilon, self.epsilon)
 
-            prev_state, prev_action = None, None
+            prev_state = {agent: None for agent in env.possible_agents}
+            prev_action = {agent: None for agent in env.possible_agents}
             for agent in env.agent_iter():
                 observation, reward, done, info = env.last()
-                prev_state = observation
-                print((prev_state, prev_action, observation, reward))
-                if observation != 3 and prev_action:
+                print((prev_state[agent], prev_action[agent], observation, reward))
+                if observation != 3 and prev_action[agent]:
                     self.replay_buffer[agent].push(
-                        (prev_state, prev_action, observation, reward)
+                        (prev_state[agent], prev_action[agent], observation, reward)
                     )
+                    prev_state[agent] = observation
 
                 if np.random.rand(1) < self.epsilon:
                     action = env.action_space(agent).sample()
@@ -302,7 +303,7 @@ class MADQN(object):
                     action = env.action_space(agent).sample()
 
                 env.step(action)
-                prev_action = action if observation != 3 else 2
+                prev_action[agent] = action if observation != 3 else 2
 
         print(self.replay_buffer)
 

@@ -227,8 +227,8 @@ class FMPActionSpace(gym.spaces.Discrete):
 
     def sample(self) -> int:
         p_to_respond = random.uniform(0.3, 0.4)
-        p_to_charge = 0.9 - p_to_respond
-        return random.choices([0, 1, 2], [p_to_respond, p_to_charge, 0.1])[0]
+        p_to_charge = 1. - p_to_respond
+        return random.choices([0, 1, 2], [p_to_respond, p_to_charge, 0.])[0]
 
 
 class FMPEnv(AECEnv):
@@ -661,7 +661,7 @@ class FMPEnv(AECEnv):
             )
 
         # action to load
-        else:
+        elif action == 0:
             dmd_idx = random.randint(0, self.fmp.n_demand - 1)
             if self.verbose:
                 print(
