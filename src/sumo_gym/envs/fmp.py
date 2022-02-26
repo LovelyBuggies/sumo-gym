@@ -417,7 +417,6 @@ class FMPEnv(AECEnv):
                 self.fmp.charging_stations[cs_idx].charging_vehicle.remove(agent)
 
     def step(self, action):
-        print("############# STEP ###############")
         """
         Step takes an action for the current agent.
         Update of state, normal reward, responded, observation are in state "move" and "transition".
@@ -448,17 +447,14 @@ class FMPEnv(AECEnv):
                 print("... Agent: ", agent, " still on the edge...")
 
             else:
-                print("... Agent need action!!!")
                 self.rewards[agent] = 0
                 # state move
                 if self.fmp.electric_vehicles[agent_idx].status != 0:
-                    print("SHOULD MOVE")
                     self._state_move(agent)
                 # state transition
                 else:
                     self._state_transition(action)
 
-                print("     --> ", prev_loc, self.fmp.electric_vehicles[agent_idx].location)
                 if prev_loc != self.fmp.electric_vehicles[agent_idx].location:
                     self.travel_info[agent_idx] = (prev_loc, self.fmp.electric_vehicles[agent_idx].location)
 

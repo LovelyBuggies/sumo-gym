@@ -34,7 +34,7 @@ class SumoRender:
         self.need_action = [False] * n_vehicle
         self.n_vehicle = n_vehicle
         self.routes = []
-        self.last_edge = {i: None for i in range(n_vehicle)} # only used for setting stop if needed
+        self.last_edge = {i: None for i in range(n_vehicle)} # only used for setting stop related usage
 
         if "SUMO_HOME" in os.environ:
             tools = os.path.join(os.environ["SUMO_HOME"], "tools")
@@ -49,22 +49,16 @@ class SumoRender:
 
     def update_travel_vertex_info_for_vehicle(self, vehicle_travel_info_list):
         self.travel_info = vehicle_travel_info_list
-        print("UPDATE! ", self.travel_info)
 
     def render(self):
-        print("############# RENDER ###############")
         if not self.initialized:
             print("Initialize the first starting edge for vehicle...")
-            self.initialized = True
             self._initialize_route()
             self._park_vehicle_to_assigned_starting_pos()
+            self.initialized = True
         else:
-            print("In render...")
             self._update_route_with_stop()
-            vehicle_id = self._find_key_from_value(self.ev_dict, 0)
-            print("     route: ", traci.vehicle.getRoute(vehicle_id))
             traci.simulationStep()
-            print("      ")
             self._update_need_action_status()
 
     def close(self):
@@ -98,8 +92,6 @@ class SumoRender:
             self.routes.append(tuple([edge_id]))
             self.last_edge[i] = edge_id
 
-            print("Step stop for vehicle: ", vehicle_id)
-
     def _park_vehicle_to_assigned_starting_pos(self):
         print("Parking all car to their destinations of the starting edges...")
         while False in self.need_action:
@@ -119,10 +111,9 @@ class SumoRender:
 
             if self.need_action[i]:
                 if self.travel_info[i] is None: # location not changed 
-                    print("!!!Set stop1!!!")
                     traci.vehicle.setStop(
                         vehID=vehicle_id,
-                        edgeID=self.last_edge[i],
+                        edgeID=self.routes[i][-1],
                         pos=self.edge_length_dict[self.last_edge[i]],
                         laneIndex=0,
                         duration=189999999999,
@@ -151,35 +142,47 @@ class SumoRender:
                     else: # next action is charging station, need stop
                         actual_edge_id = edge_id[7:]
 
-                    self.routes[i] += tuple([actual_edge_id])
-                    self.last_edge[i] = edge_id
+                    if self.routes[i][-1] != actual_edge_id: # handle the case for stopping at CS and then resume
+                        self.routes[i] += tuple([actual_edge_id])
+                        self.last_edge[i] = edge_id
 
-                    print(
-                        "Vehicle ",
-                        vehicle_id,
-                        " : set next stop to: ",
-                        self.routes[i][-1],
-                    )
-
-                    if self.routes[i][-1] != self.routes[i][-2]: # handle the case for stopping at CS and then resume
-                        traci.vehicle.setRoute(
-                            vehID=vehicle_id, edgeList=self.routes[i][-2:]
+                        print(
+                            "Vehicle ",
+                            vehicle_id,
+                            " : set next stop to: ",
+                            self.routes[i][-1],
                         )
-                        if actual_edge_id != edge_id: # set stop for charging
-                            print("!!!Set stop2!!! ", edge_id)
-                            traci.vehicle.setStop(
-                                vehID=vehicle_id,
-                                edgeID=actual_edge_id,
-                                pos=self.edge_length_dict[edge_id],
-                                laneIndex=0,
-                                duration=189999999999,
-                                flags=0,
-                                startPos=0,
-                            )
+
+                        route_ind = traci.vehicle.getRouteIndex(vehicle_id)
+                        traci.vehicle.setRoute(
+                            vehID=vehicle_id, edgeList=self.routes[i][route_ind-len(self.routes[i]):]
+                        )
+
+                        traci.vehicle.setStop(
+                            vehID=vehicle_id,
+                            edgeID=actual_edge_id,
+                            pos=self.edge_length_dict[edge_id],
+                            laneIndex=0,
+                            duration=189999999999,
+                            flags=0,
+                            startPos=0,
+                        )
+                    elif "split" in self.last_edge[i] and self.last_edge[i][7:] == actual_edge_id:
+                        self.last_edge[i] = actual_edge_id
+                        traci.vehicle.setStop(
+                            vehID=vehicle_id,
+                            edgeID=actual_edge_id,
+                            pos=self.edge_length_dict[actual_edge_id],
+                            laneIndex=0,
+                            duration=189999999999,
+                            flags=0,
+                            startPos=0,
+                        )
+
+
 
     def _update_need_action_status(self):
         eligible_vehicle = traci.vehicle.getIDList()
-        print("Check status .....")
 
         for i in range(self.n_vehicle):
             vehicle_id = self._find_key_from_value(self.ev_dict, i)
@@ -189,14 +192,13 @@ class SumoRender:
                 traci.vehicle.getDrivingDistance(
                     vehicle_id, 
                     self.routes[i][-1], 
-                    self.edge_length_dict[self.routes[i][-1]]
-                ) <= traci.vehicle.getSpeed(vehicle_id)
+                    self.edge_length_dict[self.last_edge[i]]
+                ) <= 20
             ):  # arriving the assigned vertex, can take the next action
                 self.need_action[i] = True
-                print("Here!")
             else:
                 self.need_action[i] = False
-                print("... Not yet!")
+
 
     def _find_key_from_value(self, dict, value):
         return list(dict.keys())[list(dict.values()).index(value)]
