@@ -17,9 +17,7 @@ class ReplayBuffer(object):
             self.sample_w.popleft()
 
         self.memory.append(transition)
-        self.sample_w.append(
-            np.power(abs(transition[3]), 1)
-        )
+        self.sample_w.append(np.power(abs(transition[3]), 1))
 
     def sample(self, batch_size):
         sum_w = sum(self.sample_w)
