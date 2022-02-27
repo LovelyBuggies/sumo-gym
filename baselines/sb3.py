@@ -298,7 +298,9 @@ class MADQN(object):
                         [observation, prev_action[agent], None, reward]
                     )
 
-                if np.random.rand(1) < self.epsilon:
+                if observation == 3:
+                    action = 2
+                elif np.random.rand(1) < self.epsilon:
                     action = env.action_space(agent).sample()
                 else:
                     action = self.q_principal[agent].compute_argmax_q(observation)
