@@ -8,7 +8,7 @@ from sumo_gym.utils.fmp_utils import (
     Demand,
     ChargingStation,
     ElectricVehicles,
-    get_safe_indicator
+    get_safe_indicator,
 )
 from DQN.dqn import QNetwork, ReplayBuffer, run_target_update
 from statistics import mean
