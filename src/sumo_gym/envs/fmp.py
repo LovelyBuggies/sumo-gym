@@ -226,7 +226,7 @@ class FMPActionSpace(gym.spaces.Discrete):
         super(FMPActionSpace, self).__init__(n)
 
     def sample(self) -> int:
-        p_to_respond = random.uniform(0.3, 0.4)
+        p_to_respond = random.uniform(0.3, 0.6)
         p_to_charge = 1.0 - p_to_respond
         return random.choices([0, 1, 2], [p_to_respond, p_to_charge, 0.0])[0]
 

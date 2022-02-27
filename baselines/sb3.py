@@ -8,6 +8,7 @@ from sumo_gym.utils.fmp_utils import (
     Demand,
     ChargingStation,
     ElectricVehicles,
+    get_safe_indicator
 )
 from DQN.dqn import QNetwork, ReplayBuffer, run_target_update
 from statistics import mean
@@ -233,7 +234,7 @@ class MADQN(object):
         lr=0.0003,
         batch_size=64,
         tau=100,
-        episodes=1,
+        episodes=2,
         gamma=0.95,
         epsilon=1.0,
         decay_period=15,
@@ -279,22 +280,23 @@ class MADQN(object):
         loss_mean_record = {}
         for episode in range(self.episodes):
             env.reset()
+            episode_step = {agent: 0 for agent in env.possible_agents}
             reward_sum = {agent: 0 for agent in env.possible_agents}
             loss_in_episode = {agent: list() for agent in env.possible_agents}
             if episode % self.decay_period == 0:
                 self.epsilon *= self.decay_rate
                 self.epsilon = max(self.min_epsilon, self.epsilon)
 
-            prev_state = {agent: None for agent in env.possible_agents}
             prev_action = {agent: None for agent in env.possible_agents}
             for agent in env.agent_iter():
                 observation, reward, done, info = env.last()
-                print((prev_state[agent], prev_action[agent], observation, reward))
-                if observation != 3 and prev_action[agent]:
+                if observation != 3 and prev_action[agent] is not None:
+                    if self.replay_buffer[agent] and episode_step != 0:
+                        self.replay_buffer[agent][-1][2] = observation
+
                     self.replay_buffer[agent].push(
-                        (prev_state[agent], prev_action[agent], observation, reward)
+                        [observation, prev_action[agent], None, reward]
                     )
-                    prev_state[agent] = observation
 
                 if np.random.rand(1) < self.epsilon:
                     action = env.action_space(agent).sample()
@@ -303,10 +305,19 @@ class MADQN(object):
                     action = env.action_space(agent).sample()
 
                 env.step(action)
-                prev_action[agent] = action if observation != 3 else 2
+                prev_action[agent] = action
+                episode_step[agent] += 1
 
+            for agent_idx, agent in enumerate(env.possible_agents):
+                self.replay_buffer[agent][-1][2] = get_safe_indicator(
+                    env.fmp.vertices,
+                    env.fmp.edges,
+                    env.fmp.demands,
+                    env.fmp.charging_stations,
+                    env.fmp.electric_vehicles[agent_idx].location,
+                    env.fmp.electric_vehicles[agent_idx].battery,
+                )
         print(self.replay_buffer)
-
         #     if (
         #         self.total_step[agent] % 10 == 0
         #         and self.total_step[agent] > self.initial_step
