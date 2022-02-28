@@ -309,52 +309,52 @@ class MADQN(object):
                 prev_action[agent] = action
                 episode_step[agent] += 1
 
-            for agent_idx, agent in enumerate(env.possible_agents):
-                self.replay_buffer[agent][-1][2] = get_safe_indicator(
-                    env.fmp.vertices,
-                    env.fmp.edges,
-                    env.fmp.demands,
-                    env.fmp.charging_stations,
-                    env.fmp.electric_vehicles[agent_idx].location,
-                    env.fmp.electric_vehicles[agent_idx].battery,
-                )
+                if done:
+                    self.replay_buffer[agent][-1][2] = get_safe_indicator(
+                        env.fmp.vertices,
+                        env.fmp.edges,
+                        env.fmp.demands,
+                        env.fmp.charging_stations,
+                        env.fmp.electric_vehicles[agent_idx].location,
+                        env.fmp.electric_vehicles[agent_idx].battery,
+                    )
 
-            if (
-                self.total_step[agent] % 10 == 0
-                and self.total_step[agent] > self.initial_step
-            ):
-                samples = self.replay_buffer[agent].sample(self.batch_size)
-                states, actions, new_states, rewards = (
-                    list(),
-                    list(),
-                    list(),
-                    list(),
-                )
-                for transition in samples:
-                    states.append(transition[0])
-                    actions.append(transition[1])
-                    new_states.append(transition[2])
-                    rewards.append(transition[3])
+                if (
+                    self.total_step[agent] % 10 == 0
+                    and self.total_step[agent] > self.initial_step
+                ):
+                    samples = self.replay_buffer[agent].sample(self.batch_size)
+                    states, actions, new_states, rewards = (
+                        list(),
+                        list(),
+                        list(),
+                        list(),
+                    )
+                    for transition in samples:
+                        states.append(transition[0])
+                        actions.append(transition[1])
+                        new_states.append(transition[2])
+                        rewards.append(transition[3])
 
-                targets = rewards + self.gamma * self.q_target[agent].compute_max_q(
-                    new_states
-                )
-                loss_in_episode[agent].append(
-                    self.q_principal[agent].train(states, actions, targets)
-                )
+                    targets = rewards + self.gamma * self.q_target[agent].compute_max_q(
+                        new_states
+                    )
+                    loss_in_episode[agent].append(
+                        self.q_principal[agent].train(states, actions, targets)
+                    )
 
-                if self.total_step[agent] % self.tau == 0:
-                    run_target_update(self.q_principal[agent], self.q_target[agent])
+                    if self.total_step[agent] % self.tau == 0:
+                        run_target_update(self.q_principal[agent], self.q_target[agent])
 
-            self.total_step[agent] += 1
-            reward_sum[agent] += reward
+                self.total_step[agent] += 1
+                reward_sum[agent] += reward
 
-        reward_record[episode] = reward_sum
-        loss_mean_record[episode] = {
-            agent: mean(loss) if len(loss) > 0 else None
-            for agent, loss in loss_in_episode.items()
-        }
-        print(f"Training episode {episode} with reward {reward_sum}.")
+            reward_record[episode] = reward_sum
+            loss_mean_record[episode] = {
+                agent: mean(loss) if len(loss) > 0 else None
+                for agent, loss in loss_in_episode.items()
+            }
+            print(f"Training episode {episode} with reward {reward_sum}.")
 
         with open("reward.json", "w") as out_file:
             json.dump(reward_record, out_file)
