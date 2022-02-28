@@ -2,22 +2,21 @@ import random
 import numpy as np
 
 import torch
-from collections import deque
 
 
 class ReplayBuffer(object):
     def __init__(self, max_len=10_000):
         self.max_len = max_len
-        self.memory = deque()
+        self.memory = list()
 
     def push(self, transition):
         if len(self.memory) >= self.max_len:
-            self.memory.popleft()
+            self.memory.pop(0)
 
         self.memory.append(transition)
 
     def sample(self, batch_size):
-        dummy_memory = set([tuple(m) for m in self.memory])
+        dummy_memory = set([tuple(m) for m in self.memory[:-1]])
         return random.sample(dummy_memory, batch_size)
 
     def __repr__(self):

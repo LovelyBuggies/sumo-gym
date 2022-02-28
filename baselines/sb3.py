@@ -233,14 +233,14 @@ class MADQN(object):
         env,
         lr=0.003,
         batch_size=4,
-        tau=50,
+        tau=100,
         episodes=2000,
         gamma=0.95,
         epsilon=1.0,
-        decay_period=15,
+        decay_period=25,
         decay_rate=0.95,
         min_epsilon=0.01,
-        initial_step=50,
+        initial_step=200,
     ):
         self.env = env
         self.lr = lr
