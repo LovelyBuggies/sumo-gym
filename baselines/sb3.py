@@ -181,7 +181,7 @@ n_edge = len(edges)
 n_vehicle = 3
 n_electric_vehicle = 3
 n_charging_station = 3
-electric_vehicles = [ElectricVehicles(i, 1, 220, 25) for i in range(n_electric_vehicle)]
+electric_vehicles = [ElectricVehicles(i, 1, 220, 35) for i in range(n_electric_vehicle)]
 charging_stations = [
     ChargingStation(3, 220, 10),
     ChargingStation(33, 220, 20),
@@ -233,8 +233,8 @@ class MADQN(object):
         env,
         lr=0.003,
         batch_size=16,
-        tau=100,
-        episodes=2,
+        tau=50,
+        episodes=2000,
         gamma=0.95,
         epsilon=1.0,
         decay_period=15,
@@ -302,12 +302,8 @@ class MADQN(object):
                     action = 2
                 elif np.random.rand(1) < self.epsilon:
                     action = env.action_space(agent).sample()
-                    if action == 2:
-                        print("*********************************")
                 else:
                     action = self.q_principal[agent].compute_argmax_q(observation)
-                    if action == 2:
-                        print("-----------------------------------")
 
                 env.step(action)
                 prev_action[agent] = action
