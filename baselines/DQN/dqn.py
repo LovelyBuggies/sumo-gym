@@ -17,7 +17,8 @@ class ReplayBuffer(object):
         self.memory.append(transition)
 
     def sample(self, batch_size):
-        return random.sample(set(self.memory), batch_size)
+        dummy_memory = set([tuple(m) for m in self.memory])
+        return random.sample(dummy_memory, batch_size)
 
     def __repr__(self):
         return str(self.memory)
