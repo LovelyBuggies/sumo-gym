@@ -234,7 +234,7 @@ class MADQN(object):
         lr=0.003,
         batch_size=16,
         tau=100,
-        episodes=200,
+        episodes=2,
         gamma=0.95,
         epsilon=1.0,
         decay_period=15,
@@ -290,7 +290,7 @@ class MADQN(object):
             prev_action = {agent: None for agent in env.possible_agents}
             for agent in env.agent_iter():
                 observation, reward, done, info = env.last()
-                if observation != 3 and prev_action[agent] is not None:
+                if observation != 3 and prev_action[agent] is not None and prev_action[agent] != 2:
                     if self.replay_buffer[agent] and episode_step != 0:
                         self.replay_buffer[agent][-1][2] = observation
 
@@ -302,8 +302,12 @@ class MADQN(object):
                     action = 2
                 elif np.random.rand(1) < self.epsilon:
                     action = env.action_space(agent).sample()
+                    if action == 2:
+                        print("*********************************")
                 else:
                     action = self.q_principal[agent].compute_argmax_q(observation)
+                    if action == 2:
+                        print("-----------------------------------")
 
                 env.step(action)
                 prev_action[agent] = action
@@ -320,48 +324,50 @@ class MADQN(object):
                         env.fmp.electric_vehicles[agent_idx].battery,
                     )
 
-                if (
-                    self.total_step[agent] % 10 == 0
-                    and self.total_step[agent] > self.initial_step
-                ):
-                    samples = self.replay_buffer[agent].sample(self.batch_size)
-                    states, actions, new_states, rewards = (
-                        list(),
-                        list(),
-                        list(),
-                        list(),
-                    )
-                    for transition in samples:
-                        states.append(transition[0])
-                        actions.append(transition[1])
-                        new_states.append(transition[2])
-                        rewards.append(transition[3])
+        print(self.replay_buffer)
 
-                    targets = rewards + self.gamma * self.q_target[agent].compute_max_q(
-                        new_states
-                    )
-                    loss_in_episode[agent].append(
-                        self.q_principal[agent].train(states, actions, targets)
-                    )
+            #     if (
+            #         self.total_step[agent] % 10 == 0
+            #         and self.total_step[agent] > self.initial_step
+            #     ):
+            #         samples = self.replay_buffer[agent].sample(self.batch_size)
+            #         states, actions, new_states, rewards = (
+            #             list(),
+            #             list(),
+            #             list(),
+            #             list(),
+            #         )
+            #         for transition in samples:
+            #             states.append(transition[0])
+            #             actions.append(transition[1])
+            #             new_states.append(transition[2])
+            #             rewards.append(transition[3])
+            #
+            #         targets = rewards + self.gamma * self.q_target[agent].compute_max_q(
+            #             new_states
+            #         )
+            #         loss_in_episode[agent].append(
+            #             self.q_principal[agent].train(states, actions, targets)
+            #         )
+            #
+            #         if self.total_step[agent] % self.tau == 0:
+            #             run_target_update(self.q_principal[agent], self.q_target[agent])
+            #
+            #     self.total_step[agent] += 1
+            #     reward_sum[agent] += reward
+            #
+            # reward_record[episode] = reward_sum
+            # loss_mean_record[episode] = {
+            #     agent: mean(loss) if len(loss) > 0 else None
+            #     for agent, loss in loss_in_episode.items()
+            # }
+            # print(f"Training episode {episode} with reward {reward_sum}.")
 
-                    if self.total_step[agent] % self.tau == 0:
-                        run_target_update(self.q_principal[agent], self.q_target[agent])
-
-                self.total_step[agent] += 1
-                reward_sum[agent] += reward
-
-            reward_record[episode] = reward_sum
-            loss_mean_record[episode] = {
-                agent: mean(loss) if len(loss) > 0 else None
-                for agent, loss in loss_in_episode.items()
-            }
-            print(f"Training episode {episode} with reward {reward_sum}.")
-
-        with open("reward.json", "w") as out_file:
-            json.dump(reward_record, out_file)
-
-        with open("loss.json", "w") as out_file:
-            json.dump(loss_mean_record, out_file)
+        # with open("reward.json", "w") as out_file:
+        #     json.dump(reward_record, out_file)
+        #
+        # with open("loss.json", "w") as out_file:
+        #     json.dump(loss_mean_record, out_file)
 
 
 madqn = MADQN(env=env)
