@@ -9,22 +9,17 @@ class ReplayBuffer(object):
     def __init__(self, max_len=10_000):
         self.max_len = max_len
         self.memory = deque()
-        self.sample_w = deque()
 
     def push(self, transition):
         if len(self.memory) >= self.max_len:
             self.memory.popleft()
-            self.sample_w.popleft()
 
         self.memory.append(transition)
-        self.sample_w.append(np.power(abs(transition[3]), 1))
 
     def sample(self, batch_size):
-        sum_w = sum(self.sample_w)
         inx = np.random.choice(
             len(self.memory),
             batch_size,
-            p=[w / sum_w for w in self.sample_w],
             replace=False,
         )
         return [self.memory[i] for i in inx]
