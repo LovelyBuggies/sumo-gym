@@ -53,14 +53,14 @@ class QNetwork(object):
         return zeros.scatter(scatter_dim, y_tensor, 1)
 
     def compute_q(self, states, actions):
-        states = torch.FloatTensor(states)
+        states = torch.FloatTensor([[s] for s in states])
         q_preds = self.model(states)
         action_onehot = self.to_one_hot(actions, self.n_action)
         q_preds_selected = torch.sum(q_preds * action_onehot, axis=-1)
         return q_preds_selected
 
     def compute_max_q(self, states):
-        states = torch.FloatTensor([states])
+        states = torch.FloatTensor([[s] for s in states])
         q_values = self.model(states).cpu().data.numpy()
         q_pred_greedy = np.max(q_values, 1)
         return q_pred_greedy
@@ -72,9 +72,9 @@ class QNetwork(object):
         return greedy_action
 
     def train(self, states, actions, targets):
-        states = torch.FloatTensor(states)
+        states = torch.FloatTensor([[s] for s in states])
         actions = torch.LongTensor(actions)
-        targets = torch.FloatTensor(targets)
+        targets = torch.FloatTensor([[t] for t in targets])
         q_pred_selected = self.compute_q(states, actions)
         loss = torch.mean((q_pred_selected - targets) ** 2)
         self.optimizer.zero_grad()
