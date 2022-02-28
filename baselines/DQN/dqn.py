@@ -70,7 +70,7 @@ class QNetwork(object):
         return q_preds_selected
 
     def compute_max_q(self, states):
-        states = torch.FloatTensor(states)
+        states = torch.FloatTensor([states])
         q_values = self.model(states).cpu().data.numpy()
         q_pred_greedy = np.max(q_values, 1)
         return q_pred_greedy
