@@ -1,24 +1,37 @@
 import random
 import numpy as np
-import random
+
 import torch
+from collections import deque
 
 
 class ReplayBuffer(object):
-    def __init__(self):
-        self.memory = set()
+    def __init__(self, max_len=10_000):
+        self.max_len = max_len
+        self.memory = deque()
 
     def push(self, transition):
-        self.memory.add(transition)
+        if len(self.memory) >= self.max_len:
+            self.memory.popleft()
+
+        self.memory.append(transition)
 
     def sample(self, batch_size):
-        random.sample(self.memory, batch_size)
+        inx = np.random.choice(
+            len(self.memory),
+            batch_size,
+            replace=False,
+        )
+        return [self.memory[i] for i in inx]
 
     def __repr__(self):
         return str(self.memory)
 
     def __len__(self):
         return len(self.memory)
+
+    def __getitem__(self, item):
+        return self.memory[item]
 
 
 class QNetwork(object):
