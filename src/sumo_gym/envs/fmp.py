@@ -221,6 +221,17 @@ class FMP(object):
         return True
 
 
+class FMPActionSpace(gym.spaces.Discrete):
+    def __init__(self, n):
+        self.n = int(n)
+        super(FMPActionSpace, self).__init__(n)
+
+    def sample(self) -> int:
+        p_to_respond = random.uniform(0.3, 0.6)
+        p_to_charge = 1.0 - p_to_respond
+        return random.choices([0, 1, 2], [p_to_respond, p_to_charge, 0.0])[0]
+
+
 class FMPEnv(AECEnv):
     metadata = {"render.modes": ["human"]}
     fmp = property(operator.attrgetter("_fmp"))
@@ -292,10 +303,10 @@ class FMPEnv(AECEnv):
         self.agent_name_idx_mapping = self.fmp.ev_name_idx_mapping
 
         self._action_spaces = {
-            agent: gym.spaces.Discrete(3) for agent in self.possible_agents
+            agent: FMPActionSpace(3) for agent in self.possible_agents
         }
         self._observation_spaces = {
-            agent: gym.spaces.Discrete(3) for agent in self.possible_agents
+            agent: FMPActionSpace(3) for agent in self.possible_agents
         }
 
         self.agents = self.possible_agents[:]
@@ -315,11 +326,11 @@ class FMPEnv(AECEnv):
 
     @functools.lru_cache(maxsize=None)
     def observation_space(self, agent):
-        return gym.spaces.Discrete(3)
+        return FMPActionSpace(3)
 
     @functools.lru_cache(maxsize=None)
     def action_space(self, agent):
-        return gym.spaces.Discrete(3)
+        return FMPActionSpace(3)
 
     def observe(self, agent):
         return self.observations[agent]
@@ -638,9 +649,9 @@ class FMPEnv(AECEnv):
         else:
             raise ValueError("Agent that not responding or charging should not move")
 
-        self.rewards[agent] = 0
         self.states[agent] = 3
         self.observations[agent] = 3
+        self.rewards[agent] = 0
 
     def _state_transition(self, action):
         """
@@ -674,7 +685,7 @@ class FMPEnv(AECEnv):
             )
 
         # action to load
-        else:
+        elif action == 0:
             dmd_idx = random.randint(0, self.fmp.n_demand - 1)
             if self.verbose:
                 print(
@@ -694,7 +705,6 @@ class FMPEnv(AECEnv):
             self.fmp.electric_vehicles[agent_idx].status = 1 + dmd_idx
             self.fmp.electric_vehicles[agent_idx].responded.append(dmd_idx)
 
-        self.rewards[agent] = 0  # todo
         self.states[agent] = get_safe_indicator(
             self.fmp.vertices,
             self.fmp.edges,
@@ -704,9 +714,41 @@ class FMPEnv(AECEnv):
             self.fmp.electric_vehicles[agent_idx].battery,
         )
         self.observations[agent] = self.states[agent]
+        self.rewards[agent] = 0
+        if self.states[agent] == 0:
+            if action == 0:
+                self.rewards[agent] = -100
+            elif action == 1:
+                self.rewards[agent] = 100
+        elif self.states[agent] == 1:
+            if action == 0:
+                next_state = get_safe_indicator(
+                    self.fmp.vertices,
+                    self.fmp.edges,
+                    self.fmp.demands,
+                    self.fmp.charging_stations,
+                    self.fmp.demands[dmd_idx].destination,
+                    self.fmp.electric_vehicles[agent_idx].battery
+                    - get_dist_to_finish_demands(
+                        self.fmp.vertices,
+                        self.fmp.edges,
+                        self.fmp.demands,
+                        self.fmp.electric_vehicles[agent_idx].location,
+                    )[dmd_idx],
+                )
+                self.rewards[agent] = -100 if next_state == 0 else 50
+            elif action == 1:
+                self.rewards[agent] = 20
+        elif self.states[agent] == 2:
+            if action == 0:
+                self.rewards[agent] = 50
+            elif action == 1:
+                self.rewards[agent] = -20
 
     def last(self, observe=True):
         agent = self.agent_selection
+        if agent == None:
+            return None, 0, True, {}
         observation = self.observe(agent) if observe else None
         return observation, self.rewards[agent], self.dones[agent], self.infos
 

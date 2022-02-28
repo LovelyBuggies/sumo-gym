@@ -8,6 +8,7 @@ from sumo_gym.utils.fmp_utils import (
     Demand,
     ChargingStation,
     ElectricVehicles,
+    get_safe_indicator,
 )
 from DQN.dqn import QNetwork, ReplayBuffer, run_target_update
 from statistics import mean
@@ -180,7 +181,7 @@ n_edge = len(edges)
 n_vehicle = 3
 n_electric_vehicle = 3
 n_charging_station = 3
-electric_vehicles = [ElectricVehicles(i, 1, 220, 50) for i in range(n_electric_vehicle)]
+electric_vehicles = [ElectricVehicles(i, 1, 220, 25) for i in range(n_electric_vehicle)]
 charging_stations = [
     ChargingStation(3, 220, 10),
     ChargingStation(33, 220, 20),
@@ -209,7 +210,7 @@ n_demand = len(demands)
 env = gym.make(
     "FMP-v0",
     mode="numerical",
-    verbose=0,
+    verbose=1,
     n_vertex=n_vertex,
     n_area=n_area,
     n_demand=n_demand,
@@ -230,16 +231,16 @@ class MADQN(object):
     def __init__(
         self,
         env,
-        lr=0.0003,
-        batch_size=64,
+        lr=0.003,
+        batch_size=16,
         tau=100,
-        episodes=20_000,
+        episodes=200,
         gamma=0.95,
         epsilon=1.0,
         decay_period=15,
         decay_rate=0.95,
         min_epsilon=0.01,
-        initial_step=500,
+        initial_step=50,
     ):
         self.env = env
         self.lr = lr
@@ -255,7 +256,7 @@ class MADQN(object):
 
         self.q_principal = {
             agent: QNetwork(
-                env.observation_space(agent).low.size - 1,
+                1,
                 env.action_space(agent).n,
                 self.lr,
             )
@@ -263,7 +264,7 @@ class MADQN(object):
         }
         self.q_target = {
             agent: QNetwork(
-                env.observation_space(agent).low.size - 1,
+                1,
                 env.action_space(agent).n,
                 self.lr,
             )
@@ -279,77 +280,81 @@ class MADQN(object):
         loss_mean_record = {}
         for episode in range(self.episodes):
             env.reset()
+            episode_step = {agent: 0 for agent in env.possible_agents}
             reward_sum = {agent: 0 for agent in env.possible_agents}
             loss_in_episode = {agent: list() for agent in env.possible_agents}
             if episode % self.decay_period == 0:
                 self.epsilon *= self.decay_rate
                 self.epsilon = max(self.min_epsilon, self.epsilon)
 
-            cum_reward = {agent: 0 for agent in self.env.possible_agents}
+            prev_action = {agent: None for agent in env.possible_agents}
             for agent in env.agent_iter():
-
                 observation, reward, done, info = env.last()
-                prev_state = (
-                    None
-                    if len(self.replay_buffer[agent]) == 0
-                    else self.replay_buffer[agent][-1][2]
-                )
-                cum_reward[agent] += reward
-                if prev_state != observation[:3]:
+                if observation != 3 and prev_action[agent] is not None:
+                    if self.replay_buffer[agent] and episode_step != 0:
+                        self.replay_buffer[agent][-1][2] = observation
+
                     self.replay_buffer[agent].push(
-                        (
-                            prev_state,
-                            observation[-1],
-                            observation[:3],
-                            cum_reward[agent],
-                        )
+                        [observation, prev_action[agent], None, reward]
                     )
-                    cum_reward[agent] = 0
 
-                if np.random.rand(1) < self.epsilon:
-
+                if observation == 3:
+                    action = 2
+                elif np.random.rand(1) < self.epsilon:
                     action = env.action_space(agent).sample()
                 else:
-                    action = self.q_principal[agent].compute_argmax_q(observation[:3])
+                    action = self.q_principal[agent].compute_argmax_q(observation)
 
                 env.step(action)
+                prev_action[agent] = action
+                episode_step[agent] += 1
 
-                if (
-                    self.total_step[agent] % 10 == 0
-                    and self.total_step[agent] > self.initial_step
-                ):
-                    samples = self.replay_buffer[agent].sample(self.batch_size)
-                    states, actions, new_states, rewards = (
-                        list(),
-                        list(),
-                        list(),
-                        list(),
-                    )
-                    for transition in samples:
-                        states.append(transition[0])
-                        actions.append(transition[1])
-                        new_states.append(transition[2])
-                        rewards.append(transition[3])
+            for agent_idx, agent in enumerate(env.possible_agents):
+                self.replay_buffer[agent][-1][2] = get_safe_indicator(
+                    env.fmp.vertices,
+                    env.fmp.edges,
+                    env.fmp.demands,
+                    env.fmp.charging_stations,
+                    env.fmp.electric_vehicles[agent_idx].location,
+                    env.fmp.electric_vehicles[agent_idx].battery,
+                )
 
-                    targets = rewards + self.gamma * self.q_target[agent].compute_max_q(
-                        new_states
-                    )
-                    loss_in_episode[agent].append(
-                        self.q_principal[agent].train(states, actions, targets)
-                    )
+            if (
+                self.total_step[agent] % 10 == 0
+                and self.total_step[agent] > self.initial_step
+            ):
+                samples = self.replay_buffer[agent].sample(self.batch_size)
+                states, actions, new_states, rewards = (
+                    list(),
+                    list(),
+                    list(),
+                    list(),
+                )
+                for transition in samples:
+                    states.append(transition[0])
+                    actions.append(transition[1])
+                    new_states.append(transition[2])
+                    rewards.append(transition[3])
 
-                    if self.total_step[agent] % self.tau == 0:
-                        run_target_update(self.q_principal[agent], self.q_target[agent])
+                targets = rewards + self.gamma * self.q_target[agent].compute_max_q(
+                    new_states
+                )
+                loss_in_episode[agent].append(
+                    self.q_principal[agent].train(states, actions, targets)
+                )
 
-                self.total_step[agent] += 1
-                reward_sum[agent] += reward
+                if self.total_step[agent] % self.tau == 0:
+                    run_target_update(self.q_principal[agent], self.q_target[agent])
 
-            reward_record[episode] = reward_sum
-            loss_mean_record[episode] = {
-                agent: mean(loss) if len(loss) > 0 else None
-                for agent, loss in loss_in_episode.items()
-            }
-            print(f"Training episode {episode} with reward {reward_sum}.")
+            self.total_step[agent] += 1
+            reward_sum[agent] += reward
+
+        reward_record[episode] = reward_sum
+        loss_mean_record[episode] = {
+            agent: mean(loss) if len(loss) > 0 else None
+            for agent, loss in loss_in_episode.items()
+        }
+        print(f"Training episode {episode} with reward {reward_sum}.")
 
         with open("reward.json", "w") as out_file:
             json.dump(reward_record, out_file)

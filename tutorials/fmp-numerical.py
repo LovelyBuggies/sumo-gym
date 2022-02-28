@@ -179,7 +179,7 @@ n_edge = len(edges)
 n_vehicle = 3
 n_electric_vehicle = 3
 n_charging_station = 3
-electric_vehicles = [ElectricVehicles(i, 1, 220, 50) for i in range(n_electric_vehicle)]
+electric_vehicles = [ElectricVehicles(i, 1, 220, 25) for i in range(n_electric_vehicle)]
 charging_stations = [
     ChargingStation(3, 220, 10),
     ChargingStation(33, 220, 20),
