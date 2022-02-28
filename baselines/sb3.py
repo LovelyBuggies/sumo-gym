@@ -232,7 +232,7 @@ class MADQN(object):
         self,
         env,
         lr=0.003,
-        batch_size=16,
+        batch_size=4,
         tau=50,
         episodes=2000,
         gamma=0.95,
