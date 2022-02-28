@@ -310,7 +310,7 @@ class MADQN(object):
                 episode_step[agent] += 1
 
                 if done:
-                    agent_idx = self.agent_name_idx_mapping[agent]
+                    agent_idx = env.agent_name_idx_mapping[agent]
                     self.replay_buffer[agent][-1][2] = get_safe_indicator(
                         env.fmp.vertices,
                         env.fmp.edges,
