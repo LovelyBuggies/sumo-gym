@@ -179,7 +179,7 @@ n_vertex = len(vertices)
 n_area = 4
 n_edge = len(edges)
 n_vehicle = 3
-n_electric_vehicle = 3
+n_electric_vehicle = 1
 n_charging_station = 3
 electric_vehicles = [ElectricVehicles(i, 1, 220, 35) for i in range(n_electric_vehicle)]
 charging_stations = [
@@ -233,8 +233,8 @@ class MADQN(object):
         env,
         lr=0.003,
         batch_size=4,
-        tau=100,
-        episodes=2000,
+        tau=50,
+        episodes=200,
         gamma=0.95,
         epsilon=1.0,
         decay_period=25,
