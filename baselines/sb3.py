@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import json
 import gym
@@ -275,9 +276,33 @@ class MADQN(object):
         }
         self.total_step = {agent: 0 for agent in self.env.possible_agents}
 
+    def _initialize_output_file(self):
+        if os.path.exists("loss.json"):
+            os.remove("loss.json")
+
+        if os.path.exists("reward.json"):
+            os.remove("reward.json")
+
+        with open("reward.json", "w") as out_file:
+            out_file.write("{")
+
+        with open("loss.json", "w") as out_file:
+            out_file.write("{")
+
+
+    def _wrap_up_output_file(self):
+        with open("reward.json", "a") as out_file:
+            out_file.write("}")
+
+        with open("loss.json", "a") as out_file:
+            out_file.write("}")
+
+
     def train(self):
-        reward_record = {}
-        loss_mean_record = {}
+
+        self._initialize_output_file()
+        first_line_loss, first_line_reward = True, True
+
         for episode in range(self.episodes):
             env.reset()
             episode_step = {agent: 0 for agent in env.possible_agents}
@@ -350,19 +375,37 @@ class MADQN(object):
                 self.total_step[agent] += 1
                 reward_sum[agent] += reward
 
-            reward_record[episode] = reward_sum
-            loss_mean_record[episode] = {
-                agent: mean(loss) if len(loss) > 0 else None
-                for agent, loss in loss_in_episode.items()
+            reward_record = {
+                episode: reward_sum
             }
+            loss_mean_record = {
+                episode: {
+                    agent: mean(loss) if len(loss) > 0 else None
+                    for agent, loss in loss_in_episode.items()
+                }
+            }
+
+            with open("reward.json", "a") as out_file:
+                if first_line_reward:
+                    first_line_reward = False
+                else: 
+                    out_file.write(",")
+
+                data = json.dumps(reward_record)
+                out_file.write(data[1:-1])
+
+            with open("loss.json", "a") as out_file:
+                if first_line_loss:
+                    first_line_loss = False
+                else:
+                    out_file.write(",")
+
+                data = json.dumps(loss_mean_record)
+                out_file.write(data[1:-1])
+
             print(f"Training episode {episode} with reward {reward_sum}.")
 
-        with open("reward.json", "w") as out_file:
-            json.dump(reward_record, out_file)
-
-        with open("loss.json", "w") as out_file:
-            json.dump(loss_mean_record, out_file)
-
+        self._wrap_up_output_file()
 
 madqn = MADQN(env=env)
 madqn.train()
