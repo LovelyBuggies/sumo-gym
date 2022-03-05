@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import json
 import gym
@@ -10,7 +11,7 @@ from sumo_gym.utils.fmp_utils import (
     ElectricVehicles,
     get_safe_indicator,
 )
-from DQN.dqn import QNetwork, DefinedReplayBuffer, run_target_update
+from DQN.dqn import QNetwork, ReplayBuffer, run_target_update
 from statistics import mean
 
 vertices = [
@@ -271,20 +272,79 @@ class MADQN(object):
             for agent in self.env.agents
         }
         self.replay_buffer = {
-            agent: DefinedReplayBuffer() for agent in self.env.possible_agents
+            agent: ReplayBuffer() for agent in self.env.possible_agents
         }
         self.total_step = {agent: 0 for agent in self.env.possible_agents}
 
+    def _initialize_output_file(self):
+        if os.path.exists("loss.json"):
+            os.remove("loss.json")
+
+        if os.path.exists("reward.json"):
+            os.remove("reward.json")
+
+        with open("reward.json", "w") as out_file:
+            out_file.write("{")
+
+        with open("loss.json", "w") as out_file:
+            out_file.write("{")
+
+
+    def _wrap_up_output_file(self):
+        with open("reward.json", "a") as out_file:
+            out_file.write("}")
+
+        with open("loss.json", "a") as out_file:
+            out_file.write("}")
+
+
     def train(self):
-        loss_mean_record = {}
+
+        self._initialize_output_file()
+        first_line_loss, first_line_reward = True, True
+
         for episode in range(self.episodes):
             env.reset()
+            episode_step = {agent: 0 for agent in env.possible_agents}
+            reward_sum = {agent: 0 for agent in env.possible_agents}
             loss_in_episode = {agent: list() for agent in env.possible_agents}
             if episode % self.decay_period == 0:
                 self.epsilon *= self.decay_rate
                 self.epsilon = max(self.min_epsilon, self.epsilon)
 
+            prev_action = {agent: None for agent in env.possible_agents}
             for agent in env.agent_iter():
+                observation, reward, done, info = env.last()
+                if observation != 3 and prev_action[agent] is not None and prev_action[agent] != 2:
+                    if self.replay_buffer[agent] and episode_step != 0:
+                        self.replay_buffer[agent][-1][2] = observation
+
+                    self.replay_buffer[agent].push(
+                        [observation, prev_action[agent], None, reward]
+                    )
+
+                if observation == 3:
+                    action = 2
+                elif np.random.rand(1) < self.epsilon:
+                    action = env.action_space(agent).sample()
+                else:
+                    action = self.q_principal[agent].compute_argmax_q(observation)
+
+                env.step(action)
+                prev_action[agent] = action
+                episode_step[agent] += 1
+
+                if done:
+                    agent_idx = env.agent_name_idx_mapping[agent]
+                    self.replay_buffer[agent][-1][2] = get_safe_indicator(
+                        env.fmp.vertices,
+                        env.fmp.edges,
+                        env.fmp.demands,
+                        env.fmp.charging_stations,
+                        env.fmp.electric_vehicles[agent_idx].location,
+                        env.fmp.electric_vehicles[agent_idx].battery,
+                    )
+
                 if (
                     self.total_step[agent] % 10 == 0
                     and self.total_step[agent] > self.initial_step
@@ -313,14 +373,39 @@ class MADQN(object):
                         run_target_update(self.q_principal[agent], self.q_target[agent])
 
                 self.total_step[agent] += 1
+                reward_sum[agent] += reward
 
-            loss_mean_record[episode] = {
-                agent: mean(loss) if len(loss) > 0 else None
-                for agent, loss in loss_in_episode.items()
+            reward_record = {
+                episode: reward_sum
             }
-            print(f"Training episode {episode}.")
+            loss_mean_record = {
+                episode: {
+                    agent: mean(loss) if len(loss) > 0 else None
+                    for agent, loss in loss_in_episode.items()
+                }
+            }
 
+            with open("reward.json", "a") as out_file:
+                if first_line_reward:
+                    first_line_reward = False
+                else: 
+                    out_file.write(",")
 
+                data = json.dumps(reward_record)
+                out_file.write(data[1:-1])
+
+            with open("loss.json", "a") as out_file:
+                if first_line_loss:
+                    first_line_loss = False
+                else:
+                    out_file.write(",")
+
+                data = json.dumps(loss_mean_record)
+                out_file.write(data[1:-1])
+
+            print(f"Training episode {episode} with reward {reward_sum}.")
+
+        self._wrap_up_output_file()
 
 madqn = MADQN(env=env)
 madqn.train()
