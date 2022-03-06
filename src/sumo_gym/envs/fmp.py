@@ -750,7 +750,7 @@ class FMPEnv(AECEnv):
 
     def last(self, observe=True):
         agent = self.agent_selection
-        if agent == None:
+        if agent is None:
             return None, 0, True, {}
         observation = self.observe(agent) if observe else None
         return observation, self.rewards[agent], self.dones[agent], self.infos
