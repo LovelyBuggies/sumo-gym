@@ -31,53 +31,67 @@ def savitzky_golay(y, window_size, order, deriv=0, rate=1):
     return np.convolve( m[::-1], y, mode='valid')
 
 
-loss_dict = json.load(open('loss.json', 'r'))
-episode = np.array([int(key) for key, _ in loss_dict.items()][10:950])
-v0_loss = np.array([value["v0"] for _, value in loss_dict.items()][10:950])
-v1_loss = np.array([value["v1"] for _, value in loss_dict.items()][10:950])
-v2_loss = np.array([value["v2"] for _, value in loss_dict.items()][10:950])
+def plot_loss():
+    loss_dict = json.load(open('loss.json', 'r'))
+    episode = np.array([int(key) for key, _ in loss_dict.items()][10:950])
+    v0_loss = np.array([value["v0"] for _, value in loss_dict.items()][10:950])
+    v1_loss = np.array([value["v1"] for _, value in loss_dict.items()][10:950])
+    v2_loss = np.array([value["v2"] for _, value in loss_dict.items()][10:950])
 
-# episode_new = np.linspace(episode.min(), episode.max(), 200) 
+    # episode_new = np.linspace(episode.min(), episode.max(), 200) 
 
-# spl = make_interp_spline(episode, v0_reward, k=7)
-# v0_smooth = spl(episode_new)
-v0_smooth = savitzky_golay(v0_loss, 101, 5)
-plt.plot(episode, v0_smooth, color='aquamarine')
-plt.xlabel('episode')
-plt.ylabel('loss')
+    # spl = make_interp_spline(episode, v0_reward, k=7)
+    # v0_smooth = spl(episode_new)
+    v0_smooth = savitzky_golay(v0_loss, 101, 5)
+    plt.plot(episode, v0_smooth, color='aquamarine', label='v0 loss')
 
-# spl = make_interp_spline(episode, v1_loss, k=7)
-# v1_smooth = spl(episode_new)
-v1_smooth = savitzky_golay(v1_loss, 101, 5)
-plt.plot(episode, v1_smooth, color='cornflowerblue')
-plt.xlabel('episode')
-plt.ylabel('loss')
+    # spl = make_interp_spline(episode, v1_loss, k=7)
+    # v1_smooth = spl(episode_new)
+    v1_smooth = savitzky_golay(v1_loss, 101, 5)
+    plt.plot(episode, v1_smooth, color='cornflowerblue', label='v1 loss')
 
-# spl = make_interp_spline(episode, v2_loss, k=7)
-# v2_smooth = spl(episode_new)
-v2_smooth = savitzky_golay(v2_loss, 101, 5)
-plt.plot(episode, v2_smooth, color='wheat')
-plt.xlabel('episode')
-plt.ylabel('loss')
+    # spl = make_interp_spline(episode, v2_loss, k=7)
+    # v2_smooth = spl(episode_new)
+    v2_smooth = savitzky_golay(v2_loss, 101, 5)
+    plt.plot(episode, v2_smooth, color='wheat', label='v2 loss')
 
-plt.show()
+    plt.xlabel('episode')
+    plt.ylabel('loss')
+    plt.legend(loc="upper right")
+    plt.show()
 
-# reward_dict = json.load(open('reward.json', 'r'))
-# episode = [key for key, _ in reward_dict.items()]
-# v0_reward = [value["v0"] for _, value in reward_dict.items()]
-# v1_reward = [value["v1"] for _, value in reward_dict.items()]
-# v2_reward = [value["v2"] for _, value in reward_dict.items()]
+def plot_reward():
+    reward_dict = json.load(open('reward.json', 'r'))
+    episode = np.array([int(key) for key, _ in reward_dict.items()][10:950])
+    v0_reward = np.array([value["v0"] for _, value in reward_dict.items()][10:950])
+    v1_reward = np.array([value["v1"] for _, value in reward_dict.items()][10:950])
+    v2_reward = np.array([value["v2"] for _, value in reward_dict.items()][10:950])
 
-# plt.plot(episode[2:1000], v0_reward[2:1000], color='aquamarine')
-# plt.xlabel('episode')
-# plt.ylabel('reward')
+    # episode_new = np.linspace(episode.min(), episode.max(), 200) 
 
-# plt.plot(episode[2:1000], v1_reward[2:1000], color='cornflowerblue')
-# plt.xlabel('episode')
-# plt.ylabel('reward')
+    # spl = make_interp_spline(episode, v0_reward, k=7)
+    # v0_smooth = spl(episode_new)
+    v0_smooth = savitzky_golay(v0_reward, 101, 5)
+    plt.plot(episode, v0_smooth, color='aquamarine', label='v0 reward')
 
-# plt.plot(episode[2:1000], v2_reward[2:1000], color='wheat')
-# plt.xlabel('episode')
-# plt.ylabel('reward')
 
-# plt.show()
+    # spl = make_interp_spline(episode, v1_loss, k=7)
+    # v1_smooth = spl(episode_new)
+    v1_smooth = savitzky_golay(v1_reward, 101, 5)
+    plt.plot(episode, v1_smooth, color='cornflowerblue', label='v0 reward')
+
+    # spl = make_interp_spline(episode, v2_loss, k=7)
+    # v2_smooth = spl(episode_new)
+    v2_smooth = savitzky_golay(v2_reward, 101, 5)
+    plt.plot(episode, v2_smooth, color='wheat', label='v0 reward')
+
+    # total_reward = v0_smooth + v1_smooth + v2_smooth
+    # plt.plot(episode, total_reward, color='palevioletred', label='total reward')
+   
+    plt.xlabel('episode')
+    plt.ylabel('reward')
+    plt.legend(loc="upper right")
+    plt.show()
+
+plot_reward()
+# plot_loss()
