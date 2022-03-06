@@ -12,6 +12,9 @@ IDLE_LOCATION = -1
 
 K_MEANS_ITERATION = 10
 
+NEAREST_CS = True
+FURTHEST_CS = False
+
 
 class Vertex(object):
     def __init__(self, x, y):
@@ -81,6 +84,7 @@ class ElectricVehicles(object):
         location=None,
         battery=None,
         status=None,
+        bonus=None,
         responded=None,
     ):
         self.id = id
@@ -92,6 +96,7 @@ class ElectricVehicles(object):
         self.location = location
         self.battery = battery
         self.status = status
+        self.bonus = bonus
         self.responded = responded
 
     def __eq__(self, other):
@@ -285,7 +290,7 @@ def convert_raw_electric_vehicles(raw_electric_vehicles):
     ev_dict = {}  # ev sumo id to idx in electric_vehicles
     for counter, vehicle in enumerate(raw_electric_vehicles):
         electric_vehicles.append(
-            ElectricVehicles(vehicle[0], vehicle[1], 220, vehicle[2])
+            ElectricVehicles(vehicle[0], vehicle[1], 250, vehicle[2])
         )
 
         ev_dict[vehicle[0]] = counter
@@ -373,6 +378,44 @@ def cluster_as_area(vertices, k):
         v.area = kmeans.labels_[i]
 
     return vertices
+
+
+# get the current safe indicator
+def get_safe_indicator(vertices, edges, demands, charging_stations, location, battery):
+    dist_to_furthest_cs = max(
+        get_dist_to_charging_stations(vertices, edges, charging_stations, location)
+    )
+    dist_to_finish_demands = get_dist_to_finish_demands(
+        vertices, edges, demands, location
+    )
+    if battery <= min(dist_to_finish_demands) + dist_to_furthest_cs:
+        return 0
+    elif battery <= max(dist_to_finish_demands) + dist_to_furthest_cs:
+        return 1
+    else:
+        return 2
+
+
+# get the dist to finish all demands from the current location
+def get_dist_to_finish_demands(vertices, edges, demands, start_index):
+    dist_of_demands = get_dist_of_demands(vertices, edges, demands)
+    return [
+        dist_of_demands[i] + dist_between(vertices, edges, start_index, d.departure)
+        for i, d in enumerate(demands)
+    ]
+
+
+# get the travel dist of demand
+def get_dist_of_demands(vertices, edges, demands):
+    return [dist_between(vertices, edges, d.departure, d.destination) for d in demands]
+
+
+# get the dist to all cs from the current location
+def get_dist_to_charging_stations(vertices, edges, charging_stations, start_index):
+    return [
+        dist_between(vertices, edges, start_index, cs.location)
+        for cs in charging_stations
+    ]
 
 
 # roughly divide the map into a root x root grid map as initialization

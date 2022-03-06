@@ -174,12 +174,12 @@ edges = [
 ]
 
 n_vertex = len(vertices)
-n_area = 4
+n_area = 9
 n_edge = len(edges)
 n_vehicle = 3
 n_electric_vehicle = 3
 n_charging_station = 3
-electric_vehicles = [ElectricVehicles(i, 1, 220, 50) for i in range(n_electric_vehicle)]
+electric_vehicles = [ElectricVehicles(i, 1, 220, 25) for i in range(n_electric_vehicle)]
 charging_stations = [
     ChargingStation(3, 220, 10),
     ChargingStation(33, 220, 20),
@@ -209,7 +209,7 @@ n_demand = len(demands)
 
 env = gym.make(
     "FMP-v0",
-    mode="numerical",
+    mode="sumo_config",
     verbose=1,
     n_vertex=n_vertex,
     n_area=n_area,
@@ -225,9 +225,6 @@ env = gym.make(
     departures=departures,
     charging_stations=charging_stations,
 )
-env = wrappers.CaptureStdoutWrapper(env)
-env = wrappers.AssertOutOfBoundsWrapper(env)
-env = wrappers.OrderEnforcingWrapper(env)
 
 # api_test(env, num_cycles=10, verbose_progress=False)
 
