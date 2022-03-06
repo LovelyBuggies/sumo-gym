@@ -289,14 +289,12 @@ class MADQN(object):
         with open("loss.json", "w") as out_file:
             out_file.write("{")
 
-
     def _wrap_up_output_file(self):
         with open("reward.json", "a") as out_file:
             out_file.write("}")
 
         with open("loss.json", "a") as out_file:
             out_file.write("}")
-
 
     def train(self):
 
@@ -315,7 +313,11 @@ class MADQN(object):
             prev_action = {agent: None for agent in env.possible_agents}
             for agent in env.agent_iter():
                 observation, reward, done, info = env.last()
-                if observation != 3 and prev_action[agent] is not None and prev_action[agent] != 2:
+                if (
+                    observation != 3
+                    and prev_action[agent] is not None
+                    and prev_action[agent] != 2
+                ):
                     if self.replay_buffer[agent] and episode_step != 0:
                         self.replay_buffer[agent][-1][2] = observation
 
@@ -375,9 +377,7 @@ class MADQN(object):
                 self.total_step[agent] += 1
                 reward_sum[agent] += reward
 
-            reward_record = {
-                episode: reward_sum
-            }
+            reward_record = {episode: reward_sum}
             loss_mean_record = {
                 episode: {
                     agent: mean(loss) if len(loss) > 0 else None
@@ -388,7 +388,7 @@ class MADQN(object):
             with open("reward.json", "a") as out_file:
                 if first_line_reward:
                     first_line_reward = False
-                else: 
+                else:
                     out_file.write(",")
 
                 data = json.dumps(reward_record)
@@ -406,6 +406,7 @@ class MADQN(object):
             print(f"Training episode {episode} with reward {reward_sum}.")
 
         self._wrap_up_output_file()
+
 
 madqn = MADQN(env=env)
 madqn.train()

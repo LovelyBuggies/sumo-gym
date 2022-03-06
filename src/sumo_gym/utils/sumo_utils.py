@@ -34,7 +34,9 @@ class SumoRender:
         self.need_action = [False] * n_vehicle
         self.n_vehicle = n_vehicle
         self.routes = []
-        self.last_edge = {i: None for i in range(n_vehicle)} # only used for setting stop related usage
+        self.last_edge = {
+            i: None for i in range(n_vehicle)
+        }  # only used for setting stop related usage
 
         if "SUMO_HOME" in os.environ:
             tools = os.path.join(os.environ["SUMO_HOME"], "tools")
@@ -110,7 +112,7 @@ class SumoRender:
             vehicle_id = self._find_key_from_value(self.ev_dict, i)
 
             if self.need_action[i]:
-                if self.travel_info[i] is None: # location not changed 
+                if self.travel_info[i] is None:  # location not changed
                     traci.vehicle.setStop(
                         vehID=vehicle_id,
                         edgeID=self.routes[i][-1],
@@ -122,11 +124,19 @@ class SumoRender:
                     )
                     continue
 
-                if self.travel_info[i][1] == IDLE_LOCATION: # vehicle done, let it move to dest and disappear in network
-                    print("Vehicle ", vehicle_id, " becomes idle, will disappear after finishing the trip.")
+                if (
+                    self.travel_info[i][1] == IDLE_LOCATION
+                ):  # vehicle done, let it move to dest and disappear in network
+                    print(
+                        "Vehicle ",
+                        vehicle_id,
+                        " becomes idle, will disappear after finishing the trip.",
+                    )
                 else:
                     if len(traci.vehicle.getStops(vehID=vehicle_id, limit=1)) == 1:
-                        traci.vehicle.replaceStop(vehID=vehicle_id, nextStopIndex=0, edgeID="")
+                        traci.vehicle.replaceStop(
+                            vehID=vehicle_id, nextStopIndex=0, edgeID=""
+                        )
 
                     self.need_action[i] = False
                     if vehicle_id not in eligible_vehicle:
@@ -139,10 +149,12 @@ class SumoRender:
 
                     if "split" not in edge_id:
                         actual_edge_id = edge_id
-                    else: # next action is charging station, need stop
+                    else:  # next action is charging station, need stop
                         actual_edge_id = edge_id[7:]
 
-                    if self.routes[i][-1] != actual_edge_id: # handle the case for stopping at CS and then resume
+                    if (
+                        self.routes[i][-1] != actual_edge_id
+                    ):  # handle the case for stopping at CS and then resume
                         self.routes[i] += tuple([actual_edge_id])
                         self.last_edge[i] = edge_id
 
@@ -155,7 +167,8 @@ class SumoRender:
 
                         route_ind = traci.vehicle.getRouteIndex(vehicle_id)
                         traci.vehicle.setRoute(
-                            vehID=vehicle_id, edgeList=self.routes[i][route_ind-len(self.routes[i]):]
+                            vehID=vehicle_id,
+                            edgeList=self.routes[i][route_ind - len(self.routes[i]) :],
                         )
 
                         traci.vehicle.setStop(
@@ -167,7 +180,10 @@ class SumoRender:
                             flags=0,
                             startPos=0,
                         )
-                    elif "split" in self.last_edge[i] and self.last_edge[i][7:] == actual_edge_id:
+                    elif (
+                        "split" in self.last_edge[i]
+                        and self.last_edge[i][7:] == actual_edge_id
+                    ):
                         self.last_edge[i] = actual_edge_id
                         traci.vehicle.setStop(
                             vehID=vehicle_id,
@@ -179,8 +195,6 @@ class SumoRender:
                             startPos=0,
                         )
 
-
-
     def _update_need_action_status(self):
         eligible_vehicle = traci.vehicle.getIDList()
 
@@ -190,15 +204,15 @@ class SumoRender:
                 continue
             elif (
                 traci.vehicle.getDrivingDistance(
-                    vehicle_id, 
-                    self.routes[i][-1], 
-                    self.edge_length_dict[self.last_edge[i]]
-                ) <= 20
+                    vehicle_id,
+                    self.routes[i][-1],
+                    self.edge_length_dict[self.last_edge[i]],
+                )
+                <= 20
             ):  # arriving the assigned vertex, can take the next action
                 self.need_action[i] = True
             else:
                 self.need_action[i] = False
-
 
     def _find_key_from_value(self, dict, value):
         return list(dict.keys())[list(dict.values()).index(value)]

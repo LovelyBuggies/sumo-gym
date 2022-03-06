@@ -437,7 +437,9 @@ class FMPEnv(AECEnv):
         agent = self.agent_selection
         agent_idx = self.agent_name_idx_mapping[agent]
 
-        need_action = self.sumo.retrieve_need_action_status()[agent_idx] if self.sumo else True 
+        need_action = (
+            self.sumo.retrieve_need_action_status()[agent_idx] if self.sumo else True
+        )
         self.travel_info[agent_idx] = None
         prev_loc = self.fmp.electric_vehicles[agent_idx].location
 
@@ -466,7 +468,10 @@ class FMPEnv(AECEnv):
                     self._state_transition(action)
 
                 if prev_loc != self.fmp.electric_vehicles[agent_idx].location:
-                    self.travel_info[agent_idx] = (prev_loc, self.fmp.electric_vehicles[agent_idx].location)
+                    self.travel_info[agent_idx] = (
+                        prev_loc,
+                        self.fmp.electric_vehicles[agent_idx].location,
+                    )
 
                 # judge whether it's done
                 self.dones[agent] = (
