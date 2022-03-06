@@ -512,7 +512,6 @@ class FMPEnv(AECEnv):
                         + f"Cum_rew: {self._cumulative_rewards[agent]}; "
                         + f"EV: {self.fmp.electric_vehicles[agent_idx]}."
                     )
-
             if self._agent_selector.is_last():
                 self.num_moves += 1
 
