@@ -749,6 +749,7 @@ class FMPEnv(AECEnv):
                 self.rewards[agent] = -20
 
     def last(self, observe=True):
+        # TODO: should return tuple((last for upper), (last for lower))
         agent = self.agent_selection
         if agent is None:
             return None, 0, True, {}

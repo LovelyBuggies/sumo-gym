@@ -255,7 +255,7 @@ class MADQN(object):
         self.min_epsilon = min_epsilon
         self.initial_step = initial_step
 
-        self.q_principal = {
+        self.q_principal_upper = {
             agent: QNetwork(
                 1,
                 env.action_space(agent).n,
@@ -263,7 +263,7 @@ class MADQN(object):
             )
             for agent in self.env.agents
         }
-        self.q_target = {
+        self.q_target_upper = {
             agent: QNetwork(
                 1,
                 env.action_space(agent).n,
@@ -271,9 +271,12 @@ class MADQN(object):
             )
             for agent in self.env.agents
         }
-        self.replay_buffer = {
+        self.replay_buffer_upper = {
             agent: ReplayBuffer() for agent in self.env.possible_agents
         }
+
+        # TODO: Create lower network and buffer
+
         self.total_step = {agent: 0 for agent in self.env.possible_agents}
 
     def _initialize_output_file(self):
@@ -296,6 +299,79 @@ class MADQN(object):
         with open("loss.json", "a") as out_file:
             out_file.write("}")
 
+    def _update_upper_network(self, agent, done, loss_in_episode):
+
+        if done:
+            agent_idx = env.agent_name_idx_mapping[agent]
+            self.replay_buffer_upper[agent][-1][2] = get_safe_indicator(
+                env.fmp.vertices,
+                env.fmp.edges,
+                env.fmp.demands,
+                env.fmp.charging_stations,
+                env.fmp.electric_vehicles[agent_idx].location,
+                env.fmp.electric_vehicles[agent_idx].battery,
+            )
+
+        if (
+            self.total_step[agent] % 10 == 0
+            and self.total_step[agent] > self.initial_step
+        ):
+            samples = self.replay_buffer_upper[agent].sample(self.batch_size)
+            states, actions, new_states, rewards = (
+                list(),
+                list(),
+                list(),
+                list(),
+            )
+            for transition in samples:
+                states.append(transition[0])
+                actions.append(transition[1])
+                new_states.append(transition[2])
+                rewards.append(transition[3])
+
+            targets = rewards + self.gamma * self.q_target_upper[agent].compute_max_q(
+                new_states
+            )
+            loss_in_episode[agent].append(
+                self.q_principal_upper[agent].train(states, actions, targets)
+            )
+
+            if self.total_step[agent] % self.tau == 0:
+                run_target_update(self.q_principal_upper[agent], self.q_target_upper[agent])
+
+
+    def _generate_upper_level_action(self, agent, prev_action_upper, episode_step):
+        observation, reward, done, info = env.last()
+        if (
+            observation != 3
+            and prev_action_upper[agent] is not None
+            and prev_action_upper[agent] != 2
+        ):
+            if self.replay_buffer_upper[agent] and episode_step != 0:
+                self.replay_buffer_upper[agent][-1][2] = observation
+
+            self.replay_buffer_upper[agent].push(
+                [observation, prev_action_upper[agent], None, reward]
+            )
+
+        if observation == 3:
+            action = 2
+        elif np.random.rand(1) < self.epsilon:
+            action = env.action_space(agent).sample()
+        else:
+            action = self.q_principal_upper[agent].compute_argmax_q(observation)
+
+        return reward, done, action
+
+
+    def _generate_lower_level_action(self, upper_action, agent, prev_action_upper, episode_step):
+        observation, reward, done, info = env.last_lower()
+        
+        # TODO: push replay buffer with None as next action
+        # TODO: call env action space or use corresponding charge / demand network to generate next action
+
+        return reward, done, action
+
     def train(self):
 
         self._initialize_output_file()
@@ -304,84 +380,41 @@ class MADQN(object):
         for episode in range(self.episodes):
             env.reset()
             episode_step = {agent: 0 for agent in env.possible_agents}
-            reward_sum = {agent: 0 for agent in env.possible_agents}
-            loss_in_episode = {agent: list() for agent in env.possible_agents}
+            reward_sum_upper = {agent: 0 for agent in env.possible_agents}
+            reward_sum_lower = {agent: 0 for agent in env.possible_agents}
+            loss_in_episode_upper = {agent: list() for agent in env.possible_agents}
+            loss_in_episode_lower = {agent: list() for agent in env.possible_agents}
+
             if episode % self.decay_period == 0:
                 self.epsilon *= self.decay_rate
                 self.epsilon = max(self.min_epsilon, self.epsilon)
 
-            prev_action = {agent: None for agent in env.possible_agents}
+            prev_action_upper = {agent: None for agent in env.possible_agents}
+            prev_action_lower = {agent: None for agent in env.possible_agents}
             for agent in env.agent_iter():
-                observation, reward, done, info = env.last()
-                if (
-                    observation != 3
-                    and prev_action[agent] is not None
-                    and prev_action[agent] != 2
-                ):
-                    if self.replay_buffer[agent] and episode_step != 0:
-                        self.replay_buffer[agent][-1][2] = observation
+                upper_reward, upper_done, upper_action = self._generate_upper_level_action(agent, prev_action_upper, episode_step)
+                # lower_reward, lower_done, lower_action = self._generate_lower_level_action(agent, upper_action, prev_action_upper, episode_step)
+               
+                prev_action_upper[agent] = upper_action
+                # prev_action_lower[agent] = lower_action
 
-                    self.replay_buffer[agent].push(
-                        [observation, prev_action[agent], None, reward]
-                    )
-
-                if observation == 3:
-                    action = 2
-                elif np.random.rand(1) < self.epsilon:
-                    action = env.action_space(agent).sample()
-                else:
-                    action = self.q_principal[agent].compute_argmax_q(observation)
-
-                env.step(action)
-                prev_action[agent] = action
+                env.step(upper_action)
                 episode_step[agent] += 1
 
-                if done:
-                    agent_idx = env.agent_name_idx_mapping[agent]
-                    self.replay_buffer[agent][-1][2] = get_safe_indicator(
-                        env.fmp.vertices,
-                        env.fmp.edges,
-                        env.fmp.demands,
-                        env.fmp.charging_stations,
-                        env.fmp.electric_vehicles[agent_idx].location,
-                        env.fmp.electric_vehicles[agent_idx].battery,
-                    )
-
-                if (
-                    self.total_step[agent] % 10 == 0
-                    and self.total_step[agent] > self.initial_step
-                ):
-                    samples = self.replay_buffer[agent].sample(self.batch_size)
-                    states, actions, new_states, rewards = (
-                        list(),
-                        list(),
-                        list(),
-                        list(),
-                    )
-                    for transition in samples:
-                        states.append(transition[0])
-                        actions.append(transition[1])
-                        new_states.append(transition[2])
-                        rewards.append(transition[3])
-
-                    targets = rewards + self.gamma * self.q_target[agent].compute_max_q(
-                        new_states
-                    )
-                    loss_in_episode[agent].append(
-                        self.q_principal[agent].train(states, actions, targets)
-                    )
-
-                    if self.total_step[agent] % self.tau == 0:
-                        run_target_update(self.q_principal[agent], self.q_target[agent])
+                self._update_upper_network(agent, upper_done, loss_in_episode_upper)
+                # lower_reward = self._update_upper_network(agent, lower_done, loss_in_episode_lower)
 
                 self.total_step[agent] += 1
-                reward_sum[agent] += reward
+                reward_sum_upper[agent] += upper_reward
+                # reward_sum_lower[agent] += lower_reward
 
-            reward_record = {episode: reward_sum}
+            # TODO: save the reward and loss for upper and lower separately
+
+            reward_record = {episode: reward_sum_upper}
             loss_mean_record = {
                 episode: {
                     agent: mean(loss) if len(loss) > 0 else None
-                    for agent, loss in loss_in_episode.items()
+                    for agent, loss in loss_in_episode_upper.items()
                 }
             }
 
@@ -403,7 +436,7 @@ class MADQN(object):
                 data = json.dumps(loss_mean_record)
                 out_file.write(data[1:-1])
 
-            print(f"Training episode {episode} with reward {reward_sum}.")
+            print(f"Training episode {episode} with reward {reward_sum_upper}.")
 
         self._wrap_up_output_file()
 
