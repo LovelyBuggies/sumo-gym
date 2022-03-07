@@ -2,6 +2,8 @@ import os
 import numpy as np
 import json
 import gym
+import random
+
 import sumo_gym
 from sumo_gym.utils.fmp_utils import (
     Vertex,
@@ -339,9 +341,8 @@ class MADQN(object):
             if self.total_step[agent] % self.tau == 0:
                 run_target_update(self.q_principal_upper[agent], self.q_target_upper[agent])
 
-
     def _generate_upper_level_action(self, agent, prev_action_upper, episode_step):
-        observation, reward, done, info = env.last()
+        (observation, reward, done, info), _ = env.last()
         if (
             observation != 3
             and prev_action_upper[agent] is not None
@@ -363,14 +364,20 @@ class MADQN(object):
 
         return reward, done, action
 
-
-    def _generate_lower_level_action(self, upper_action, agent, prev_action_upper, episode_step):
-        observation, reward, done, info = env.last_lower()
+    def _generate_lower_level_action(self, agent, upper_action, prev_action_upper, episode_step):
+        _, (observation, reward, done, info) = env.last()
         
         # TODO: push replay buffer with None as next action
-        # TODO: call env action space or use corresponding charge / demand network to generate next action
+        # TODO: call env action space or use corresponding charge / demand network to generate next action, now use random
 
-        return reward, done, action
+        index = None
+        if upper_action == 1: # action to charge
+            index = random.randint(0, env.fmp.n_charging_station - 1) # index for charging station
+
+        elif upper_action == 0: # action to load
+            index = random.randint(0, env.fmp.n_demand - 1) # index for demand
+
+        return reward, done, index
 
     def train(self):
 
@@ -393,20 +400,19 @@ class MADQN(object):
             prev_action_lower = {agent: None for agent in env.possible_agents}
             for agent in env.agent_iter():
                 upper_reward, upper_done, upper_action = self._generate_upper_level_action(agent, prev_action_upper, episode_step)
-                # lower_reward, lower_done, lower_action = self._generate_lower_level_action(agent, upper_action, prev_action_upper, episode_step)
-               
-                prev_action_upper[agent] = upper_action
-                # prev_action_lower[agent] = lower_action
+                lower_reward, lower_done, lower_action = self._generate_lower_level_action(agent, upper_action, prev_action_upper, episode_step)
 
-                env.step(upper_action)
+                prev_action_upper[agent] = upper_action
+                prev_action_lower[agent] = lower_action
+                env.step((upper_action, lower_action))
                 episode_step[agent] += 1
 
                 self._update_upper_network(agent, upper_done, loss_in_episode_upper)
-                # lower_reward = self._update_upper_network(agent, lower_done, loss_in_episode_lower)
+                lower_reward = self._update_upper_network(agent, lower_done, loss_in_episode_lower)
 
                 self.total_step[agent] += 1
                 reward_sum_upper[agent] += upper_reward
-                # reward_sum_lower[agent] += lower_reward
+                reward_sum_lower[agent] += lower_reward
 
             # TODO: save the reward and loss for upper and lower separately
 

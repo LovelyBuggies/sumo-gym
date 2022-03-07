@@ -434,6 +434,8 @@ class FMPEnv(AECEnv):
         Update of done, broken reward, broken responded and agent are in step.
         """
 
+        upper_action, _ = action
+
         agent = self.agent_selection
         agent_idx = self.agent_name_idx_mapping[agent]
 
@@ -465,7 +467,7 @@ class FMPEnv(AECEnv):
                     self._state_move(agent)
                 # state transition
                 else:
-                    self._state_transition(action)
+                    self._state_transition(upper_action)
 
                 if prev_loc != self.fmp.electric_vehicles[agent_idx].location:
                     self.travel_info[agent_idx] = (
@@ -754,7 +756,7 @@ class FMPEnv(AECEnv):
         if agent is None:
             return None, 0, True, {}
         observation = self.observe(agent) if observe else None
-        return observation, self.rewards[agent], self.dones[agent], self.infos
+        return (observation, self.rewards[agent], self.dones[agent], self.infos), (None, None, None, None)
 
     def render(self, mode="human"):
         if self.sumo_gui_path is None:
