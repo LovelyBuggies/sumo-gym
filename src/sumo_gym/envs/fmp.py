@@ -15,6 +15,8 @@ import functools
 from pettingzoo import AECEnv
 from pettingzoo.utils import agent_selector
 
+from statistics import mean
+
 
 class FMP(object):
     def __init__(
@@ -697,6 +699,7 @@ class FMPEnv(AECEnv):
         """
         agent = self.agent_selection
         agent_idx = self.agent_name_idx_mapping[agent]
+        is_valid = 1
 
         if upper_action == 2:
             if self.verbose:
@@ -736,6 +739,11 @@ class FMPEnv(AECEnv):
             )
             self.fmp.electric_vehicles[agent_idx].battery -= 1
             self.fmp.electric_vehicles[agent_idx].status = 1 + lower_action
+            is_valid = 1 if lower_action not in set(
+                chain.from_iterable(
+                    [ev.responded for ev in self.fmp.electric_vehicles]
+                )
+            ) else 0
             self.fmp.electric_vehicles[agent_idx].responded.append(lower_action)
 
         self.states[agent] = get_safe_indicator(
@@ -748,13 +756,21 @@ class FMPEnv(AECEnv):
         )
         self.observations[agent] = self.states[agent]
         self._calculate_upper_reward(agent, agent_idx, upper_action, lower_action)
-        self._calculate_lower_reward()
+        self._calculate_lower_reward(self.fmp.electric_vehicles[agent_idx].location, is_valid, upper_action, lower_action)
 
-    def _calculate_lower_reward(self):
-        
-        # TODO: call functions in fmp_utils to get the reward for lower level
+    def _calculate_lower_reward(self, location, is_valid, upper_action, lower_action):
+        scalar = 50 # to make the number bigger
 
-        return 0
+        if upper_action == 1: # charge
+            dist_to_all_cs = get_dist_to_charging_stations(self.fmp.vertices, self.fmp.edges, self.fmp.charging_stations, location)
+            weight = 2 if len(self.fmp.charging_stations[lower_action].charging_vehicle) + 1 <= self.fmp.charging_stations[lower_action].n_slot else 1
+            self.lower_reward = scalar * weight * mean(dist_to_all_cs) / (dist_to_all_cs[lower_action] + 1) # avoid zero division
+
+        elif upper_action == 0: # demand
+            travel_dist = get_dist_of_demands(self.fmp.vertices, self.fmp.edges, self.fmp.demands)[lower_action]
+            total_dist = get_dist_to_finish_demands(self.fmp.vertices, self.fmp.edges, self.fmp.demands, location)[lower_action]
+            self.lower_reward = scalar * is_valid * travel_dist / (total_dist + 1) # avoid zero division
+
 
     def _calculate_upper_reward(self, agent, agent_idx, upper_action, lower_action):
         self.upper_rewards[agent] = 0
