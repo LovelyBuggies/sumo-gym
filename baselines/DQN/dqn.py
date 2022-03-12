@@ -89,7 +89,7 @@ class QNetwork(object):
 
 class LowerQNetwork_Demand(object):
     def __init__(self, observation_size, n_action, lr):
-        self.observation_size = observation_size
+        self.observation_size = observation_size + 1 # plus one for location area
         self.n_action = n_action
         self.lr = lr
         self.model = torch.nn.Sequential(
@@ -137,7 +137,7 @@ class LowerQNetwork_Demand(object):
 
 class LowerQNetwork_ChargingStation(object):
     def __init__(self, observation_size, n_action, lr):
-        self.observation_size = observation_size
+        self.observation_size = observation_size + 1 # plus one for location area
         self.n_action = n_action
         self.lr = lr
         self.model = torch.nn.Sequential(

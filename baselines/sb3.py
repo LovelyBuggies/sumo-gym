@@ -13,7 +13,7 @@ from sumo_gym.utils.fmp_utils import (
     ElectricVehicles,
     get_safe_indicator,
 )
-from DQN.dqn import QNetwork, ReplayBuffer, run_target_update
+from DQN.dqn import QNetwork, LowerQNetwork_ChargingStation, LowerQNetwork_Demand, ReplayBuffer, run_target_update
 from statistics import mean
 
 vertices = [
@@ -274,24 +274,24 @@ class MADQN(object):
             for agent in self.env.agents
         }
 
-        self.q_principal_lower_demand = QNetwork(
-            1,
+        self.q_principal_lower_demand = LowerQNetwork_Demand(
+            env.action_space_lower_demand().n_demand,
             env.action_space_lower_demand().n_demand,
             self.lr,
         )
-        self.q_target_lower_demand = QNetwork(
-            1,
+        self.q_target_lower_demand = LowerQNetwork_Demand(
+            env.action_space_lower_demand().n_demand,
             env.action_space_lower_demand().n_demand,
             self.lr,
         )
 
-        self.q_principal_lower_cs = QNetwork(
-            1,
+        self.q_principal_lower_cs = LowerQNetwork_ChargingStation(
+            env.action_space_lower_cs().n_cs,
             env.action_space_lower_cs().n_cs,
             self.lr,
         )
-        self.q_target_lower_cs = QNetwork(
-            1,
+        self.q_target_lower_cs = LowerQNetwork_ChargingStation(
+            env.action_space_lower_cs().n_cs,
             env.action_space_lower_cs().n_cs,
             self.lr,
         )
@@ -392,22 +392,23 @@ class MADQN(object):
 
     def _generate_lower_level_action(self, agent, lower_last, upper_action, prev_action_upper, episode_step):
         observation, reward, done, info = lower_last
-        
-        # TODO: call env action space or use corresponding charge / demand network to generate next action, now use random
 
         index = None
         new_state = None
         prev_state = None
         dest_area = None
+
+        flag = 0 if np.random.rand(1) < self.epsilon else 1 # random sample if 0, use network if 1
+
         if upper_action == 1: # action to charge
-            index = random.randint(0, env.fmp.n_charging_station - 1) # index for charging station
+            index = self.q_principal_lower_cs.compute_argmax_q(observation[1]) if flag else env.action_space_lower_cs().sample()
             prev_state = observation[1]
             new_state = observation[1] # list of current ocupancy of cs
             new_state[index] = 0 if observation[1][index] < env.fmp.charging_stations[index].n_slot else 1
             dest_area = env.fmp.vertices[env.fmp.charging_stations[index].location].area
 
         elif upper_action == 0: # action to load
-            index = random.randint(0, env.fmp.n_demand - 1) # index for demand
+            index = self.q_principal_lower_demand.compute_argmax_q(observation[0]) if flag else env.action_space_lower_demand().sample()
             prev_state = observation[0]
             new_state = observation[0] # demand vector
             new_state[index] = 1
