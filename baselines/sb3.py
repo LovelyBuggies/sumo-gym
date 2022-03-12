@@ -273,11 +273,32 @@ class MADQN(object):
             )
             for agent in self.env.agents
         }
+
+        self.q_principal_lower_demand = QNetwork(
+            1,
+            env.action_space_lower_demand().n_demand,
+            self.lr,
+        )
+        self.q_target_lower_demand = QNetwork(
+            1,
+            env.action_space_lower_demand().n_demand,
+            self.lr,
+        )
+
+        self.q_principal_lower_cs = QNetwork(
+            1,
+            env.action_space_lower_cs().n_cs,
+            self.lr,
+        )
+        self.q_target_lower_cs = QNetwork(
+            1,
+            env.action_space_lower_cs().n_cs,
+            self.lr,
+        )
+
         self.replay_buffer_upper = {
             agent: ReplayBuffer() for agent in self.env.possible_agents
         }
-
-        # TODO: Create lower network and buffer and actionspace in fmp
         self.replay_buffer_lower = ReplayBuffer()
 
         self.total_step = {agent: 0 for agent in self.env.possible_agents}

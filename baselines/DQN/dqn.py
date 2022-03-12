@@ -87,7 +87,7 @@ class QNetwork(object):
         return loss.detach().cpu().data.item()
 
 
-class LowerQNetwork(object):
+class LowerQNetwork_Demand(object):
     def __init__(self, observation_size, n_action, lr):
         self.observation_size = observation_size
         self.n_action = n_action
@@ -134,3 +134,50 @@ class LowerQNetwork(object):
         self.optimizer.step()
         return loss.detach().cpu().data.item()
 
+
+class LowerQNetwork_ChargingStation(object):
+    def __init__(self, observation_size, n_action, lr):
+        self.observation_size = observation_size
+        self.n_action = n_action
+        self.lr = lr
+        self.model = torch.nn.Sequential(
+            torch.nn.Linear(self.observation_size, 12),
+            torch.nn.ReLU(),
+            torch.nn.Linear(12, 26),
+            torch.nn.ReLU(),
+            torch.nn.Linear(26, 20),
+            torch.nn.ReLU(),
+            torch.nn.Linear(20, self.n_action),
+            torch.nn.ReLU(),
+        )
+        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.lr)
+
+    def compute_q(self, states, actions):
+        states = torch.FloatTensor([[s] for s in states])
+        q_preds = self.model(states)
+        action_onehot = to_one_hot(actions, self.n_action)
+        q_preds_selected = torch.sum(q_preds * action_onehot, axis=-1)
+        return q_preds_selected
+
+    def compute_max_q(self, states):
+        states = torch.FloatTensor([[s] for s in states])
+        q_values = self.model(states).cpu().data.numpy()
+        q_pred_greedy = np.max(q_values, 1)
+        return q_pred_greedy
+
+    def compute_argmax_q(self, state):
+        state = torch.FloatTensor([state])
+        qvalue = self.model(state).cpu().data.numpy()
+        greedy_action = np.argmax(qvalue.flatten())
+        return greedy_action
+
+    def train(self, states, actions, targets):
+        states = torch.FloatTensor([[s] for s in states])
+        actions = torch.LongTensor(actions)
+        targets = torch.FloatTensor([[t] for t in targets])
+        q_pred_selected = self.compute_q(states, actions)
+        loss = torch.mean((q_pred_selected - targets) ** 2)
+        self.optimizer.zero_grad()
+        loss.backward()
+        self.optimizer.step()
+        return loss.detach().cpu().data.item()

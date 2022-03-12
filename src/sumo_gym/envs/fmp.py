@@ -231,6 +231,24 @@ class FMPActionSpace(gym.spaces.Discrete):
         return random.choices([0, 1, 2], [p_to_respond, p_to_charge, 0.0])[0]
 
 
+class FMPLowerDemandActionSpace(gym.spaces.Discrete):
+    def __init__(self, n):
+        self.n_demand = int(n)
+        super(FMPLowerDemandActionSpace, self).__init__(n)
+
+    def sample(self) -> int:
+        return random.randint(0, self.n_demand - 1)
+
+
+class FMPLowerCSActionSpace(gym.spaces.Discrete):
+    def __init__(self, n):
+        self.n_cs = int(n)
+        super(FMPLowerCSActionSpace, self).__init__(n)
+
+    def sample(self) -> int:
+        return random.randint(0, self.n_cs - 1)
+
+
 class FMPEnv(AECEnv):
     metadata = {"render.modes": ["human"]}
     fmp = property(operator.attrgetter("_fmp"))
@@ -336,6 +354,12 @@ class FMPEnv(AECEnv):
 
     def observe(self, agent):
         return self.observations[agent]
+
+    def action_space_lower_demand(self):
+        return FMPLowerDemandActionSpace(self.fmp.n_demand)
+
+    def action_space_lower_cs(self):
+        return FMPLowerCSActionSpace(self.fmp.n_charging_station)
 
     def reset(self):
         """
