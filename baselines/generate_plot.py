@@ -35,10 +35,10 @@ def savitzky_golay(y, window_size, order, deriv=0, rate=1):
 
 def plot_loss():
     loss_dict = json.load(open("loss.json", "r"))
-    episode = np.array([int(key) for key, _ in loss_dict.items()][10:950])
-    v0_loss = np.array([value["v0"] for _, value in loss_dict.items()][10:950])
-    v1_loss = np.array([value["v1"] for _, value in loss_dict.items()][10:950])
-    v2_loss = np.array([value["v2"] for _, value in loss_dict.items()][10:950])
+    episode = np.array([int(key) for key, _ in loss_dict.items()][10:126])
+    v0_loss = np.array([value["v0"] for _, value in loss_dict.items()][10:126])
+    # v1_loss = np.array([value["v1"] for _, value in loss_dict.items()][10:950])
+    # v2_loss = np.array([value["v2"] for _, value in loss_dict.items()][10:950])
 
     # episode_new = np.linspace(episode.min(), episode.max(), 200)
 
@@ -47,21 +47,46 @@ def plot_loss():
     v0_smooth = savitzky_golay(v0_loss, 101, 5)
     plt.plot(episode, v0_smooth, color="aquamarine", label="v0 loss", linewidth=2)
 
-    # spl = make_interp_spline(episode, v1_loss, k=7)
-    # v1_smooth = spl(episode_new)
-    v1_smooth = savitzky_golay(v1_loss, 101, 5)
-    plt.plot(episode, v1_smooth, color="cornflowerblue", label="v1 loss", linewidth=2)
+    # # spl = make_interp_spline(episode, v1_loss, k=7)
+    # # v1_smooth = spl(episode_new)
+    # v1_smooth = savitzky_golay(v1_loss, 101, 5)
+    # plt.plot(episode, v1_smooth, color="cornflowerblue", label="v1 loss", linewidth=2)
 
-    # spl = make_interp_spline(episode, v2_loss, k=7)
-    # v2_smooth = spl(episode_new)
-    v2_smooth = savitzky_golay(v2_loss, 101, 5)
-    plt.plot(episode, v2_smooth, color="wheat", label="v2 loss", linewidth=2)
+    # # spl = make_interp_spline(episode, v2_loss, k=7)
+    # # v2_smooth = spl(episode_new)
+    # v2_smooth = savitzky_golay(v2_loss, 101, 5)
+    # plt.plot(episode, v2_smooth, color="wheat", label="v2 loss", linewidth=2)
 
     plt.xlabel("episode")
     plt.ylabel("loss")
     plt.legend(loc="upper right")
     plt.show()
 
+
+def plot_loss_demand():
+    loss_dict = json.load(open("loss_lower.json", "r"))
+    episode = np.array([int(key) for key, _ in loss_dict.items()][2:48])
+    demand_loss = np.array([value["demand_mean"] for _, value in loss_dict.items()][2:48])
+    cs_loss = np.array([value["cs_mean"] for _, value in loss_dict.items()][2:48])
+
+
+    # spl = make_interp_spline(episode, v0_reward, k=7)
+    # v0_smooth = spl(episode_new)
+    v0_smooth = savitzky_golay(demand_loss, 101, 5)
+    plt.plot(episode, v0_smooth, color="aquamarine", label="demand_mean loss", linewidth=2)
+
+    v1_smooth = savitzky_golay(cs_loss, 101, 5)
+    plt.plot(episode, v1_smooth, color="cornflowerblue", label="cs_mean loss", linewidth=2)
+
+    # # spl = make_interp_spline(episode, v2_loss, k=7)
+    # # v2_smooth = spl(episode_new)
+    # v2_smooth = savitzky_golay(v2_loss, 101, 5)
+    # plt.plot(episode, v2_smooth, color="wheat", label="v2 loss", linewidth=2)
+
+    plt.xlabel("episode")
+    plt.ylabel("loss")
+    plt.legend(loc="upper right")
+    plt.show()
 
 def plot_reward():
     reward_dict = json.load(open("reward.json", "r"))
@@ -97,4 +122,5 @@ def plot_reward():
 
 
 # plot_reward()
-plot_loss()
+# plot_loss()
+plot_loss_demand()

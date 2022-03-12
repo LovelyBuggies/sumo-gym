@@ -256,6 +256,7 @@ class MADQN(object):
         self.decay_rate = decay_rate
         self.min_epsilon = min_epsilon
         self.initial_step = initial_step
+        self.initial_step_lower = 3
 
         self.q_principal_upper = {
             agent: QNetwork(
@@ -313,10 +314,22 @@ class MADQN(object):
         if os.path.exists("reward.json"):
             os.remove("reward.json")
 
+        if os.path.exists("loss_lower.json"):
+            os.remove("loss_lower.json")
+
+        if os.path.exists("reward_lower.json"):
+            os.remove("reward_lower.json")
+
         with open("reward.json", "w") as out_file:
             out_file.write("{")
 
         with open("loss.json", "w") as out_file:
+            out_file.write("{")
+
+        with open("reward_lower.json", "w") as out_file:
+            out_file.write("{")
+
+        with open("loss_lower.json", "w") as out_file:
             out_file.write("{")
 
     def _wrap_up_output_file(self):
@@ -326,12 +339,18 @@ class MADQN(object):
         with open("loss.json", "a") as out_file:
             out_file.write("}")
 
+        with open("reward_lower.json", "a") as out_file:
+            out_file.write("}")
+
+        with open("loss_lower.json", "a") as out_file:
+            out_file.write("}")
+
     def _update_lower_network_demand(self, loss_in_episode_demand):
         if (
-            self.lower_total_step_demand % 10 == 0
-            and self.lower_total_step_demand > self.initial_step
+            self.lower_total_step_demand % 3 == 0
+            and self.lower_total_step_demand > self.initial_step_lower
         ):
-            samples = self.replay_buffer_lower.sample(self.batch_size)
+            samples = self.replay_buffer_lower_demand.sample(self.batch_size)
             states, actions, new_states, rewards = (
                 list(),
                 list(),
@@ -339,9 +358,9 @@ class MADQN(object):
                 list(),
             )
             for transition in samples:
-                states.append(transition[0])
+                states.append(list(transition[0]))
                 actions.append(transition[1])
-                new_states.append(transition[2])
+                new_states.append(list(transition[2]))
                 rewards.append(transition[3])
 
             targets = rewards + self.gamma * self.q_target_lower_demand.compute_max_q(
@@ -351,14 +370,12 @@ class MADQN(object):
                 self.q_principal_lower_demand.train(states, actions, targets)
             )
 
-            if self.lower_total_step_demand % self.tau == 0:
-                run_target_update(self.q_principal_lower_demand, self.q_target_lower_demand)
-                print("==================HEYYYY================")
+            run_target_update(self.q_principal_lower_demand, self.q_target_lower_demand)
 
     def _update_lower_network_cs(self, loss_in_episode_cs):
         if (
-            self.lower_total_step_cs % 10 == 0
-            and self.lower_total_step_cs > self.initial_step
+            self.lower_total_step_cs % 3 == 0
+            and self.lower_total_step_cs > self.initial_step_lower
         ):
             samples = self.replay_buffer_lower_cs.sample(self.batch_size)
             states, actions, new_states, rewards = (
@@ -368,15 +385,11 @@ class MADQN(object):
                 list(),
             )
             for transition in samples:
-                states.append(transition[0])
+                states.append(list(transition[0]))
                 actions.append(transition[1])
-                new_states.append(transition[2])
+                new_states.append(list(transition[2]))
                 rewards.append(transition[3])
-            
-            print(rewards, new_states)
-            print(self.gamma * self.q_target_lower_cs.compute_max_q(
-                new_states
-            ))
+
             targets = rewards + self.gamma * self.q_target_lower_cs.compute_max_q(
                 new_states
             )
@@ -384,9 +397,7 @@ class MADQN(object):
                 self.q_principal_lower_cs.train(states, actions, targets)
             )
 
-            if self.lower_total_step_cs % self.tau == 0:
-                run_target_update(self.q_principal_lower_cs, self.q_target_lower_cs)
-                print("==================YOOOOOOOOOO================")
+            run_target_update(self.q_principal_lower_cs, self.q_target_lower_cs)
 
     def _update_lower_network(self, loss_in_episode_demand, loss_in_episode_cs):
         self._update_lower_network_demand(loss_in_episode_demand)
@@ -492,12 +503,13 @@ class MADQN(object):
 
         self._initialize_output_file()
         first_line_loss, first_line_reward = True, True
+        first_line_loss_lower, first_line_reward_lower = True, True
 
         for episode in range(self.episodes):
             env.reset()
             episode_step = {agent: 0 for agent in env.possible_agents}
             reward_sum_upper = {agent: 0 for agent in env.possible_agents}
-            reward_sum_lower = {agent: 0 for agent in env.possible_agents}
+            reward_sum_lower = 0
             loss_in_episode_upper = {agent: list() for agent in env.possible_agents}
             loss_in_episode_lower_demand = list()
             loss_in_episode_lower_cs = list()
@@ -523,15 +535,24 @@ class MADQN(object):
 
                 self.total_step[agent] += 1
                 reward_sum_upper[agent] += upper_reward
-                reward_sum_lower[agent] += lower_reward
+                reward_sum_lower += lower_reward
 
-            # TODO: save the reward and loss for upper and lower separately
-
-            reward_record = {episode: reward_sum_upper}
+            reward_sum_upper_mean = {agent : reward_sum_upper[agent] / self.total_step[agent] for agent in env.possible_agents}
+            reward_record = {episode: reward_sum_upper_mean}
+            reward_record_lower = {episode: reward_sum_lower / max(self.total_step.values())}
             loss_mean_record = {
                 episode: {
                     agent: mean(loss) if len(loss) > 0 else None
                     for agent, loss in loss_in_episode_upper.items()
+                }
+            }
+            cs_mean = mean(loss_in_episode_lower_cs) if len(loss_in_episode_lower_cs) else 0
+            demand_mean = mean(loss_in_episode_lower_demand) if len(loss_in_episode_lower_demand) else 0
+            loss_mean_reword_lower = {
+                episode: {
+                    "total_mean": cs_mean / self.lower_total_step_cs + demand_mean / self.lower_total_step_demand,
+                    "demand_mean": demand_mean / self.lower_total_step_demand,
+                    "cs_mean": cs_mean / self.lower_total_step_cs
                 }
             }
 
@@ -551,6 +572,24 @@ class MADQN(object):
                     out_file.write(",")
 
                 data = json.dumps(loss_mean_record)
+                out_file.write(data[1:-1])
+
+            with open("reward_lower.json", "a") as out_file:
+                if first_line_reward_lower:
+                    first_line_reward_lower = False
+                else:
+                    out_file.write(",")
+
+                data = json.dumps(reward_record_lower)
+                out_file.write(data[1:-1])
+
+            with open("loss_lower.json", "a") as out_file:
+                if first_line_loss_lower:
+                    first_line_loss_lower = False
+                else:
+                    out_file.write(",")
+
+                data = json.dumps(loss_mean_reword_lower)
                 out_file.write(data[1:-1])
 
             print(f"Training episode {episode} with reward {reward_sum_upper}.")
