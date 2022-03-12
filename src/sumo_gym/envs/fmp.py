@@ -332,7 +332,8 @@ class FMPEnv(AECEnv):
         self.rewards = {agent: 0.0 for agent in self.possible_agents}
 
         self.upper_rewards = {agent: 0.0 for agent in self.agents}
-        self.lower_reward = 0 # network specific, no agent info
+        self.lower_reward_demand = 0 # network specific, no agent info
+        self.lower_reward_cs = 0
         self._cumulative_rewards = {agent: 0.0 for agent in self.agents}
 
         self.dones = {agent: False for agent in self.agents}
@@ -382,7 +383,8 @@ class FMPEnv(AECEnv):
         self.rewards = {agent: 0.0 for agent in self.possible_agents}
 
         self.upper_rewards = {agent: 0.0 for agent in self.possible_agents}
-        self.lower_reward = 0
+        self.lower_reward_demand = 0
+        self.lower_reward_cs = 0
         self._cumulative_rewards = {agent: 0.0 for agent in self.possible_agents}
 
         self.dones = {agent: False for agent in self.possible_agents}
@@ -756,20 +758,7 @@ class FMPEnv(AECEnv):
         )
         self.observations[agent] = self.states[agent]
         self._calculate_upper_reward(agent, agent_idx, upper_action, lower_action)
-        self._calculate_lower_reward(self.fmp.electric_vehicles[agent_idx].location, is_valid, upper_action, lower_action)
-
-    def _calculate_lower_reward(self, location, is_valid, upper_action, lower_action):
-        scalar = 50 # to make the number bigger
-
-        if upper_action == 1: # charge
-            dist_to_all_cs = get_dist_to_charging_stations(self.fmp.vertices, self.fmp.edges, self.fmp.charging_stations, location)
-            weight = 2 if len(self.fmp.charging_stations[lower_action].charging_vehicle) + 1 <= self.fmp.charging_stations[lower_action].n_slot else 1
-            self.lower_reward = scalar * weight * mean(dist_to_all_cs) / (dist_to_all_cs[lower_action] + 1) # avoid zero division
-
-        elif upper_action == 0: # demand
-            travel_dist = get_dist_of_demands(self.fmp.vertices, self.fmp.edges, self.fmp.demands)[lower_action]
-            total_dist = get_dist_to_finish_demands(self.fmp.vertices, self.fmp.edges, self.fmp.demands, location)[lower_action]
-            self.lower_reward = scalar * is_valid * travel_dist / (total_dist + 1) # avoid zero division
+        # self._calculate_lower_reward(self.fmp.electric_vehicles[agent_idx].location, is_valid, upper_action, lower_action)
 
 
     def _calculate_upper_reward(self, agent, agent_idx, upper_action, lower_action):
@@ -817,7 +806,7 @@ class FMPEnv(AECEnv):
         demand_vector.append(loc_area)
         cs_vector = self._generate_cs_vector()
         cs_vector.append(loc_area)
-        return (observation, self.upper_rewards[agent], self.dones[agent], self.infos), ((demand_vector, cs_vector), self.lower_reward, self.dones[agent], self.infos)
+        return (observation, self.upper_rewards[agent], self.dones[agent], self.infos), ((demand_vector, cs_vector), (self.lower_reward_demand, self.lower_reward_cs), self.dones[agent], self.infos)
 
     def _generate_cs_vector(self):
         return [len(cs.charging_vehicle) for cs in self.fmp.charging_stations]

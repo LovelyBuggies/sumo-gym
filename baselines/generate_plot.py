@@ -65,17 +65,17 @@ def plot_loss():
 
 def plot_loss_demand():
     loss_dict = json.load(open("loss_lower.json", "r"))
-    episode = np.array([int(key) for key, _ in loss_dict.items()][2:48])
-    demand_loss = np.array([value["demand_mean"] for _, value in loss_dict.items()][2:48])
-    cs_loss = np.array([value["cs_mean"] for _, value in loss_dict.items()][2:48])
+    episode = np.array([int(key) for key, _ in loss_dict.items()][30:200])
+    demand_loss = np.array([value["demand_mean"] for _, value in loss_dict.items()][30:200])
+    cs_loss = np.array([value["cs_mean"] for _, value in loss_dict.items()][30:200])
 
 
     # spl = make_interp_spline(episode, v0_reward, k=7)
     # v0_smooth = spl(episode_new)
-    v0_smooth = savitzky_golay(demand_loss, 101, 5)
+    v0_smooth = savitzky_golay(demand_loss, 7, 5)
     plt.plot(episode, v0_smooth, color="aquamarine", label="demand_mean loss", linewidth=2)
 
-    v1_smooth = savitzky_golay(cs_loss, 101, 5)
+    v1_smooth = savitzky_golay(cs_loss, 7, 5)
     plt.plot(episode, v1_smooth, color="cornflowerblue", label="cs_mean loss", linewidth=2)
 
     # # spl = make_interp_spline(episode, v2_loss, k=7)
@@ -90,10 +90,10 @@ def plot_loss_demand():
 
 def plot_reward():
     reward_dict = json.load(open("reward.json", "r"))
-    episode = np.array([int(key) for key, _ in reward_dict.items()][10:950])
-    v0_reward = np.array([value["v0"] for _, value in reward_dict.items()][10:950])
-    v1_reward = np.array([value["v1"] for _, value in reward_dict.items()][10:950])
-    v2_reward = np.array([value["v2"] for _, value in reward_dict.items()][10:950])
+    episode = np.array([int(key) for key, _ in reward_dict.items()][10:200])
+    v0_reward = np.array([value["v0"] for _, value in reward_dict.items()][10:200])
+    # v1_reward = np.array([value["v1"] for _, value in reward_dict.items()][10:950])
+    # v2_reward = np.array([value["v2"] for _, value in reward_dict.items()][10:950])
 
     # episode_new = np.linspace(episode.min(), episode.max(), 200)
 
@@ -102,15 +102,15 @@ def plot_reward():
     v0_smooth = savitzky_golay(v0_reward, 101, 5)
     plt.plot(episode, v0_smooth, color="aquamarine", label="v0 reward", linewidth=2)
 
-    # spl = make_interp_spline(episode, v1_loss, k=7)
-    # v1_smooth = spl(episode_new)
-    v1_smooth = savitzky_golay(v1_reward, 101, 5)
-    plt.plot(episode, v1_smooth, color="cornflowerblue", label="v1 reward", linewidth=2)
+    # # spl = make_interp_spline(episode, v1_loss, k=7)
+    # # v1_smooth = spl(episode_new)
+    # v1_smooth = savitzky_golay(v1_reward, 101, 5)
+    # plt.plot(episode, v1_smooth, color="cornflowerblue", label="v1 reward", linewidth=2)
 
-    # spl = make_interp_spline(episode, v2_loss, k=7)
-    # v2_smooth = spl(episode_new)
-    v2_smooth = savitzky_golay(v2_reward, 101, 5)
-    plt.plot(episode, v2_smooth, color="wheat", label="v1 reward", linewidth=2)
+    # # spl = make_interp_spline(episode, v2_loss, k=7)
+    # # v2_smooth = spl(episode_new)
+    # v2_smooth = savitzky_golay(v2_reward, 101, 5)
+    # plt.plot(episode, v2_smooth, color="wheat", label="v1 reward", linewidth=2)
 
     # total_reward = v0_smooth + v1_smooth + v2_smooth
     # plt.plot(episode, total_reward, color='palevioletred', label='total reward')
@@ -121,6 +121,6 @@ def plot_reward():
     plt.show()
 
 
-# plot_reward()
+plot_reward()
 # plot_loss()
-plot_loss_demand()
+# plot_loss_demand()
