@@ -93,13 +93,13 @@ class LowerQNetwork_Demand(object):
         self.n_action = n_action
         self.lr = lr
         self.model = torch.nn.Sequential(
-            torch.nn.Linear(self.observation_size, 12),
+            torch.nn.Linear(self.observation_size, self.observation_size),
             torch.nn.ReLU(),
-            torch.nn.Linear(12, 26),
+            torch.nn.Linear(self.observation_size, self.observation_size * 3),
             torch.nn.ReLU(),
-            torch.nn.Linear(26, 20),
+            torch.nn.Linear(self.observation_size * 3, self.observation_size * 2),
             torch.nn.ReLU(),
-            torch.nn.Linear(20, self.n_action),
+            torch.nn.Linear(self.observation_size * 2, self.n_action),
             torch.nn.ReLU(),
         )
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.lr)
@@ -141,13 +141,13 @@ class LowerQNetwork_ChargingStation(object):
         self.n_action = n_action
         self.lr = lr
         self.model = torch.nn.Sequential(
-            torch.nn.Linear(self.observation_size, 4),
+            torch.nn.Linear(self.observation_size, self.observation_size),
             torch.nn.ReLU(),
-            torch.nn.Linear(4, 10),
+            torch.nn.Linear(self.observation_size, self.observation_size * 3),
             torch.nn.ReLU(),
-            torch.nn.Linear(10, 6),
+            torch.nn.Linear(self.observation_size * 3, self.observation_size * 2),
             torch.nn.ReLU(),
-            torch.nn.Linear(6, self.n_action),
+            torch.nn.Linear(self.observation_size * 2, self.n_action),
             torch.nn.ReLU(),
         )
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.lr)
