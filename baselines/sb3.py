@@ -375,14 +375,21 @@ class MADQN(object):
                 new_states.append(list(transition[2]))
                 rewards.append(transition[3])
 
+            print("#################################### \n", states, rewards)
+            print(self.gamma * self.q_target_lower_demand.compute_max_q(
+                states
+            ))
             targets = rewards + self.gamma * self.q_target_lower_demand.compute_max_q(
                 new_states
             )
+            loss = self.q_principal_lower_demand.train(states, actions, targets)
             loss_in_episode_demand.append(
-                self.q_principal_lower_demand.train(states, actions, targets)
+                loss
             )
+            print("------> ", loss)
 
-            run_target_update(self.q_principal_lower_demand, self.q_target_lower_demand)
+            if self.lower_total_step_demand % self.tau == 0:
+                run_target_update(self.q_principal_lower_demand, self.q_target_lower_demand)
 
     def _update_lower_network_cs(self, loss_in_episode_cs):
         if (
@@ -409,7 +416,8 @@ class MADQN(object):
                 self.q_principal_lower_cs.train(states, actions, targets)
             )
 
-            run_target_update(self.q_principal_lower_cs, self.q_target_lower_cs)
+            if self.lower_total_step_cs % self.tau == 0:
+                run_target_update(self.q_principal_lower_cs, self.q_target_lower_cs)
 
     def _update_lower_network(self, loss_in_episode_demand, loss_in_episode_cs):
         self._update_lower_network_demand(loss_in_episode_demand)

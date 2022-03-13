@@ -121,6 +121,6 @@ def plot_reward():
     plt.show()
 
 
-plot_reward()
+# plot_reward()
 # plot_loss()
-# plot_loss_demand()
+plot_loss_demand()

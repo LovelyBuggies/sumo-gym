@@ -22,10 +22,49 @@
       	<route edges="-gneE15"/>
     </vehicle>
 
-    <!-- <vehicle id="1" type="EV" depart="0" color="0,1,0">
+    <vehicle id="1" type="EV" depart="0" color="0,1,0">
     	<param key="actualBatteryCapacity" value="1200"/>
      	<route edges="-gneE19 -gneE18"/>
-    </vehicle> -->
+    </vehicle>
 
+    <vehicle id="2" type="EV" depart="0" color="0,1,0">
+    	<param key="actualBatteryCapacity" value="1200"/>
+     	<route edges="gneE37"/>
+    </vehicle>
+    
+    <vehicle id="3" type="EV" depart="0" color="0,1,0">
+    	<param key="actualBatteryCapacity" value="1200"/>
+     	<route edges="-gneE50"/>
+    </vehicle>
+
+    <vehicle id="4" type="EV" depart="0" color="0,1,0">
+    	<param key="actualBatteryCapacity" value="1200"/>
+     	<route edges="gneE42"/>
+    </vehicle>
+
+    <vehicle id="5" type="EV" depart="0" color="0,1,0">
+    	<param key="actualBatteryCapacity" value="1200"/>
+     	<route edges="-gneE65"/>
+    </vehicle>
+
+    <vehicle id="6" type="EV" depart="0" color="0,1,0">
+    	<param key="actualBatteryCapacity" value="1200"/>
+     	<route edges="gneE27"/>
+    </vehicle>
+
+    <vehicle id="7" type="EV" depart="0" color="0,1,0">
+    	<param key="actualBatteryCapacity" value="1200"/>
+     	<route edges="gneE41"/>
+    </vehicle>
+
+    <vehicle id="8" type="EV" depart="0" color="0,1,0">
+    	<param key="actualBatteryCapacity" value="1200"/>
+     	<route edges="-gneE28"/>
+    </vehicle>
+
+    <vehicle id="9" type="EV" depart="0" color="0,1,0">
+    	<param key="actualBatteryCapacity" value="1200"/>
+     	<route edges="-gneE28"/>
+    </vehicle>
 
 </routes>

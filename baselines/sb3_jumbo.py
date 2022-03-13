@@ -47,7 +47,7 @@ class MADQN(object):
         decay_period=25,
         decay_rate=0.95,
         min_epsilon=0.01,
-        initial_step=200,
+        initial_step=400,
     ):
         self.env = env
         self.lr = lr
@@ -60,7 +60,7 @@ class MADQN(object):
         self.decay_rate = decay_rate
         self.min_epsilon = min_epsilon
         self.initial_step = initial_step
-        self.initial_step_lower = 3
+        self.initial_step_lower = 10
 
         self.q_principal_upper = {
             agent: QNetwork(
@@ -112,34 +112,34 @@ class MADQN(object):
         self.lower_total_step_cs = 0
 
     def _initialize_output_file(self):
-        if os.path.exists("loss.json"):
-            os.remove("loss.json")
+        if os.path.exists("loss" + suffix):
+            os.remove("loss" + suffix)
 
-        if os.path.exists("reward.json"):
-            os.remove("reward.json")
+        if os.path.exists("reward" + suffix):
+            os.remove("reward" + suffix)
 
-        if os.path.exists("loss_lower.json"):
-            os.remove("loss_lower.json")
+        if os.path.exists("loss_lower" + suffix):
+            os.remove("loss_lower" + suffix)
 
-        if os.path.exists("reward_lower.json"):
-            os.remove("reward_lower.json")
+        if os.path.exists("reward_lower" + suffix):
+            os.remove("reward_lower" + suffix)
 
-        if os.path.exists("metrics.json"):
-            os.remove("metrics.json")
+        if os.path.exists("metrics" + suffix):
+            os.remove("metrics" + suffix)
 
-        with open("reward.json", "w") as out_file:
+        with open("reward" + suffix, "w") as out_file:
             out_file.write("{")
 
-        with open("loss.json", "w") as out_file:
+        with open("loss" + suffix, "w") as out_file:
             out_file.write("{")
 
-        with open("reward_lower.json", "w") as out_file:
+        with open("reward_lower" + suffix, "w") as out_file:
             out_file.write("{")
 
-        with open("loss_lower.json", "w") as out_file:
+        with open("loss_lower" + suffix, "w") as out_file:
             out_file.write("{")
 
-        with open("metrics.json", "w") as out_file:
+        with open("metrics" + suffix, "w") as out_file:
             out_file.write("{")
 
     def _wrap_up_output_file(self):
@@ -179,12 +179,13 @@ class MADQN(object):
             loss_in_episode_demand.append(
                 self.q_principal_lower_demand.train(states, actions, targets)
             )
-
-            run_target_update(self.q_principal_lower_demand, self.q_target_lower_demand)
+            
+            if self.lower_total_step_demand % self.tau == 0:
+                run_target_update(self.q_principal_lower_demand, self.q_target_lower_demand)
 
     def _update_lower_network_cs(self, loss_in_episode_cs):
         if (
-            self.lower_total_step_cs % 3 == 0
+            self.lower_total_step_cs % 5 == 0
             and self.lower_total_step_cs > self.initial_step_lower
         ):
             samples = self.replay_buffer_lower_cs.sample(self.batch_size)
@@ -207,7 +208,8 @@ class MADQN(object):
                 self.q_principal_lower_cs.train(states, actions, targets)
             )
 
-            run_target_update(self.q_principal_lower_cs, self.q_target_lower_cs)
+            if self.lower_total_step_cs % self.tau == 0:
+                run_target_update(self.q_principal_lower_cs, self.q_target_lower_cs)
 
     def _update_lower_network(self, loss_in_episode_demand, loss_in_episode_cs):
         self._update_lower_network_demand(loss_in_episode_demand)
@@ -433,8 +435,8 @@ class MADQN(object):
 
                 data = json.dumps(metric)
                 out_file.write(data[1:-1])
-
-            print(f"Training episode {episode} with reward {reward_sum_upper}.")
+            
+            (f"Training episode {episode} with reward {reward_sum_upper}.")
 
         self._wrap_up_output_file()
 
