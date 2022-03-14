@@ -20,81 +20,82 @@ def savitzky_golay(y, window_size, order, deriv=0, rate=1):
         raise TypeError("window_size is too small for the polynomials order")
     order_range = range(order + 1)
     half_window = (window_size - 1) // 2
-    # precompute coefficients
     b = np.mat(
         [[k**i for i in order_range] for k in range(-half_window, half_window + 1)]
     )
     m = np.linalg.pinv(b).A[deriv] * rate**deriv * factorial(deriv)
-    # pad the signal at the extremes with
-    # values taken from the signal itself
+
     firstvals = y[0] - np.abs(y[1 : half_window + 1][::-1] - y[0])
     lastvals = y[-1] + np.abs(y[-half_window - 1 : -1][::-1] - y[-1])
     y = np.concatenate((firstvals, y, lastvals))
     return np.convolve(m[::-1], y, mode="valid")
 
 
-def plot_loss():
-    loss_dict = json.load(open("loss.json", "r"))
-    episode = np.array([int(key) for key, _ in loss_dict.items()][10:950])
-    v0_loss = np.array([value["v0"] for _, value in loss_dict.items()][10:950])
-    v1_loss = np.array([value["v1"] for _, value in loss_dict.items()][10:950])
-    v2_loss = np.array([value["v2"] for _, value in loss_dict.items()][10:950])
+def plot_loss(lower_loss_file, upper_loss_file, upper_loss_key, upper_smooth, start_index, end_index, truncate_prefix):
+    lower_loss_dict = json.load(open(lower_loss_file, "r"))
+    episode = np.array([int(key) for key, _ in lower_loss_dict.items()][start_index:end_index])
+    lower_loss = np.array([value["total_mean"] for _, value in lower_loss_dict.items()][start_index:end_index])
 
-    # episode_new = np.linspace(episode.min(), episode.max(), 200)
+    upper_loss_dict = json.load(open(upper_loss_file, "r"))
+    upper_loss = np.array([value[upper_loss_key] for _, value in upper_loss_dict.items()][start_index:end_index])
+    
+    plt.rcParams["font.size"] = '14'
+    fig, ax1 = plt.subplots()
+    ax2 = ax1.twinx()
 
-    # spl = make_interp_spline(episode, v0_reward, k=7)
-    # v0_smooth = spl(episode_new)
-    v0_smooth = savitzky_golay(v0_loss, 101, 5)
-    plt.plot(episode, v0_smooth, color="aquamarine", label="v0 loss")
+    y1 = ax1.plot(episode[truncate_prefix:], lower_loss[truncate_prefix:], color="gold", label="lower level loss")
 
-    # spl = make_interp_spline(episode, v1_loss, k=7)
-    # v1_smooth = spl(episode_new)
-    v1_smooth = savitzky_golay(v1_loss, 101, 5)
-    plt.plot(episode, v1_smooth, color="cornflowerblue", label="v1 loss")
-
-    # spl = make_interp_spline(episode, v2_loss, k=7)
-    # v2_smooth = spl(episode_new)
-    v2_smooth = savitzky_golay(v2_loss, 101, 5)
-    plt.plot(episode, v2_smooth, color="wheat", label="v2 loss")
+    upper_loss_smooth = savitzky_golay(upper_loss, 51, 3) if upper_smooth else upper_loss
+    y2 = ax2.plot(episode[truncate_prefix:], upper_loss_smooth[truncate_prefix:], color="dodgerblue", label="upper level loss")
 
     plt.xlabel("episode")
-    plt.ylabel("loss")
-    plt.legend(loc="upper right")
+
+    lns = y1 + y2
+    labs = [l.get_label() for l in lns]
+    ax1.legend(lns, labs, loc="upper right") 
     plt.show()
 
 
-def plot_reward():
-    reward_dict = json.load(open("reward.json", "r"))
-    episode = np.array([int(key) for key, _ in reward_dict.items()][10:950])
-    v0_reward = np.array([value["v0"] for _, value in reward_dict.items()][10:950])
-    v1_reward = np.array([value["v1"] for _, value in reward_dict.items()][10:950])
-    v2_reward = np.array([value["v2"] for _, value in reward_dict.items()][10:950])
+def plot_reward(lower_reward_file, upper_reward_file, upper_reward_key, smooth, start_index, end_index, scale=False):
+    lower_reward_dict = json.load(open(lower_reward_file, "r"))
+    episode = np.array([int(key) for key, _ in lower_reward_dict.items()][start_index:end_index])
+    lower_reward = np.array([value*int(key) if scale else value for key, value in lower_reward_dict.items()][start_index:end_index])
 
-    # episode_new = np.linspace(episode.min(), episode.max(), 200)
+    upper_reward_dict = json.load(open(upper_reward_file, "r"))
+    upper_reward = np.array([value[upper_reward_key] for _, value in upper_reward_dict.items()][start_index:end_index])
+    
+    plt.rcParams["font.size"] = '14'
+    fig, ax1 = plt.subplots()
+    ax2 = ax1.twinx()
 
-    # spl = make_interp_spline(episode, v0_reward, k=7)
-    # v0_smooth = spl(episode_new)
-    v0_smooth = savitzky_golay(v0_reward, 101, 5)
-    plt.plot(episode, v0_smooth, color="aquamarine", label="v0 reward")
+    lower_reward_smooth = savitzky_golay(lower_reward, 51, 5) if smooth else savitzky_golay(lower_reward, 31, 1)
+    y1 = ax1.plot(episode, lower_reward_smooth, color="gold", label="lower level reward")
 
-    # spl = make_interp_spline(episode, v1_loss, k=7)
-    # v1_smooth = spl(episode_new)
-    v1_smooth = savitzky_golay(v1_reward, 101, 5)
-    plt.plot(episode, v1_smooth, color="cornflowerblue", label="v0 reward")
-
-    # spl = make_interp_spline(episode, v2_loss, k=7)
-    # v2_smooth = spl(episode_new)
-    v2_smooth = savitzky_golay(v2_reward, 101, 5)
-    plt.plot(episode, v2_smooth, color="wheat", label="v0 reward")
-
-    # total_reward = v0_smooth + v1_smooth + v2_smooth
-    # plt.plot(episode, total_reward, color='palevioletred', label='total reward')
+    upper_reward_smooth = savitzky_golay(upper_reward, 51, 5) if smooth else savitzky_golay(upper_reward, 11, 1)  
+    y2 = ax2.plot(episode, upper_reward_smooth, color="dodgerblue", label="upper level reward")
 
     plt.xlabel("episode")
-    plt.ylabel("reward")
-    plt.legend(loc="upper right")
+
+    lns = y1 + y2
+    labs = [l.get_label() for l in lns]
+    ax1.legend(lns, labs, loc="upper right") 
     plt.show()
 
 
-plot_reward()
-# plot_loss()
+def plot_jumbo_loss():
+    plot_loss("jumbo-lower-loss.json", "jumbo-upper-loss.json", 'v0', True, 50, 129, 10)
+
+def plot_jumbo_reward():
+    plot_reward("jumbo-lower-reward.json", "jumbo-upper-reward.json", '0', True, 0, 57, True)
+
+def plot_cosmos_loss():
+    plot_loss("cosmos-lower-loss.json", "cosmos-upper-loss.json", '-5', False, 0, 17, 4)
+
+def plot_cosmos_reward():
+    plot_reward("cosmos-lower-reward.json", "cosmos-upper-reward.json", '-2', False, 0, 17)
+
+
+plot_jumbo_loss()
+plot_jumbo_reward()
+plot_cosmos_loss()
+plot_cosmos_reward()
