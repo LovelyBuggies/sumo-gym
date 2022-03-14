@@ -532,6 +532,26 @@ class MADQN(object):
 
         return actual_reward, done, index
 
+    def _initialize_output_file(self):
+        if os.path.exists("loss.json"):
+            os.remove("loss.json")
+
+        if os.path.exists("reward.json"):
+            os.remove("reward.json")
+
+        with open("reward.json", "w") as out_file:
+            out_file.write("{")
+
+        with open("loss.json", "w") as out_file:
+            out_file.write("{")
+
+    def _wrap_up_output_file(self):
+        with open("reward.json", "a") as out_file:
+            out_file.write("}")
+
+        with open("loss.json", "a") as out_file:
+            out_file.write("}")
+
     def train(self):
 
         self._initialize_output_file()

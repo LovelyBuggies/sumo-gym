@@ -381,7 +381,6 @@ class FMPEnv(AECEnv):
 
         self.agents = self.possible_agents[:]
         self.rewards = {agent: 0.0 for agent in self.possible_agents}
-
         self.upper_rewards = {agent: 0.0 for agent in self.possible_agents}
         self.lower_reward_demand = 0
         self.lower_reward_cs = 0
@@ -488,7 +487,6 @@ class FMPEnv(AECEnv):
             )
             self.travel_info[agent_idx] = (prev_loc, IDLE_LOCATION)
             return self.observations, self.upper_rewards, self.dones, self.infos
-
         else:
             if not need_action:
                 print("... Agent: ", agent, " still on the edge...")
