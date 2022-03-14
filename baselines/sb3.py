@@ -16,7 +16,13 @@ from sumo_gym.utils.fmp_utils import (
     get_dist_to_finish_demands,
     get_safe_indicator,
 )
-from DQN.dqn import QNetwork, LowerQNetwork_ChargingStation, LowerQNetwork_Demand, ReplayBuffer, run_target_update
+from DQN.dqn import (
+    QNetwork,
+    LowerQNetwork_ChargingStation,
+    LowerQNetwork_Demand,
+    ReplayBuffer,
+    run_target_update,
+)
 from statistics import mean
 
 vertices = [
@@ -383,7 +389,9 @@ class MADQN(object):
             )
 
             if self.lower_total_step_demand % self.tau == 0:
-                run_target_update(self.q_principal_lower_demand, self.q_target_lower_demand)
+                run_target_update(
+                    self.q_principal_lower_demand, self.q_target_lower_demand
+                )
 
     def _update_lower_network_cs(self, loss_in_episode_cs):
         if (
@@ -455,9 +463,13 @@ class MADQN(object):
             )
 
             if self.total_step[agent] % self.tau == 0:
-                run_target_update(self.q_principal_upper[agent], self.q_target_upper[agent])
+                run_target_update(
+                    self.q_principal_upper[agent], self.q_target_upper[agent]
+                )
 
-    def _generate_upper_level_action(self, agent, upper_last, prev_action_upper, episode_step):
+    def _generate_upper_level_action(
+        self, agent, upper_last, prev_action_upper, episode_step
+    ):
         observation, reward, done, info = upper_last
         if (
             observation != 3
@@ -480,21 +492,45 @@ class MADQN(object):
 
         return reward, done, action, info
 
-    def _calculate_lower_reward(self, location, prev_vector, upper_action, lower_action):
-        scalar = 50 # to make the number bigger
+    def _calculate_lower_reward(
+        self, location, prev_vector, upper_action, lower_action
+    ):
+        scalar = 50  # to make the number bigger
 
-        if upper_action == 1: # charge
-            dist_to_all_cs = get_dist_to_charging_stations(env.fmp.vertices, env.fmp.edges, env.fmp.charging_stations, location)
-            weight = 2 if len(env.fmp.charging_stations[lower_action].charging_vehicle) + 1 <= env.fmp.charging_stations[lower_action].n_slot else 1
-            return scalar * weight * mean(dist_to_all_cs) / (dist_to_all_cs[lower_action] + 1) # avoid zero division
+        if upper_action == 1:  # charge
+            dist_to_all_cs = get_dist_to_charging_stations(
+                env.fmp.vertices, env.fmp.edges, env.fmp.charging_stations, location
+            )
+            weight = (
+                2
+                if len(env.fmp.charging_stations[lower_action].charging_vehicle) + 1
+                <= env.fmp.charging_stations[lower_action].n_slot
+                else 1
+            )
+            return (
+                scalar
+                * weight
+                * mean(dist_to_all_cs)
+                / (dist_to_all_cs[lower_action] + 1)
+            )  # avoid zero division
 
-        elif upper_action == 0: # demand
-            travel_dist = get_dist_of_demands(env.fmp.vertices, env.fmp.edges, env.fmp.demands)[lower_action]
-            total_dist = get_dist_to_finish_demands(env.fmp.vertices, env.fmp.edges, env.fmp.demands, location)[lower_action]
-            return scalar * (1-prev_vector[lower_action]) * travel_dist / (total_dist + 1) # avoid zero division
+        elif upper_action == 0:  # demand
+            travel_dist = get_dist_of_demands(
+                env.fmp.vertices, env.fmp.edges, env.fmp.demands
+            )[lower_action]
+            total_dist = get_dist_to_finish_demands(
+                env.fmp.vertices, env.fmp.edges, env.fmp.demands, location
+            )[lower_action]
+            return (
+                scalar
+                * (1 - prev_vector[lower_action])
+                * travel_dist
+                / (total_dist + 1)
+            )  # avoid zero division
 
-
-    def _generate_lower_level_action(self, agent, lower_last, upper_action, episode_step):
+    def _generate_lower_level_action(
+        self, agent, lower_last, upper_action, episode_step
+    ):
         observation, _, done, info = lower_last
 
         agent_idx = env.agent_name_idx_mapping[agent]
@@ -505,30 +541,58 @@ class MADQN(object):
         dest_area = None
         actual_reward = 0
 
-        flag = 0 if np.random.rand(1) < self.epsilon else 1 # random sample if 0, use network if 1
+        flag = (
+            0 if np.random.rand(1) < self.epsilon else 1
+        )  # random sample if 0, use network if 1
 
-        if upper_action == 1: # action to charge
+        if upper_action == 1:  # action to charge
             self.lower_total_step_cs += 1
-            index = self.q_principal_lower_cs.compute_argmax_q(observation[1]) if flag else env.action_space_lower_cs().sample()
+            index = (
+                self.q_principal_lower_cs.compute_argmax_q(observation[1])
+                if flag
+                else env.action_space_lower_cs().sample()
+            )
             prev_state = observation[1]
-            new_state = observation[1][:-1] # list of current ocupancy of cs
-            new_state[index] = 0 if observation[1][index] < env.fmp.charging_stations[index].n_slot else 1
+            new_state = observation[1][:-1]  # list of current ocupancy of cs
+            new_state[index] = (
+                0
+                if observation[1][index] < env.fmp.charging_stations[index].n_slot
+                else 1
+            )
             dest_area = env.fmp.vertices[env.fmp.charging_stations[index].location].area
             new_state.append(dest_area)
-            actual_reward = self._calculate_lower_reward(env.fmp.electric_vehicles[agent_idx].location, prev_state, upper_action, index)
-            self.replay_buffer_lower_cs.push([tuple(prev_state), index, tuple(new_state), actual_reward])
+            actual_reward = self._calculate_lower_reward(
+                env.fmp.electric_vehicles[agent_idx].location,
+                prev_state,
+                upper_action,
+                index,
+            )
+            self.replay_buffer_lower_cs.push(
+                [tuple(prev_state), index, tuple(new_state), actual_reward]
+            )
 
-        elif upper_action == 0: # action to load
+        elif upper_action == 0:  # action to load
             self.lower_total_step_demand += 1
-            index = self.q_principal_lower_demand.compute_argmax_q(observation[0]) if flag else env.action_space_lower_demand().sample()
+            index = (
+                self.q_principal_lower_demand.compute_argmax_q(observation[0])
+                if flag
+                else env.action_space_lower_demand().sample()
+            )
             prev_state = observation[0]
-            new_state = observation[0][:-1] # demand vector
+            new_state = observation[0][:-1]  # demand vector
             new_state[index] = 1
             dest_area = env.fmp.vertices[env.fmp.demands[index].destination].area
             new_state.append(dest_area)
-            actual_reward = self._calculate_lower_reward(env.fmp.electric_vehicles[agent_idx].location, prev_state, upper_action, index)
+            actual_reward = self._calculate_lower_reward(
+                env.fmp.electric_vehicles[agent_idx].location,
+                prev_state,
+                upper_action,
+                index,
+            )
 
-            self.replay_buffer_lower_demand.push([tuple(prev_state), index, tuple(new_state), actual_reward])   
+            self.replay_buffer_lower_demand.push(
+                [tuple(prev_state), index, tuple(new_state), actual_reward]
+            )
 
         return actual_reward, done, index
 
@@ -555,7 +619,13 @@ class MADQN(object):
     def train(self):
 
         self._initialize_output_file()
-        first_line_loss, first_line_reward, first_line_loss_lower, first_line_reward_lower, first_metrics = True, True, True, True, True
+        (
+            first_line_loss,
+            first_line_reward,
+            first_line_loss_lower,
+            first_line_reward_lower,
+            first_metrics,
+        ) = (True, True, True, True, True)
 
         for episode in range(self.episodes):
             env.reset()
@@ -575,8 +645,21 @@ class MADQN(object):
             prev_action_lower = {agent: None for agent in env.possible_agents}
             for agent in env.agent_iter():
                 upper_last, lower_last = env.last()
-                upper_reward, upper_done, upper_action, info = self._generate_upper_level_action(agent, upper_last, prev_action_upper, episode_step)
-                lower_reward, lower_done, lower_action = self._generate_lower_level_action(agent, lower_last, upper_action, episode_step)
+                (
+                    upper_reward,
+                    upper_done,
+                    upper_action,
+                    info,
+                ) = self._generate_upper_level_action(
+                    agent, upper_last, prev_action_upper, episode_step
+                )
+                (
+                    lower_reward,
+                    lower_done,
+                    lower_action,
+                ) = self._generate_lower_level_action(
+                    agent, lower_last, upper_action, episode_step
+                )
 
                 final_info = info
                 prev_action_upper[agent] = upper_action
@@ -585,33 +668,45 @@ class MADQN(object):
                 episode_step[agent] += 1
 
                 self._update_upper_network(agent, upper_done, loss_in_episode_upper)
-                self._update_lower_network(loss_in_episode_lower_demand, loss_in_episode_lower_cs)
+                self._update_lower_network(
+                    loss_in_episode_lower_demand, loss_in_episode_lower_cs
+                )
 
                 self.total_step[agent] += 1
                 reward_sum_upper[agent] += upper_reward
                 reward_sum_lower += lower_reward
 
-            reward_sum_upper_mean = {agent : reward_sum_upper[agent] / self.total_step[agent] for agent in env.possible_agents}
+            reward_sum_upper_mean = {
+                agent: reward_sum_upper[agent] / self.total_step[agent]
+                for agent in env.possible_agents
+            }
             reward_record = {episode: reward_sum_upper_mean}
-            reward_record_lower = {episode: reward_sum_lower / max(self.total_step.values())}
+            reward_record_lower = {
+                episode: reward_sum_lower / max(self.total_step.values())
+            }
             loss_mean_record = {
                 episode: {
                     agent: mean(loss) if len(loss) > 0 else None
                     for agent, loss in loss_in_episode_upper.items()
                 }
             }
-            cs_mean = mean(loss_in_episode_lower_cs) if len(loss_in_episode_lower_cs) else 0
-            demand_mean = mean(loss_in_episode_lower_demand) if len(loss_in_episode_lower_demand) else 0
+            cs_mean = (
+                mean(loss_in_episode_lower_cs) if len(loss_in_episode_lower_cs) else 0
+            )
+            demand_mean = (
+                mean(loss_in_episode_lower_demand)
+                if len(loss_in_episode_lower_demand)
+                else 0
+            )
             loss_mean_reword_lower = {
                 episode: {
-                    "total_mean": cs_mean / self.lower_total_step_cs + demand_mean / self.lower_total_step_demand,
+                    "total_mean": cs_mean / self.lower_total_step_cs
+                    + demand_mean / self.lower_total_step_demand,
                     "demand_mean": demand_mean / self.lower_total_step_demand,
-                    "cs_mean": cs_mean / self.lower_total_step_cs
+                    "cs_mean": cs_mean / self.lower_total_step_cs,
                 }
             }
-            metric = {
-                episode: final_info.__dict__
-            }
+            metric = {episode: final_info.__dict__}
 
             with open("reward.json", "a") as out_file:
                 if first_line_reward:

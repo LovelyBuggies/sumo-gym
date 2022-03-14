@@ -3,6 +3,7 @@ import numpy as np
 
 import torch
 
+
 class ReplayBuffer(object):
     def __init__(self, max_len=10_000):
         self.max_len = max_len
@@ -16,7 +17,11 @@ class ReplayBuffer(object):
 
     def sample(self, batch_size):
         dummy_memory = set([tuple(m) for m in self.memory[:-1]])
-        return random.sample(dummy_memory, batch_size) if len(dummy_memory) >= batch_size else dummy_memory
+        return (
+            random.sample(dummy_memory, batch_size)
+            if len(dummy_memory) >= batch_size
+            else dummy_memory
+        )
 
     def __repr__(self):
         return str(self.memory)
@@ -27,9 +32,11 @@ class ReplayBuffer(object):
     def __getitem__(self, item):
         return self.memory[item]
 
+
 def run_target_update(q_principal, q_target):
     for v, v_ in zip(q_principal.model.parameters(), q_target.model.parameters()):
         v_.data.copy_(v.data)
+
 
 def to_one_hot(y, num_classes):
     scatter_dim = len(y.size())
@@ -37,7 +44,9 @@ def to_one_hot(y, num_classes):
     zeros = torch.zeros(*y.size(), num_classes, dtype=y.dtype)
     return zeros.scatter(scatter_dim, y_tensor, 1)
 
+
 # TODO: extract common functions in the both upper and lower level networks
+
 
 class QNetwork(object):
     def __init__(self, observation_size, n_action, lr):
@@ -89,7 +98,7 @@ class QNetwork(object):
 
 class LowerQNetwork_Demand(object):
     def __init__(self, observation_size, n_action, lr):
-        self.observation_size = observation_size + 1 # plus one for location area
+        self.observation_size = observation_size + 1  # plus one for location area
         self.n_action = n_action
         self.lr = lr
         self.model = torch.nn.Sequential(
@@ -137,7 +146,7 @@ class LowerQNetwork_Demand(object):
 
 class LowerQNetwork_ChargingStation(object):
     def __init__(self, observation_size, n_action, lr):
-        self.observation_size = observation_size + 1 # plus one for location area
+        self.observation_size = observation_size + 1  # plus one for location area
         self.n_action = n_action
         self.lr = lr
         self.model = torch.nn.Sequential(

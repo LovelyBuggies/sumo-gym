@@ -332,7 +332,7 @@ class FMPEnv(AECEnv):
         self.rewards = {agent: 0.0 for agent in self.possible_agents}
 
         self.upper_rewards = {agent: 0.0 for agent in self.agents}
-        self.lower_reward_demand = 0 # network specific, no agent info
+        self.lower_reward_demand = 0  # network specific, no agent info
         self.lower_reward_cs = 0
         self._cumulative_rewards = {agent: 0.0 for agent in self.agents}
 
@@ -739,11 +739,16 @@ class FMPEnv(AECEnv):
             )
             self.fmp.electric_vehicles[agent_idx].battery -= 1
             self.fmp.electric_vehicles[agent_idx].status = 1 + lower_action
-            is_valid = 1 if lower_action not in set(
-                chain.from_iterable(
-                    [ev.responded for ev in self.fmp.electric_vehicles]
+            is_valid = (
+                1
+                if lower_action
+                not in set(
+                    chain.from_iterable(
+                        [ev.responded for ev in self.fmp.electric_vehicles]
+                    )
                 )
-            ) else 0
+                else 0
+            )
             self.fmp.electric_vehicles[agent_idx].responded.append(lower_action)
 
         self.states[agent] = get_safe_indicator(
@@ -757,7 +762,6 @@ class FMPEnv(AECEnv):
         self.observations[agent] = self.states[agent]
         self._calculate_upper_reward(agent, agent_idx, upper_action, lower_action)
         # self._calculate_lower_reward(self.fmp.electric_vehicles[agent_idx].location, is_valid, upper_action, lower_action)
-
 
     def _calculate_upper_reward(self, agent, agent_idx, upper_action, lower_action):
         self.upper_rewards[agent] = 0
@@ -791,7 +795,6 @@ class FMPEnv(AECEnv):
             elif upper_action == 1:
                 self.upper_rewards[agent] = -20
 
-
     def last(self, observe=True):
         agent = self.agent_selection
         agent_idx = self.agent_name_idx_mapping[agent]
@@ -799,21 +802,31 @@ class FMPEnv(AECEnv):
             return None, 0, True, {}
         observation = self.observe(agent) if observe else None
 
-        loc_area = self.fmp.vertices[self.fmp.electric_vehicles[agent_idx].location].area
+        loc_area = self.fmp.vertices[
+            self.fmp.electric_vehicles[agent_idx].location
+        ].area
         demand_vector = self._generate_demand_vector()
         demand_vector.append(loc_area)
         cs_vector = self._generate_cs_vector()
         cs_vector.append(loc_area)
-        return (observation, self.upper_rewards[agent], self.dones[agent], self.infos), ((demand_vector, cs_vector), (self.lower_reward_demand, self.lower_reward_cs), self.dones[agent], self.infos)
+        return (
+            observation,
+            self.upper_rewards[agent],
+            self.dones[agent],
+            self.infos,
+        ), (
+            (demand_vector, cs_vector),
+            (self.lower_reward_demand, self.lower_reward_cs),
+            self.dones[agent],
+            self.infos,
+        )
 
     def _generate_cs_vector(self):
         return [len(cs.charging_vehicle) for cs in self.fmp.charging_stations]
 
     def _generate_demand_vector(self):
         responded_list = set(
-            chain.from_iterable(
-                [ev.responded for ev in self.fmp.electric_vehicles]
-            )
+            chain.from_iterable([ev.responded for ev in self.fmp.electric_vehicles])
         )
         all_demand = list(range(self.fmp.n_demand))
 
