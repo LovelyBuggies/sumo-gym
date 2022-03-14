@@ -39,9 +39,8 @@ def plot_loss(lower_loss_file, upper_loss_file, upper_loss_key, upper_smooth, st
     upper_loss_dict = json.load(open(upper_loss_file, "r"))
     upper_loss = np.array([value[upper_loss_key] for _, value in upper_loss_dict.items()][start_index:end_index])
 
-    plt.figure(figsize=(12, 6))
     plt.rcParams["font.size"] = '14'
-    fig, ax1 = plt.subplots()
+    fig, ax1 = plt.subplots(figsize=(12, 6))
     ax2 = ax1.twinx()
 
     y1 = ax1.plot(episode[truncate_prefix:], lower_loss[truncate_prefix:], color="navy", ls='--', lw=4, label="lower level loss")
@@ -62,9 +61,8 @@ def plot_reward(lower_reward_file, upper_reward_file, upper_reward_key, smooth, 
     upper_reward_dict = json.load(open(upper_reward_file, "r"))
     upper_reward = np.array([value[upper_reward_key] for _, value in upper_reward_dict.items()][start_index:end_index])
 
-    plt.figure(figsize=(12, 6))
     plt.rcParams["font.size"] = '14'
-    fig, ax1 = plt.subplots()
+    fig, ax1 = plt.subplots(figsize=(12, 6))
     ax2 = ax1.twinx()
 
     lower_reward_smooth = savitzky_golay(lower_reward, 51, 5) if smooth else savitzky_golay(lower_reward, 31, 1)
