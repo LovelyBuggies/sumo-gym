@@ -25,7 +25,7 @@ from DQN.dqn import (
 )
 from statistics import mean
 
-suffix = "-jumbo.json"
+suffix = "-jumbo-fix.json"
 
 env = gym.make(
     "FMP-v0",
