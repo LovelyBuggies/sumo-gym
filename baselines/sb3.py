@@ -240,7 +240,7 @@ class MADQN(object):
         lr=0.003,
         batch_size=4,
         tau=50,
-        episodes=200,
+        episodes=2000,
         gamma=0.95,
         epsilon=1.0,
         decay_period=25,
@@ -375,18 +375,12 @@ class MADQN(object):
                 new_states.append(list(transition[2]))
                 rewards.append(transition[3])
 
-            print("#################################### \n", states, rewards)
-            print(self.gamma * self.q_target_lower_demand.compute_max_q(
-                states
-            ))
             targets = rewards + self.gamma * self.q_target_lower_demand.compute_max_q(
                 new_states
             )
-            loss = self.q_principal_lower_demand.train(states, actions, targets)
             loss_in_episode_demand.append(
-                loss
+                self.q_principal_lower_demand.train(states, actions, targets)
             )
-            print("------> ", loss)
 
             if self.lower_total_step_demand % self.tau == 0:
                 run_target_update(self.q_principal_lower_demand, self.q_target_lower_demand)

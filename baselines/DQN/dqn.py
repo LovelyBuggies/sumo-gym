@@ -34,8 +34,8 @@ class ReplayBuffer(object):
     def sample(self, batch_size):
 
         dummy_memory = set([tuple(m) for m in self.memory[:-1]])
-        # return random.sample(dummy_memory, batch_size) if len(dummy_memory) >= batch_size else self.default.sample(batch_size)
-        return random.sample(dummy_memory, batch_size)
+        return random.sample(dummy_memory, batch_size) if len(dummy_memory) >= batch_size else dummy_memory
+        # return random.sample(dummy_memory, batch_size)
 
     def __repr__(self):
         return str(self.memory)

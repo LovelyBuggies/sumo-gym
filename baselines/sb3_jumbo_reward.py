@@ -19,7 +19,7 @@ from sumo_gym.utils.fmp_utils import (
 from DQN.dqn import QNetwork, LowerQNetwork_ChargingStation, LowerQNetwork_Demand, ReplayBuffer, run_target_update
 from statistics import mean
 
-suffix = "-jumbo.json"
+suffix = "-jumbo-fix.json"
 
 env = gym.make(
     "FMP-v0",

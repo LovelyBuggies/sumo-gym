@@ -19,19 +19,18 @@ from sumo_gym.utils.fmp_utils import (
 from DQN.dqn import QNetwork, LowerQNetwork_ChargingStation, LowerQNetwork_Demand, ReplayBuffer, run_target_update
 from statistics import mean
 
-suffix = "-jumbo.json"
+suffix = "-cosmos.json"
 
 env = gym.make(
     "FMP-v0",
     mode="sumo_config",
     verbose=1,
-    sumo_config_path="assets/data/jumbo/jumbo.sumocfg",
-    net_xml_file_path="assets/data/jumbo/jumbo.net.xml",
-    demand_xml_file_path="assets/data/jumbo/jumbo.rou.xml",
-    additional_xml_file_path="assets/data/jumbo/jumbo.cs.add.xml",
+    sumo_config_path="assets/data/cosmos/cosmos.sumocfg",
+    net_xml_file_path="assets/data/cosmos/cosmos.net.xml",
+    demand_xml_file_path="assets/data/cosmos/cosmos.rou.xml",
+    additional_xml_file_path="assets/data/cosmos/cosmos.cs.add.xml",
     render_env=False,
 )
-
 
 
 class MADQN(object):
