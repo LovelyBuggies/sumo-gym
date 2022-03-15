@@ -3,6 +3,7 @@ import numpy as np
 import json
 import gym
 import random
+import sys
 
 import sumo_gym
 from sumo_gym.utils.fmp_utils import (
@@ -35,7 +36,7 @@ env = gym.make(
     net_xml_file_path="assets/data/jumbo/jumbo.net.xml",
     demand_xml_file_path="assets/data/jumbo/jumbo.rou.xml",
     additional_xml_file_path="assets/data/jumbo/jumbo.cs.add.xml",
-    render_env=False,
+    render_env=True if str(sys.argv[sys.argv.index("--render") + 1]) == "1" else False,
 )
 
 

@@ -32,6 +32,7 @@ class SumoRender:
         self.initialized = False
         self.terminated = False
         self.need_action = [False] * n_vehicle
+        self.stopped = [None] * n_vehicle
         self.n_vehicle = n_vehicle
         self.routes = []
         self.last_edge = {
@@ -48,6 +49,9 @@ class SumoRender:
 
     def retrieve_need_action_status(self):
         return self.need_action
+
+    def retrieve_stop_status(self):
+        return self.stopped
 
     def update_travel_vertex_info_for_vehicle(self, vehicle_travel_info_list):
         self.travel_info = vehicle_travel_info_list
@@ -92,6 +96,15 @@ class SumoRender:
             # notice here each vehicle must finish traveling along it starting edge
             # there is no way to reassign it.
             self.routes.append(tuple([edge_id]))
+            traci.vehicle.setStop(
+                vehID=vehicle_id,
+                edgeID=edge_id,
+                pos=self.edge_length_dict[edge_id],
+                laneIndex=0,
+                duration=189999999999,
+                flags=0,
+                startPos=0,
+            )
             self.last_edge[i] = edge_id
 
     def _park_vehicle_to_assigned_starting_pos(self):
@@ -211,7 +224,15 @@ class SumoRender:
                 <= 20
             ):  # arriving the assigned vertex, can take the next action
                 self.need_action[i] = True
+                if traci.vehicle.getStopState(vehicle_id):
+                    self.stopped[i] = traci.vehicle.getLanePosition(vehicle_id)
+                else:
+                    self.stopped[i] = None
             else:
+                print("============> ", vehicle_id, " traveling =====================> ", traci.vehicle.getLaneID(vehicle_id), traci.vehicle.getSpeedMode(vehicle_id), traci.vehicle.getStopState(vehicle_id), self.last_edge[i])
+                if traci.vehicle.getStopState(vehicle_id):
+                    traci.vehicle.resume(vehicle_id)
+                    print("============> Trying to resume vehicle: ", vehicle_id)
                 self.need_action[i] = False
 
     def _find_key_from_value(self, dict, value):
