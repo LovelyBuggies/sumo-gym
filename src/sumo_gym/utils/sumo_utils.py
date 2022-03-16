@@ -90,6 +90,7 @@ class SumoRender:
         for i in range(self.n_vehicle):
 
             vehicle_id = self._find_key_from_value(self.ev_dict, i)
+            print("====== ", traci.vehicle.getIDList(), traci.vehicle.getIDCount())
             edge_id = traci.vehicle.getRoute(vehicle_id)[0]
 
             # stop at the ending vertex of vehicle's starting edge
