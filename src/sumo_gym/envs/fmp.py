@@ -444,6 +444,9 @@ class FMPEnv(AECEnv):
             self._skip_agent_selection = None
         self._clear_rewards()
 
+        if (self._agent_selector._current_agent != len(self._agent_selector.agent_order)):
+            self._agent_selector._current_agent -= 1
+
         if self.fmp.electric_vehicles[agent_idx].status > 2 * self.fmp.n_demand:
             if (
                 self.fmp.electric_vehicles[agent_idx].status
@@ -521,6 +524,7 @@ class FMPEnv(AECEnv):
                 if self._agent_selector.agent_order
                 else None
             )
+            print("AFTER AFTER DONE: ", self.agents)
             
            
             return self.observations, self.upper_rewards, self.dones, self.infos
