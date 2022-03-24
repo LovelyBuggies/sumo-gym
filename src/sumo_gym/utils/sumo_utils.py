@@ -39,6 +39,9 @@ class SumoRender:
         self.last_edge = {
             i: None for i in range(n_vehicle)
         }  # only used for setting stop related usage
+        
+        self.congestion_interval = 20
+        self.simulation_step_count = 0
 
         if "SUMO_HOME" in os.environ:
             tools = os.path.join(os.environ["SUMO_HOME"], "tools")
@@ -58,6 +61,8 @@ class SumoRender:
         self.travel_info = vehicle_travel_info_list
 
     def render(self):
+        self.simulation_step_count += 1
+
         if not self.initialized:
             print("Initialize the first starting edge for vehicle...")
             self._initialize_route()
@@ -66,6 +71,7 @@ class SumoRender:
         else:
             self._update_route_with_stop()
             traci.simulationStep()
+            self._check_conjestion()
             self._update_need_action_status()
 
     def reset(self):
@@ -80,6 +86,8 @@ class SumoRender:
         self.last_edge = {
             i: None for i in range(self.n_vehicle)
         }  # only used for setting stop related usage
+
+        self.simulation_step_count = 0
 
         traci.start([self.sumo_gui_path, "-c", self.sumo_config_path])
 
@@ -106,7 +114,6 @@ class SumoRender:
         for i in range(self.n_vehicle):
 
             vehicle_id = self._find_key_from_value(self.ev_dict, i)
-            print("====== ", traci.vehicle.getIDList(), traci.vehicle.getIDCount())
             edge_id = traci.vehicle.getRoute(vehicle_id)[0]
 
             # stop at the ending vertex of vehicle's starting edge
@@ -225,6 +232,18 @@ class SumoRender:
                             startPos=0,
                         )
 
+
+    def _check_conjestion(self):
+        # background noise might cause heavy congestion such that all vehicles stuck
+        # since we might use customized networks that are not well-designed with traffic light
+        # with default speed mode (yield to right, etc) settings
+        if self.simulation_step_count % self.congestion_interval == 0:
+            model_vehicles = list(self.ev_dict.keys())
+            for vehicle_id in traci.vehicle.getIDList():
+                if vehicle_id not in model_vehicles: # background noise
+                    if traci.vehicle.getSpeed(vehicle_id) <= 0.001:
+                        traci.vehicle.remove(vehicle_id)
+
     def _update_need_action_status(self):
         eligible_vehicle = traci.vehicle.getIDList()
 
@@ -254,12 +273,9 @@ class SumoRender:
                 # after v2 left, v1 should resume and move nearer to position A 
                 if driving_dist >= 5 and traci.vehicle.getStopState(vehicle_id): 
                     traci.vehicle.resume(vehicle_id)
-                    print("============> Trying to resume vehicle to nearer: ", vehicle_id)
             else:
-                print("============> ", vehicle_id, " traveling =====================> ", traci.vehicle.getLaneID(vehicle_id), traci.vehicle.getSpeedMode(vehicle_id), traci.vehicle.getStopState(vehicle_id), self.last_edge[i])
                 if traci.vehicle.getStopState(vehicle_id):
                     traci.vehicle.resume(vehicle_id)
-                    print("============> Trying to resume vehicle: ", vehicle_id)
                 self.need_action[i] = False
 
     def _find_key_from_value(self, dict, value):

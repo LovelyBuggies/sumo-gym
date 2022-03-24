@@ -444,7 +444,6 @@ class FMPEnv(AECEnv):
             self._skip_agent_selection = None
         self._clear_rewards()
 
-        print(self._agent_selector._current_agent, len(self._agent_selector.agent_order))
         self._agent_selector._current_agent -= 1
         if self._agent_selector._current_agent < 0:
             self._agent_selector._current_agent = 0

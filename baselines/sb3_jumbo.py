@@ -425,7 +425,6 @@ class MADQN(object):
             prev_action_upper = {agent: None for agent in env.possible_agents}
             prev_action_lower = {agent: None for agent in env.possible_agents}
             for agent in env.agent_iter():
-                print("BEGIN FOR AGENT: ", agent)
                 upper_last, lower_last = env.last()
                 (
                     upper_reward,
@@ -457,8 +456,6 @@ class MADQN(object):
                 self.total_step[agent] += 1
                 reward_sum_upper[agent] += upper_reward
                 reward_sum_lower += lower_reward
-
-                print("END FOR AGENT: ", agent)
 
             reward_sum_upper_mean = {
                 agent: reward_sum_upper[agent] / episode_step[agent]
