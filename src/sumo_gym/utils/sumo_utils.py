@@ -39,7 +39,7 @@ class SumoRender:
         self.last_edge = {
             i: None for i in range(n_vehicle)
         }  # only used for setting stop related usage
-        
+
         self.congestion_interval = 20
         self.simulation_step_count = 0
 
@@ -232,7 +232,6 @@ class SumoRender:
                             startPos=0,
                         )
 
-
     def _check_conjestion(self):
         # background noise might cause heavy congestion such that all vehicles stuck
         # since we might use customized networks that are not well-designed with traffic light
@@ -240,7 +239,7 @@ class SumoRender:
         if self.simulation_step_count % self.congestion_interval == 0:
             model_vehicles = list(self.ev_dict.keys())
             for vehicle_id in traci.vehicle.getIDList():
-                if vehicle_id not in model_vehicles: # background noise
+                if vehicle_id not in model_vehicles:  # background noise
                     if traci.vehicle.getSpeed(vehicle_id) <= 0.001:
                         traci.vehicle.remove(vehicle_id)
 
@@ -251,7 +250,6 @@ class SumoRender:
             vehicle_id = self._find_key_from_value(self.ev_dict, i)
             if vehicle_id not in eligible_vehicle:
                 continue
-            
 
             driving_dist = traci.vehicle.getDrivingDistance(
                 vehicle_id,
@@ -259,7 +257,7 @@ class SumoRender:
                 self.edge_length_dict[self.last_edge[i]],
             )
             if (
-                driving_dist <= 20 
+                driving_dist <= 20
             ):  # arriving the assigned vertex, can take the next action
                 self.need_action[i] = True
                 if traci.vehicle.getStopState(vehicle_id):
@@ -270,8 +268,8 @@ class SumoRender:
                 # still at least one vehicle length away
                 # handle the case when vehicle v1 trying to stop at position A, some other car v2 stopped at A
                 # so v1 stopped at least one vehicle length away from postion A
-                # after v2 left, v1 should resume and move nearer to position A 
-                if driving_dist >= 5 and traci.vehicle.getStopState(vehicle_id): 
+                # after v2 left, v1 should resume and move nearer to position A
+                if driving_dist >= 5 and traci.vehicle.getStopState(vehicle_id):
                     traci.vehicle.resume(vehicle_id)
             else:
                 if traci.vehicle.getStopState(vehicle_id):
