@@ -23,6 +23,7 @@ class SumoRender:
         n_vehicle: int = 1,
     ):
         self.sumo_gui_path = sumo_gui_path
+        self.sumo_config_path = sumo_config_path
         self.edge_dict = edge_dict
         self.edge_length_dict = edge_length_dict
         self.ev_dict = ev_dict
@@ -39,13 +40,16 @@ class SumoRender:
             i: None for i in range(n_vehicle)
         }  # only used for setting stop related usage
 
+        self.congestion_interval = 20
+        self.simulation_step_count = 0
+
         if "SUMO_HOME" in os.environ:
             tools = os.path.join(os.environ["SUMO_HOME"], "tools")
             sys.path.append(tools)
         else:
             sys.exit("please declare environment variable 'SUMO_HOME'")
 
-        traci.start([self.sumo_gui_path, "-c", sumo_config_path])
+        traci.start([self.sumo_gui_path, "-c", self.sumo_config_path])
 
     def retrieve_need_action_status(self):
         return self.need_action
@@ -57,6 +61,8 @@ class SumoRender:
         self.travel_info = vehicle_travel_info_list
 
     def render(self):
+        self.simulation_step_count += 1
+
         if not self.initialized:
             print("Initialize the first starting edge for vehicle...")
             self._initialize_route()
@@ -65,7 +71,25 @@ class SumoRender:
         else:
             self._update_route_with_stop()
             traci.simulationStep()
+            self._check_conjestion()
             self._update_need_action_status()
+
+    def reset(self):
+        self.close()
+
+        self.initialized = False
+        self.terminated = False
+        self.need_action = [False] * self.n_vehicle
+        self.stopped = [None] * self.n_vehicle
+        self.n_vehicle = self.n_vehicle
+        self.routes = []
+        self.last_edge = {
+            i: None for i in range(self.n_vehicle)
+        }  # only used for setting stop related usage
+
+        self.simulation_step_count = 0
+
+        traci.start([self.sumo_gui_path, "-c", self.sumo_config_path])
 
     def close(self):
         while not self.terminated:
@@ -84,13 +108,12 @@ class SumoRender:
                 ):  # as long as one vehicle not arrive its assigned last vertex, continue simulation
                     self.terminated = False
 
-        traci.close()
+        traci.close(wait=False)
 
     def _initialize_route(self):
         for i in range(self.n_vehicle):
 
             vehicle_id = self._find_key_from_value(self.ev_dict, i)
-            print("====== ", traci.vehicle.getIDList(), traci.vehicle.getIDCount())
             edge_id = traci.vehicle.getRoute(vehicle_id)[0]
 
             # stop at the ending vertex of vehicle's starting edge
@@ -124,6 +147,8 @@ class SumoRender:
         eligible_vehicle = traci.vehicle.getIDList()
         for i in range(self.n_vehicle):
             vehicle_id = self._find_key_from_value(self.ev_dict, i)
+            if vehicle_id not in eligible_vehicle:
+                continue
 
             if self.need_action[i]:
                 if self.travel_info[i] is None:  # location not changed
@@ -138,6 +163,11 @@ class SumoRender:
                     )
                     continue
 
+                if len(traci.vehicle.getStops(vehID=vehicle_id, limit=1)) == 1:
+                    traci.vehicle.replaceStop(
+                        vehID=vehicle_id, nextStopIndex=0, edgeID=""
+                    )
+
                 if (
                     self.travel_info[i][1] == IDLE_LOCATION
                 ):  # vehicle done, let it move to dest and disappear in network
@@ -147,14 +177,7 @@ class SumoRender:
                         " becomes idle, will disappear after finishing the trip.",
                     )
                 else:
-                    if len(traci.vehicle.getStops(vehID=vehicle_id, limit=1)) == 1:
-                        traci.vehicle.replaceStop(
-                            vehID=vehicle_id, nextStopIndex=0, edgeID=""
-                        )
-
                     self.need_action[i] = False
-                    if vehicle_id not in eligible_vehicle:
-                        continue
 
                     via_edge = self.travel_info[i]
                     edge_id = self._find_key_from_value(
@@ -209,6 +232,17 @@ class SumoRender:
                             startPos=0,
                         )
 
+    def _check_conjestion(self):
+        # background noise might cause heavy congestion such that all vehicles stuck
+        # since we might use customized networks that are not well-designed with traffic light
+        # with default speed mode (yield to right, etc) settings
+        if self.simulation_step_count % self.congestion_interval == 0:
+            model_vehicles = list(self.ev_dict.keys())
+            for vehicle_id in traci.vehicle.getIDList():
+                if vehicle_id not in model_vehicles:  # background noise
+                    if traci.vehicle.getSpeed(vehicle_id) <= 0.001:
+                        traci.vehicle.remove(vehicle_id)
+
     def _update_need_action_status(self):
         eligible_vehicle = traci.vehicle.getIDList()
 
@@ -216,24 +250,30 @@ class SumoRender:
             vehicle_id = self._find_key_from_value(self.ev_dict, i)
             if vehicle_id not in eligible_vehicle:
                 continue
-            elif (
-                traci.vehicle.getDrivingDistance(
-                    vehicle_id,
-                    self.routes[i][-1],
-                    self.edge_length_dict[self.last_edge[i]],
-                )
-                <= 20
+
+            driving_dist = traci.vehicle.getDrivingDistance(
+                vehicle_id,
+                self.routes[i][-1],
+                self.edge_length_dict[self.last_edge[i]],
+            )
+            if (
+                driving_dist <= 20
             ):  # arriving the assigned vertex, can take the next action
                 self.need_action[i] = True
                 if traci.vehicle.getStopState(vehicle_id):
                     self.stopped[i] = traci.vehicle.getLanePosition(vehicle_id)
                 else:
                     self.stopped[i] = None
+
+                # still at least one vehicle length away
+                # handle the case when vehicle v1 trying to stop at position A, some other car v2 stopped at A
+                # so v1 stopped at least one vehicle length away from postion A
+                # after v2 left, v1 should resume and move nearer to position A
+                if driving_dist >= 5 and traci.vehicle.getStopState(vehicle_id):
+                    traci.vehicle.resume(vehicle_id)
             else:
-                print("============> ", vehicle_id, " traveling =====================> ", traci.vehicle.getLaneID(vehicle_id), traci.vehicle.getSpeedMode(vehicle_id), traci.vehicle.getStopState(vehicle_id), self.last_edge[i])
                 if traci.vehicle.getStopState(vehicle_id):
                     traci.vehicle.resume(vehicle_id)
-                    print("============> Trying to resume vehicle: ", vehicle_id)
                 self.need_action[i] = False
 
     def _find_key_from_value(self, dict, value):

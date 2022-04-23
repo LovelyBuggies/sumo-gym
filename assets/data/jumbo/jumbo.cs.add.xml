@@ -4,14 +4,9 @@
 -->
 
 <additional>
-	<chargingStation power="50" chargeInTransit="0" chrgpower="200000" efficiency="1" endPos="25" id="cS_1_shadow" lane="-gneE18_0" startPos="20">
+
+	<chargingStation power="50" chargeInTransit="0" chrgpower="200000" efficiency="1" id="chargingStation_gneE90_0_0" lane="gneE90_0" startPos="28.57" endPos="33.57">
+		<param key="approx_loc" value="-11.30 -1.80"/>
 	</chargingStation>
-	<chargingStation power="50" chargeInTransit="0" chrgpower="200000" efficiency="1" endPos="20" id="cS_2" lane="gneE2_0" startPos="15">
-		<param key="approx_loc" value="-26.83 21.40"/>
-	</chargingStation>
-	<chargingStation power="50" chargeInTransit="0" chrgpower="200000" efficiency="1" endPos="39.3" id="cS_1" lane="gneE18_0" startPos="34.3">
-		<param key="approx_loc" value="32.36 23.80"/>
-	</chargingStation>
-	<chargingStation power="50" chargeInTransit="0" chrgpower="200000" efficiency="1" endPos="23.5" id="cS_2_shadow" lane="-gneE2_0" startPos="18.5">
-	</chargingStation>
+
 </additional>

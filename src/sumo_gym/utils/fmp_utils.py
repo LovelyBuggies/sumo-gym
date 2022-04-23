@@ -220,6 +220,7 @@ def convert_raw_charging_stations(
     Each raw charging station is
     [id, (x_coord, y_coord), edge_id, charging speed]
     """
+    print("raw_charging_stations: ", raw_charging_stations)
 
     charging_station_dict = {}  # idx in charging_stations to sumo id
     charging_stations = []
@@ -250,23 +251,9 @@ def convert_raw_charging_stations(
         edge_length_dict["split1_%s" % edge_id] = edge_length_positive_edge_cs
 
         curr_edge_count += 1
-        edges.append(Edge(vtx_counter, old_edge_start_idx))
-        edge_dict["split1_-%s" % edge_id] = curr_edge_count
-        edge_length_dict["split1_-%s" % edge_id] = edge_length_positive_edge_cs
-
-        curr_edge_count += 1
         edges.append(Edge(vtx_counter, old_edge_end_idx))
         edge_dict["split2_%s" % edge_id] = curr_edge_count
         edge_length_dict["split2_%s" % edge_id] = (
-            edge_length_postive_edge
-            - edge_length_positive_edge_cs
-            + CHARGING_STATION_LENGTH
-        )
-
-        curr_edge_count += 1
-        edges.append(Edge(old_edge_end_idx, vtx_counter))
-        edge_dict["split2_-%s" % edge_id] = curr_edge_count
-        edge_length_dict["split2_-%s" % edge_id] = (
             edge_length_postive_edge
             - edge_length_positive_edge_cs
             + CHARGING_STATION_LENGTH

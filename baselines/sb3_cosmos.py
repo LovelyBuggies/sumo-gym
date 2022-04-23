@@ -3,6 +3,7 @@ import numpy as np
 import json
 import gym
 import random
+import sys
 
 import sumo_gym
 from sumo_gym.utils.fmp_utils import (
@@ -25,7 +26,7 @@ from DQN.dqn import (
 )
 from statistics import mean
 
-suffix = "-cosmos.json"
+prefix = "cosmos/"
 
 env = gym.make(
     "FMP-v0",
@@ -35,7 +36,7 @@ env = gym.make(
     net_xml_file_path="assets/data/cosmos/cosmos.net.xml",
     demand_xml_file_path="assets/data/cosmos/cosmos.rou.xml",
     additional_xml_file_path="assets/data/cosmos/cosmos.cs.add.xml",
-    render_env=False,
+    render_env=True if str(sys.argv[sys.argv.index("--render") + 1]) == "1" else False,
 )
 
 
@@ -117,47 +118,50 @@ class MADQN(object):
         self.lower_total_step_cs = 0
 
     def _initialize_output_file(self):
-        if os.path.exists("loss" + suffix):
-            os.remove("loss" + suffix)
+        if os.path.exists(prefix + "upper-loss.json"):
+            os.remove(prefix + "upper-loss.json")
 
-        if os.path.exists("reward" + suffix):
-            os.remove("reward" + suffix)
+        if os.path.exists(prefix + "upper-reward.json"):
+            os.remove(prefix + "upper-reward.json")
 
-        if os.path.exists("loss_lower" + suffix):
-            os.remove("loss_lower" + suffix)
+        if os.path.exists(prefix + "lower-loss.json"):
+            os.remove(prefix + "lower-loss.json")
 
-        if os.path.exists("reward_lower" + suffix):
-            os.remove("reward_lower" + suffix)
+        if os.path.exists(prefix + "lower-reward.json"):
+            os.remove(prefix + "lower-reward.json")
 
-        if os.path.exists("metrics" + suffix):
-            os.remove("metrics" + suffix)
+        if os.path.exists(prefix + "metrics.json"):
+            os.remove(prefix + "metrics.json")
 
-        with open("reward" + suffix, "w") as out_file:
+        with open(prefix + "upper-loss.json", "w") as out_file:
             out_file.write("{")
 
-        with open("loss" + suffix, "w") as out_file:
+        with open(prefix + "upper-reward.json", "w") as out_file:
             out_file.write("{")
 
-        with open("reward_lower" + suffix, "w") as out_file:
+        with open(prefix + "lower-loss.json", "w") as out_file:
             out_file.write("{")
 
-        with open("loss_lower" + suffix, "w") as out_file:
+        with open(prefix + "lower-reward.json", "w") as out_file:
             out_file.write("{")
 
-        with open("metrics" + suffix, "w") as out_file:
+        with open(prefix + "metrics.json", "w") as out_file:
             out_file.write("{")
 
     def _wrap_up_output_file(self):
-        with open("reward" + suffix, "a") as out_file:
+        with open(prefix + "upper-loss.json", "a") as out_file:
             out_file.write("}")
 
-        with open("loss" + suffix, "a") as out_file:
+        with open(prefix + "upper-reward.json", "a") as out_file:
             out_file.write("}")
 
-        with open("reward_lower" + suffix, "a") as out_file:
+        with open(prefix + "lower-loss.json", "a") as out_file:
             out_file.write("}")
 
-        with open("loss_lower" + suffix, "a") as out_file:
+        with open(prefix + "lower-reward.json", "a") as out_file:
+            out_file.write("}")
+
+        with open(prefix + "metrics.json", "a") as out_file:
             out_file.write("}")
 
     def _update_lower_network_demand(self, loss_in_episode_demand):
@@ -485,7 +489,7 @@ class MADQN(object):
             }
             metric = {episode: final_info.__dict__}
 
-            with open("reward" + suffix, "a") as out_file:
+            with open(prefix + "upper-reward.json", "a") as out_file:
                 if first_line_reward:
                     first_line_reward = False
                 else:
@@ -494,7 +498,7 @@ class MADQN(object):
                 data = json.dumps(reward_record)
                 out_file.write(data[1:-1])
 
-            with open("loss" + suffix, "a") as out_file:
+            with open(prefix + "upper-loss.json", "a") as out_file:
                 if first_line_loss:
                     first_line_loss = False
                 else:
@@ -503,7 +507,7 @@ class MADQN(object):
                 data = json.dumps(loss_mean_record)
                 out_file.write(data[1:-1])
 
-            with open("reward_lower" + suffix, "a") as out_file:
+            with open(prefix + "lower-reward.json", "a") as out_file:
                 if first_line_reward_lower:
                     first_line_reward_lower = False
                 else:
@@ -512,7 +516,7 @@ class MADQN(object):
                 data = json.dumps(reward_record_lower)
                 out_file.write(data[1:-1])
 
-            with open("loss_lower" + suffix, "a") as out_file:
+            with open(prefix + "lower-loss.json", "a") as out_file:
                 if first_line_loss_lower:
                     first_line_loss_lower = False
                 else:
@@ -521,7 +525,7 @@ class MADQN(object):
                 data = json.dumps(loss_mean_reword_lower)
                 out_file.write(data[1:-1])
 
-            with open("metrics" + suffix, "a") as out_file:
+            with open(prefix + "metrics.json", "a") as out_file:
                 if first_metrics:
                     first_metrics = False
                 else:

@@ -54,38 +54,35 @@ def get_charging_stations(additional_xml_tree, net_xml_tree):
 
     Each charging station is [id, (x_coord, y_coord), edge_id, charging speed]
     """
-    cs_lst = []
+    cs_list = []
     stations = additional_xml_tree.findall("chargingStation")
     for station in stations:
-
-        if "shadow" not in station.attrib["id"]:
-
-            # get approximate location
-            x_coord, y_coord = station.findall("param")[0].attrib["value"].split()
-            # get edge_id
-            lane_id = station.attrib["lane"]
-            edge_id = None
-            # get all edges in net.xml
-            edges = net_xml_tree.findall("edge")
-            for edge in edges:
-                lanes = edge.findall("lane")
-                lanes = [
-                    lane.attrib["id"] for lane in lanes if lane.attrib["id"] == lane_id
-                ]
-                if len(lanes) == 1:
-                    edge_id = edge.attrib["id"]
-                    break
-            cs_lst.append(
-                (
-                    station.attrib["id"],
-                    (float(x_coord), float(y_coord)),
-                    edge_id,
-                    float(station.attrib["power"]),
-                    float(station.attrib["endPos"]),
-                )
+        # get approximate location
+        x_coord, y_coord = station.findall("param")[0].attrib["value"].split()
+        # get edge_id
+        lane_id = station.attrib["lane"]
+        edge_id = None
+        # get all edges in net.xml
+        edges = net_xml_tree.findall("edge")
+        for edge in edges:
+            lanes = edge.findall("lane")
+            lanes = [
+                lane.attrib["id"] for lane in lanes if lane.attrib["id"] == lane_id
+            ]
+            if len(lanes) == 1:
+                edge_id = edge.attrib["id"]
+                break
+        cs_list.append(
+            (
+                station.attrib["id"],
+                (float(x_coord), float(y_coord)),
+                edge_id,
+                float(station.attrib["power"]),
+                float(station.attrib["endPos"]),
             )
+        )
 
-    return cs_lst
+    return cs_list
 
 
 def get_vertices(net_xml_tree):
