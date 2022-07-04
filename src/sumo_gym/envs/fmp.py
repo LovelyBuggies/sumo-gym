@@ -474,9 +474,7 @@ class FMPEnv(AECEnv):
         need_action = (
             self.sumo.retrieve_need_action_status()[agent_idx] if self.sumo else True
         )
-        stopped = {
-            self.sumo.retrieve_stop_status()[agent_idx] if self.sumo else None
-        }
+        stopped = {self.sumo.retrieve_stop_status()[agent_idx] if self.sumo else None}
 
         self.travel_info[agent_idx] = None
         prev_loc = self.fmp.electric_vehicles[agent_idx].location
@@ -641,20 +639,31 @@ class FMPEnv(AECEnv):
                 )
                 if self.verbose:
                     print(
-                        "Move: ", agent, " is in charging at ", cs_idx,
-                        " with position: ", self.fmp.charging_stations[cs_idx].charging_vehicle.index(agent), 
-                        ". Total vehicles in charging station: ", self.fmp.charging_stations[cs_idx].charging_vehicle
+                        "Move: ",
+                        agent,
+                        " is in charging at ",
+                        cs_idx,
+                        " with position: ",
+                        self.fmp.charging_stations[cs_idx].charging_vehicle.index(
+                            agent
+                        ),
+                        ". Total vehicles in charging station: ",
+                        self.fmp.charging_stations[cs_idx].charging_vehicle,
                     )
 
-                cs_edge_index = next(i for i in range(len(self.fmp.edges)) if self.fmp.edges[i].end == self.fmp.charging_stations[cs_idx].location)
+                cs_edge_index = next(
+                    i
+                    for i in range(len(self.fmp.edges))
+                    if self.fmp.edges[i].end
+                    == self.fmp.charging_stations[cs_idx].location
+                )
                 cs_lane_position = self.fmp.edge_length_dict[cs_edge_index]
                 print("CHECKKK: ", cs_lane_position)
 
-                if (
-                    self.fmp.charging_stations[cs_idx].charging_vehicle.index(agent)
-                    < self.fmp.charging_stations[cs_idx].n_slot
-                    or
-                    (stopped is not None and abs(stopped - cs_lane_position) < 5)
+                if self.fmp.charging_stations[cs_idx].charging_vehicle.index(
+                    agent
+                ) < self.fmp.charging_stations[cs_idx].n_slot or (
+                    stopped is not None and abs(stopped - cs_lane_position) < 5
                 ):
                     self.fmp.electric_vehicles[agent_idx].battery = min(
                         self.fmp.electric_vehicles[agent_idx].battery
@@ -672,7 +681,11 @@ class FMPEnv(AECEnv):
                 ):
                     self.fmp.electric_vehicles[agent_idx].status = 0
                     self.fmp.charging_stations[cs_idx].charging_vehicle.remove(agent)
-                    print("Charging finished for vehicle; ", agent, self.fmp.charging_stations[cs_idx].charging_vehicle)
+                    print(
+                        "Charging finished for vehicle; ",
+                        agent,
+                        self.fmp.charging_stations[cs_idx].charging_vehicle,
+                    )
             else:
                 cs_idx = (
                     self.fmp.electric_vehicles[agent_idx].status
