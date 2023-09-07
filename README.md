@@ -7,6 +7,20 @@
 
 OpenAI-gym like toolkit for developing and comparing reinforcement learning algorithms on SUMO.
 
+This repo provides the source codes for "SMART-eFlo: An Integrated SUMO-Gym Framework for Multi-Agent Reinforcement Learning in Electric Fleet Management Problem". Please cite it if you find it helpful.
+
+```
+@INPROCEEDINGS{9922047,
+  author={Liu, Shuo and Wang, Yunhao and Chen, Xu and Fu, Yongjie and Di, Xuan},
+  booktitle={2022 IEEE 25th International Conference on Intelligent Transportation Systems (ITSC)}, 
+  title={SMART-eFlo: An Integrated SUMO-Gym Framework for Multi-Agent Reinforcement Learning in Electric Fleet Management Problem}, 
+  year={2022},
+  volume={},
+  number={},
+  pages={3026-3031},
+  doi={10.1109/ITSC55140.2022.9922047}}
+```
+
 
 
 ## Installation
