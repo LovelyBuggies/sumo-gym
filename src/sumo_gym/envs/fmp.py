@@ -188,6 +188,8 @@ class FMP(object):
         self.n_edge = len(self.edges)
         self.n_vehicle = self.n_electric_vehicle = len(self.electric_vehicles)
         self.n_charging_station = len(self.charging_stations)
+        print("############################\n")
+        print("############################\n")
 
     def _is_valid(self):
         if (
@@ -409,6 +411,9 @@ class FMPEnv(AECEnv):
 
         self.travel_info = {i: None for i in range(self.fmp.n_electric_vehicle)}
 
+        if hasattr(self, "sumo") and self.sumo is not None:
+            self.sumo.reset()
+
         return self.observations
 
     def _was_done_step(self, action):
@@ -422,7 +427,7 @@ class FMPEnv(AECEnv):
             agent
         ], "an agent that was not done as attempted to be removed"
         del self.dones[agent]
-        del self.upper_rewards[agent]
+        # del self.upper_rewards[agent]
         del self._cumulative_rewards[agent]
         self.agents.remove(agent)
 
@@ -437,6 +442,10 @@ class FMPEnv(AECEnv):
                 self.agent_selection = self._skip_agent_selection
             self._skip_agent_selection = None
         self._clear_rewards()
+
+        self._agent_selector._current_agent -= 1
+        if self._agent_selector._current_agent < 0:
+            self._agent_selector._current_agent = 0
 
         if self.fmp.electric_vehicles[agent_idx].status > 2 * self.fmp.n_demand:
             if (
@@ -474,22 +483,47 @@ class FMPEnv(AECEnv):
         need_action = (
             self.sumo.retrieve_need_action_status()[agent_idx] if self.sumo else True
         )
-        stopped = {
-            self.sumo.retrieve_stop_status()[agent_idx] if self.sumo else None
-        }
+        stopped = self.sumo.retrieve_stop_status()[agent_idx] if self.sumo else None
 
         self.travel_info[agent_idx] = None
         prev_loc = self.fmp.electric_vehicles[agent_idx].location
 
         if self.dones[agent]:
-            self._was_done_step(None)
+            print("Idle: ", agent, "............")
+            self.travel_info[agent_idx] = (prev_loc, IDLE_LOCATION)
+
+            if self._agent_selector.is_last():
+                self.num_moves += 1
+
+                self.infos.task_finish_time = self.num_moves
+                self.infos.respond_failing_time += self.fmp.n_demand - len(
+                    set(
+                        chain.from_iterable(
+                            [ev.responded for ev in self.fmp.electric_vehicles]
+                        )
+                    )
+                )
+                self.infos.total_battery_consume += len(self.agents)
+
+                if self.sumo is not None:
+                    self.sumo.update_travel_vertex_info_for_vehicle(self.travel_info)
+                    self.render()
+
+                if self.verbose:
+                    print("------------------------------")
+
+            print("BEFORE DONE: ", agent, self.agent_selection)
+
             self.observations[agent] = None
+            self._was_done_step(None)
+            print("AFTER DONE: ", self.agent_selection)
             self.agent_selection = (
                 self._agent_selector.next()
                 if self._agent_selector.agent_order
                 else None
             )
-            self.travel_info[agent_idx] = (prev_loc, IDLE_LOCATION)
+            print("AFTER AFTER DONE: ", self.agents)
+
             return self.observations, self.upper_rewards, self.dones, self.infos
         else:
             if not need_action:
@@ -499,7 +533,7 @@ class FMPEnv(AECEnv):
                 self.upper_rewards[agent] = 0
                 # state move
                 if self.fmp.electric_vehicles[agent_idx].status != 0:
-                    self._state_move()
+                    self._state_move(stopped)
                 # state transition
                 else:
                     self._state_transition(upper_action, lower_action)
@@ -578,7 +612,7 @@ class FMPEnv(AECEnv):
 
             return self.observations, self.upper_rewards, self.dones, self.infos
 
-    def _state_move(self):
+    def _state_move(self, stopped):
         """
         Deal with moving state:
         1. Move the state
@@ -613,7 +647,7 @@ class FMPEnv(AECEnv):
                 dmd_idx = self.fmp.electric_vehicles[agent_idx].status - 1
                 dest_loc = self.fmp.demands[dmd_idx].departure
                 if self.verbose:
-                    print("Move: ", agent, " is to respond demand ", dmd_idx)
+                    print("Move: ", agent, " is to pick up demand ", dmd_idx)
 
                 self.fmp.electric_vehicles[
                     agent_idx
@@ -641,20 +675,35 @@ class FMPEnv(AECEnv):
                 )
                 if self.verbose:
                     print(
-                        "Move: ", agent, " is in charging at ", cs_idx,
-                        " with position: ", self.fmp.charging_stations[cs_idx].charging_vehicle.index(agent), 
-                        ". Total vehicles in charging station: ", self.fmp.charging_stations[cs_idx].charging_vehicle
+                        "Move: ",
+                        agent,
+                        " is in charging at ",
+                        cs_idx,
+                        " with position: ",
+                        self.fmp.charging_stations[cs_idx].charging_vehicle.index(
+                            agent
+                        ),
+                        ". Total vehicles in charging station: ",
+                        self.fmp.charging_stations[cs_idx].charging_vehicle,
                     )
 
-                cs_edge_index = next(i for i in range(len(self.fmp.edges)) if self.fmp.edges[i].end == self.fmp.charging_stations[cs_idx].location)
-                cs_lane_position = self.fmp.edge_length_dict[cs_edge_index]
-                print("CHECKKK: ", cs_lane_position)
+                cs_edge_index = next(
+                    i
+                    for i in range(len(self.fmp.edges))
+                    if self.fmp.edges[i].end
+                    == self.fmp.charging_stations[cs_idx].location
+                )
+                cs_edge_sumo_id = next(
+                    key
+                    for key, value in self.fmp.edge_dict.items()
+                    if value == cs_edge_index
+                )
+                cs_lane_position = self.fmp.edge_length_dict[cs_edge_sumo_id]
 
-                if (
-                    self.fmp.charging_stations[cs_idx].charging_vehicle.index(agent)
-                    < self.fmp.charging_stations[cs_idx].n_slot
-                    or
-                    (stopped is not None and abs(stopped - cs_lane_position) < 5)
+                if self.fmp.charging_stations[cs_idx].charging_vehicle.index(
+                    agent
+                ) < self.fmp.charging_stations[cs_idx].n_slot or (
+                    stopped is not None and abs(stopped - cs_lane_position) < 5
                 ):
                     self.fmp.electric_vehicles[agent_idx].battery = min(
                         self.fmp.electric_vehicles[agent_idx].battery
@@ -672,7 +721,11 @@ class FMPEnv(AECEnv):
                 ):
                     self.fmp.electric_vehicles[agent_idx].status = 0
                     self.fmp.charging_stations[cs_idx].charging_vehicle.remove(agent)
-                    print("Charging finished for vehicle; ", agent, self.fmp.charging_stations[cs_idx].charging_vehicle)
+                    print(
+                        "Charging finished for vehicle; ",
+                        agent,
+                        self.fmp.charging_stations[cs_idx].charging_vehicle,
+                    )
             else:
                 cs_idx = (
                     self.fmp.electric_vehicles[agent_idx].status
@@ -777,7 +830,6 @@ class FMPEnv(AECEnv):
         )
         self.observations[agent] = self.states[agent]
         self._calculate_upper_reward(agent, agent_idx, upper_action, lower_action)
-        # self._calculate_lower_reward(self.fmp.electric_vehicles[agent_idx].location, is_valid, upper_action, lower_action)
 
     def _calculate_upper_reward(self, agent, agent_idx, upper_action, lower_action):
         self.upper_rewards[agent] = 0
