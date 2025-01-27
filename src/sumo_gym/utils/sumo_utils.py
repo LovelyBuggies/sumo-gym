@@ -230,7 +230,15 @@ class SumoRender:
                 else:
                     self.stopped[i] = None
             else:
-                print("============> ", vehicle_id, " traveling =====================> ", traci.vehicle.getLaneID(vehicle_id), traci.vehicle.getSpeedMode(vehicle_id), traci.vehicle.getStopState(vehicle_id), self.last_edge[i])
+                print(
+                    "============> ",
+                    vehicle_id,
+                    " traveling =====================> ",
+                    traci.vehicle.getLaneID(vehicle_id),
+                    traci.vehicle.getSpeedMode(vehicle_id),
+                    traci.vehicle.getStopState(vehicle_id),
+                    self.last_edge[i],
+                )
                 if traci.vehicle.getStopState(vehicle_id):
                     traci.vehicle.resume(vehicle_id)
                     print("============> Trying to resume vehicle: ", vehicle_id)
