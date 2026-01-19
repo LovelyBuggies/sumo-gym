@@ -9,7 +9,6 @@ from sumo_gym.utils.network_utils import (
 from sumo_gym.utils.svg_uitls import vehicle_marker
 from typing import Tuple
 
-
 __all__ = (
     "NetworkSpace",
     "decode_xml",
