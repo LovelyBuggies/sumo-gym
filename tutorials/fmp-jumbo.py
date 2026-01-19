@@ -4,7 +4,6 @@ import sys
 from pettingzoo.test import api_test
 from pettingzoo.utils import wrappers
 
-
 env = gym.make(
     "FMP-v0",
     mode="sumo_config",

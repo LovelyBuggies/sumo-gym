@@ -4,7 +4,6 @@ import numpy.typing as npt
 from gym.spaces import Space
 import sumo_gym
 
-
 VertexType = Tuple[float]
 VerticesType = npt.NDArray[VertexType]
 DemandType = npt.NDArray[float]
